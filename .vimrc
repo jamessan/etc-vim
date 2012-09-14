@@ -8,6 +8,11 @@ set ffs=unix,dos,mac
 
 " Theme/Colors
 
+" Let Vim know that screen/tmux can use bce
+if &term =~ '^screen-.*-bce$'
+    set t_ut=y
+end
+
 if &t_Co >= 88 || has('gui_running')
     colorscheme jellyx
 else
