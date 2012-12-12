@@ -12,6 +12,11 @@ set ffs=unix,dos,mac
 if &term =~ '^screen-.*-bce$'
     set t_ut=y
 end
+" Change the cursor to an underline in insert mode
+if &term =~ 'xterm\|screen'
+    set t_SI=[4\ q
+    set t_EI=[2\ q
+endif
 
 if &t_Co >= 88 || has('gui_running')
     colorscheme jellyx
@@ -59,6 +64,7 @@ set ttyfast
 
 " Visual Cues
 
+set ttimeoutlen=100 " Quickly detect normal escape sequences
 set noequalalways " Don't automatically make windows the same size. <C-w>= works
 set showmatch " show matching brackets
 set showcmd
