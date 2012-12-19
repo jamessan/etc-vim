@@ -101,10 +101,6 @@ set nostartofline " Don't move to ^ after various actions.
 " Text Formatting/Layout
 
 set formatoptions=tcrqn " See Help (complex)
-set softtabstop=4 " unify
-set shiftwidth=4 " unify
-set expandtab " spaces please!
-set textwidth=78
 set wrap
 set sidescroll=1
 set sidescrolloff=7
