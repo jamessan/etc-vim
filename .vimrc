@@ -84,16 +84,16 @@ else
 endif
 set visualbell t_vb= " don't blink and no noises
 set statusline=   " clear the statusline for when vimrc is reloaded
-set statusline+=%-3.3n\                      " buffer number
-set statusline+=%f\                          " filename
-set statusline+=%h%m%r%w                     " flags
-set statusline+=[%{strlen(&ft)?&ft:'none'},  " filetype
-set statusline+=%{strlen(&fenc)?&fenc:&enc}, " encoding
-set statusline+=%{&fileformat}]              " file format
-set statusline+=%=                           " right align
-set statusline+=%{synIDattr(synID(line('.'),col('.'),1),'name')}\  " highlight
-set statusline+=%b,0x%-8B\                   " current char
-set statusline+=%-14.(%l,%c%V%)\ %<%P        " offset
+set statusline+=%f                           " filename
+set statusline+=%m%r\ %q%h%w\                " flags
+set statusline+=[%n:                         " buffer number
+set statusline+=%{&fileformat}/
+set statusline+=%{strlen(&fenc)?&fenc:&enc}/ " encoding
+set statusline+=%Y]                          " filetype
+set statusline+=%=%<                         " right align
+set statusline+=[0x%04.4B]                   " current char
+set statusline+=[%03c%04V]                   " column
+set statusline+=[%p%%\ line\ %l\ of\ %L]     " position in buffer
 set laststatus=2 " always show the status line
 set nostartofline " Don't move to ^ after various actions.
                   " :he 'sol' for an explanation of what actions
