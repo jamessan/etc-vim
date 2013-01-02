@@ -6,6 +6,8 @@ scriptencoding utf-8
 set history=10000 " How many lines of history to remember
 set ffs=unix,dos,mac
 
+call pathogen#infect()
+
 " Theme/Colors
 
 " Let Vim know that screen/tmux can use bce
@@ -109,8 +111,6 @@ set noshiftround
 set cpoptions+=n " When 'wrap' is enabled, the 'number' column is used to
                  " display wrapped text
 set autoindent
-
-call pathogen#infect()
 
 filetype plugin indent on
 syntax enable
