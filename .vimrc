@@ -284,6 +284,39 @@ function! <SID>DiffPreview()
     diffthis
 endfunction
 
+function! s:SynNames()
+    let syn = {}
+    let lnum = line('.')
+    let cnum = col('.')
+    let [effective, visual] = [synID(lnum, cnum, 0), synID(lnum, cnum, 1)]
+    let syn.effective = synIDattr(effective, 'name')
+    let syn.effective_link = synIDattr(synIDtrans(effective), 'name')
+    let syn.visual = synIDattr(visual, 'name')
+    let syn.visual_link = synIDattr(synIDtrans(visual), 'name')
+    return syn
+endfunction
+
+function! s:SynInfo()
+    let syn = s:SynNames()
+    let info = ''
+    if syn.visual != ''
+        let info .= printf('visual: %s', syn.visual)
+        if syn.visual != syn.visual_link
+            let info .= printf(' (as %s)', syn.visual_link)
+        endif
+    endif
+    if syn.effective != syn.visual
+        if syn.visual != ''
+            let info .= ', '
+        endif
+        let info .= printf('effective: %s', syn.effective)
+        if syn.effective != syn.effective_link
+            let info .= printf(' (as %s)', syn.effective_link)
+        endif
+    endif
+    return info
+endfunction
+
 " Make Y act like D, C, S, etc.
 nnoremap Y y$
 
@@ -297,7 +330,7 @@ nnoremap <Leader>I i <ESC>r
 nnoremap <Leader>bd :call <SID>CloseIfOnlyWindow(0)<CR>
 nnoremap <Leader>bD :call <SID>CloseIfOnlyWindow(1)<CR>
 nnoremap <Leader>dp :call <SID>DiffPreview()<CR>
-nnoremap <Leader>si :echo synIDattr(synID(line('.'), col('.'), 1), 'name')<CR>
+nnoremap <Leader>si :echo <SID>SynInfo()<CR>
 if exists('*synstack')
     nnoremap <Leader>sI :echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')<CR>
 endif
