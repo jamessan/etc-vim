@@ -87,7 +87,12 @@ endif
 set visualbell t_vb= " don't blink and no noises
 set statusline=   " clear the statusline for when vimrc is reloaded
 set statusline+=%f                           " filename
-set statusline+=%m%r\ %q%h%w\                " flags
+set statusline+=%m%r\                        " flags
+try
+    set statusline+=%q                       " Added in 7.3
+catch /^Vim(set):E539/
+endtry
+set statusline+=%h%w\ 
 set statusline+=[%n:                         " buffer number
 set statusline+=%{&fileformat}/
 set statusline+=%{strlen(&fenc)?&fenc:&enc}/ " encoding
