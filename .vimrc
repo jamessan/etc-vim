@@ -328,6 +328,9 @@ nnoremap Y y$
 " Print out the english description of the unicode character under the cursor
 nnoremap <Leader>un :UnicodeName<CR>
 
+" Clear the active 'hlsearch' highlighting and refresh the screen
+nnoremap <C-l> :nohlsearch<CR><C-l>
+
 " \-i (normal mode) inserts a single char, and then switches back to normal
 nnoremap <Leader>i i <ESC>
 nnoremap <Leader>I i <ESC>r
