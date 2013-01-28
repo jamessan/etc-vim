@@ -31,11 +31,11 @@ end
 set nobackup " make backup file ...
 set writebackup " ... but delete after successfully saving file
 if has("win32")
-    set backupdir^=$HOMEDRIVE/$HOMEPATH/backup " where to put backup file
-    set directory^=$HOMEDRIVE/$HOMEPATH/tmp " where to put swapfiles
+    set backupdir^=$HOME/vimfiles/backup " where to put backup file
+    set directory^=$HOME/vimfiles/tmp// " where to put swapfiles
 else
     set backupdir^=$HOME/.vim/backup " where to put backup file
-    set directory^=$HOME/.vim/tmp " where to put swapfiles
+    set directory^=$HOME/.vim/tmp// " where to put swapfiles
 endif
 set makeef=error.err " When using make, where should it dump the file
 
