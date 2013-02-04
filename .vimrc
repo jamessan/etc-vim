@@ -49,7 +49,13 @@ set ruler " Always show current positions along the bottom
 set cmdheight=2 " the command bar is 2 high
 " Only use numbers if we can adjust the width of the number column
 if exists('+numberwidth')
-    set number " turn on line numbers
+    " Use 'relativenumber' if Vim is new enough to show the actual line number
+    " instead of 0 for the cursor's line
+    if exists('+relativenumber') && (v:version > 703 || v:version == 703 && has('patch787'))
+        set relativenumber
+    else
+        set number " turn on line numbers
+    endif
     set numberwidth=1 " Dynamically resize the 'number' column
 endif
 set lazyredraw " do not redraw while running macros (much faster)
