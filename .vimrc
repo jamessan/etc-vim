@@ -133,6 +133,8 @@ let netrw_silent = 1
 let VCSCommandDisableMappings = 1
 let VCSCommandDisableExtensionMappings = 1
 
+let buffalo_autoaccept = 1
+
 " NERD Tree
 let NERDTreeQuitOpen = 1
 
