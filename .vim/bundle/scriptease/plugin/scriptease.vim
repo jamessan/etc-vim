@@ -246,7 +246,7 @@ function! s:Verbose(level, excmd)
   return
         \ 'try|' .
         \ 'let &verbosefile = '.string(temp).'|' .
-        \ a:level.'verbose exe '.string(a:excmd).'|' .
+        \ 'silent '.a:level.'verbose exe '.string(a:excmd).'|' .
         \ 'finally|' .
         \ 'let &verbosefile = '.string(verbosefile).'|' .
         \ 'endtry|' .
@@ -545,6 +545,15 @@ endfunction
 " }}}1
 " :Vopen, :Vedit, ... {{{1
 
+function! s:previewwindow()
+  for i in range(1, winnr('$'))
+    if getwinvar(i, '&previewwindow') == 1
+      return i
+    endif
+  endfor
+  return -1
+endfunction
+
 function! s:runtime_globpath(file)
   return split(globpath(escape(&runtimepath, ' '), a:file), "\n")
 endfunction
@@ -560,12 +569,23 @@ function! s:find(count,cmd,file,lcd)
     let path = file[0:-strlen(a:file)-2]
     return a:cmd.' '.s:fnameescape(file) . '|lcd '.s:fnameescape(path)
   else
-    if a:cmd !~# '^edit'
+    let window = 0
+    let precmd = ''
+    let postcmd = ''
+    if a:cmd =~# '^pedit'
+      try
+        exe 'silent ' . a:cmd
+      catch /^Vim\%((\a\+)\)\=:E32/
+      endtry
+      let window = s:previewwindow()
+      let precmd = printf('%d wincmd w|', window)
+      let postcmd = '|wincmd w'
+    elseif a:cmd !~# '^edit'
       exe a:cmd
     endif
-    call setloclist(0, map(found,
+    call setloclist(window, map(found,
           \ '{"filename": v:val, "text": v:val[0 : -len(a:file)-2]}'))
-    return 'll'.matchstr(a:cmd, '!$').' '.a:count
+    return precmd . 'll'.matchstr(a:cmd, '!$').' '.a:count . postcmd
   endif
 endfunction
 
@@ -582,7 +602,7 @@ command! -bar -bang -range=1 -nargs=1 -complete=customlist,s:Complete Vvsplit
 command! -bar -bang -range=1 -nargs=1 -complete=customlist,s:Complete Vtabedit
       \ :execute s:find(<count>,'tabedit',<q-args>,<bang>0)
 command! -bar -bang -range=1 -nargs=1 -complete=customlist,s:Complete Vpedit
-      \ :execute s:find(<count>,'pedit',<q-args>,<bang>0)
+      \ :execute s:find(<count>,'pedit<bang>',<q-args>,0)
 command! -bar -bang -range=1 -nargs=1 -complete=customlist,s:Complete Vread
       \ :execute s:find(<count>,'read',<q-args>,<bang>0)
 
