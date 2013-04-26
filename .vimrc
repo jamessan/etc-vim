@@ -188,6 +188,15 @@ if executable('dpkg-architecture')
         endfor
     endif
 endif
+
+if executable('ack-grep') == 1
+    set grepprg=ack-grep\ -H\ --column
+    set grepformat^=%f:%l:%c:%m
+elseif executable('ack') == 1
+    set grepprg=ack\ -H\ --column
+    set grepformat^=%f:%l:%c:%m
+endif
+
 " Custom Functions
 
 function! <SID>ValidAltBuffer(bufnr)
