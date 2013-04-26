@@ -176,6 +176,18 @@ let g:secure_modelines_allowed_items = [
             \ "spelllang"
             \ ]
 
+" Is this a Debian system?
+if executable('dpkg-architecture')
+    " Check whether multi-arch is actually supported
+    call system('dpkg --assert-multi-arch')
+    if v:shell_error == 0
+        " Update 'path' with multi-arch paths
+        for arch in split(system('dpkg --print-architecture; dpkg --print-foreign-architectures'))
+            let ma_path=split(system('dpkg-architecture -a'.arch.' -qDEB_HOST_MULTIARCH'))[0]
+            let &path .= ',/usr/include/'.ma_path
+        endfor
+    endif
+endif
 " Custom Functions
 
 function! <SID>ValidAltBuffer(bufnr)
