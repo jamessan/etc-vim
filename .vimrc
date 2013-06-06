@@ -128,6 +128,7 @@ syntax enable
 
 " NetRW
 let netrw_silent = 1
+let netrw_dirhistmax = 0
 
 " VCSCommand
 let VCSCommandDisableMappings = 1
