@@ -1,4 +1,4 @@
-*signify.txt*                                      Seeing changes like a boss.
+*signify.txt*  Use the sign column to show all kinds of things.
 *signify*
 
                                               ___
@@ -55,28 +55,28 @@ version control system:
     - cvs
     - rcs
     - fossil
+    - accurev
 
 Sign explanation:
 
     +
 
-A new line was added. The sign is shown on the same line as the new line.
+This indicates a new line.
 
     _1
 
-A line was deleted. The sign is shown on the line above the deleted line. The
-second character indicates the number of deleted lines: 1-9, and # for
-everything above.
+This indicates the number of deleted lines. If the number is larger than 9, a
+> will be shown instead.
 
     !
 
-A line was changed. Something was changed, but the amount of lines stayed the
-same. The sign is shown on the same line.
+This indicates a changed line.
 
-    !_
+    !1
 
-A line was changed and one or more of the lines below were deleted. A
-combination of ! and _. The sign is shown on the same line.
+This indicates a changed line and a number of lines below that were deleted.
+It is a combination of ! and _. If the number is larger than 9, a > will be
+shown instead.
 
     ‾
 
@@ -93,7 +93,7 @@ default values, as long as no "Default:" section is given.
 
     let g:signify_vcs_list = [ 'git', 'hg' ]
 
-Default: ['git', 'hg', 'svn', 'darcs', 'bzr', 'fossil', 'cvs', 'rcs']
+Default: ['git', 'hg', 'svn', 'darcs', 'bzr', 'fossil', 'cvs', 'rcs', 'accurev']
 
 This variable determines the VCS to check for and in what order. If you only
 use git and mercurial, you can shorten the list to the shown example. If you
@@ -170,7 +170,6 @@ Enable line highlighting in addition to using signs by default.
 
     let g:signify_sign_add               = '+'
     let g:signify_sign_change            = '!'
-    let g:signify_sign_change_delete     = '!_'
     let g:signify_sign_delete            = '_'
     let g:signify_sign_delete_first_line = '‾'
 

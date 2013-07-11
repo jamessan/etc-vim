@@ -1,14 +1,7 @@
-
-
-NEWS: Sy is pretty stable at the moment, so there will be no commits (apart from
-bugfixes/feature requests) in the next ~month. I'm mainly working at Sy 2.0 at the
-moment. Stay tuned! :-)
-
-
 vim-signify
 -----------
 
-Or just: __sy__
+Or just: __Sy__.
 
 Sy shows all added, deleted and modified lines since the last commit via Vim its
 sign column. It __supports several version control systems__.
@@ -18,7 +11,7 @@ It's __fast__, __highly configurable__ and __well documented__.
 Features:
 
 - supports git, mercurial, darcs, bazaar, subversion, cvs, rcs, fossil
-- quick jumping between changed lines
+- quick jumping between blocks of changed lines
 - apart from signs there is also optional line highlighting
 - fully configurable through global variables (options and mappings)
 - optional preserving of signs from other plugins
@@ -66,28 +59,26 @@ Sign explanation
 
 `+`
 
-A new line was added. The sign is shown on the same line as the new line.
+This indicates a new line.
 
 `_1`
 
-A line was deleted. The sign is shown on the line above the deleted line. The
-second character indicates the number of deleted lines: 1-9, and # for
-everything above.
+This indicates the number of deleted lines. If the number is larger than 9, a
+`>` will be shown instead.
 
 `!`
 
-A line was changed. Something was changed, but the amount of lines stayed the
-same. The sign is shown on the same line.
+This indicates a changed line.
 
-`!_`
+`!1`
 
-A line was changed and one or more of the lines below were deleted. A
-combination of **!** and **_**. The sign is shown on the same line.
-
+This indicates a changed line and a number of lines below that were deleted.  It
+is a combination of `!` and `_`. If the number is larger than 9, a `>` will be
+shown instead.
 
 `‾`
 
-This is used instead of _ in the special case of the first line being removed.
+This is used instead of `_` in the special case of the first line being removed.
 
 Longer introduction
 -------------------
@@ -108,6 +99,7 @@ Currently the following VCS are supported:
 - cvs
 - rcs
 - fossil
+- accurev
 
 #### quick jumping between changed lines
 
@@ -212,9 +204,8 @@ let g:signify_update_on_bufenter = 1
 let g:signify_line_highlight = 1
 
 let g:signify_sign_add               = '+'
-let g:signify_sign_delete            = '-'
-let g:signify_sign_change            = '*'
-let g:signify_sign_change_delete     = '*_'
+let g:signify_sign_change            = '!'
+let g:signify_sign_delete            = '_'
 let g:signify_sign_delete_first_line = '‾'
 
 let g:signify_cursorhold_normal = 1
