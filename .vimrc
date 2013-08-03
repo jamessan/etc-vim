@@ -53,6 +53,11 @@ if exists('+numberwidth')
     " instead of 0 for the cursor's line
     if exists('+relativenumber') && (v:version > 703 || v:version == 703 && has('patch787'))
         set relativenumber
+        " After 7.3.1115, also need to set 'number' to see the current line
+        " number
+        if v:version > 703 || v:version == 703 && has('patch1115')
+            set number
+        endif
     else
         set number " turn on line numbers
     endif
