@@ -10,7 +10,8 @@ It's __fast__, __highly configurable__ and __well documented__.
 
 Features:
 
-- supports git, mercurial, darcs, bazaar, subversion, cvs, rcs, fossil
+- supports git, mercurial, darcs, bazaar, subversion, cvs, rcs, fossil, accurev,
+  perforce
 - quick jumping between blocks of changed lines
 - apart from signs there is also optional line highlighting
 - fully configurable through global variables (options and mappings)
@@ -32,6 +33,8 @@ If you use any of my plugins, star it on github. This is a great way of getting
 feedback! Same for issues or feature requests.
 
 Thank you for flying mhi airlines. Get the Vim on!
+
+You can also follow me on Twitter: [@_mhinz_](https://twitter.com/_mhinz_)
 
 What about vim-gitgutter?
 -------------------------
@@ -100,6 +103,7 @@ Currently the following VCS are supported:
 - rcs
 - fossil
 - accurev
+- perforce
 
 #### quick jumping between changed lines
 
@@ -220,5 +224,4 @@ Marco Hinz `<mh.codebro@gmail.com>`
 License
 -------
 
-Copyright © Marco Hinz. Distributed under the same terms as Vim itself. See
-`:help license`.
+MIT license. Copyright (c) 2013 Marco Hinz.
