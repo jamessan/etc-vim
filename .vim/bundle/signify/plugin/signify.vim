@@ -1,7 +1,4 @@
-" Plugin:      https://github.com/mhinz/vim-signify
-" Description: show a diff from a version control system via the signcolumn
-" Maintainer:  Marco Hinz <http://github.com/mhinz>
-" Version:     1.9
+scriptencoding utf-8
 
 if exists('g:loaded_signify') || !has('signs') || &cp
   finish
@@ -47,7 +44,7 @@ augroup signify
           \ endif
   endif
 
-  if !has('gui_win32')
+  if get(g:, 'signify_update_on_focusgained') && !has('gui_win32')
     autocmd FocusGained * call sy#start(g:sy_path)
   endif
 augroup END
@@ -65,33 +62,33 @@ nnoremap <silent> <plug>(signify-toggle)           :<c-u>call sy#toggle()<cr>
 
 if exists('g:signify_mapping_next_hunk')
   execute 'nmap '. g:signify_mapping_next_hunk .' <plug>(signify-next-hunk)'
-elseif !hasmapto('<plug>(signify-next-hunk)') && !maparg('<leader>gj', 'n')
+elseif !hasmapto('<plug>(signify-next-hunk)') && empty(maparg('<leader>gj', 'n'))
   nmap <leader>gj <plug>(signify-next-hunk)
 endif
 
 if exists('g:signify_mapping_prev_hunk')
   execute 'nmap '. g:signify_mapping_prev_hunk .' <plug>(signify-prev-hunk)'
-elseif !hasmapto('<plug>(signify-prev-hunk)') && !maparg('<leader>gk', 'n')
+elseif !hasmapto('<plug>(signify-prev-hunk)') && empty(maparg('<leader>gk', 'n'))
   nmap <leader>gk <plug>(signify-prev-hunk)
 endif
 
 if exists('g:signify_mapping_toggle_highlight')
   execute 'nmap '. g:signify_mapping_toggle_highlight .' <plug>(signify-toggle-highlight)'
-elseif !hasmapto('<plug>(signify-toggle-highlight)') && !maparg('<leader>gh', 'n')
+elseif !hasmapto('<plug>(signify-toggle-highlight)') && empty(maparg('<leader>gh', 'n'))
   nmap <leader>gh <plug>(signify-toggle-highlight)
 endif
 
 if exists('g:signify_mapping_toggle')
   execute 'nmap '. g:signify_mapping_toggle .' <plug>(signify-toggle)'
-elseif !hasmapto('<plug>(signify-toggle)') && !maparg('<leader>gt', 'n')
+elseif !hasmapto('<plug>(signify-toggle)') && empty(maparg('<leader>gt', 'n'))
   nmap <leader>gt <plug>(signify-toggle)
 endif
 
-if !maparg(']c', 'n')
+if empty(maparg(']c', 'n'))
   nmap ]c <plug>(signify-next-hunk)
 endif
 
-if !maparg('[c', 'n')
+if empty(maparg('[c', 'n'))
   nmap [c <plug>(signify-prev-hunk)
 endif
 

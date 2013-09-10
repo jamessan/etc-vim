@@ -1,3 +1,5 @@
+scriptencoding utf-8
+
 if exists('b:autoloaded_sy_highlight')
   finish
 endif
@@ -11,13 +13,13 @@ let s:sign_change            = get(g:, 'signify_sign_change',            '!')
 
 " Function: #setup {{{1
 function! sy#highlight#setup() abort
-  highlight link SignifyLineAdd    DiffAdd
-  highlight link SignifyLineChange DiffChange
-  highlight link SignifyLineDelete DiffDelete
+  highlight default link SignifyLineAdd    DiffAdd
+  highlight default link SignifyLineChange DiffChange
+  highlight default link SignifyLineDelete DiffDelete
 
-  highlight link SignifySignAdd    DiffAdd
-  highlight link SignifySignChange DiffChange
-  highlight link SignifySignDelete DiffDelete
+  highlight default link SignifySignAdd    DiffAdd
+  highlight default link SignifySignChange DiffChange
+  highlight default link SignifySignDelete DiffDelete
 endfunction
 
 " Function: #line_enable {{{1
@@ -91,7 +93,7 @@ function! sy#highlight#line_toggle() abort
     return
   endif
 
-  if g:signify_line_highlight
+  if get(g:, 'signify_line_highlight')
     call sy#highlight#line_disable()
   else
     call sy#highlight#line_enable()
