@@ -6,6 +6,7 @@ scriptencoding utf-8
 set history=10000 " How many lines of history to remember
 set ffs=unix,dos,mac
 
+let g:pathogen_disabled = ['buffalo']
 call pathogen#infect()
 
 " Theme/Colors
