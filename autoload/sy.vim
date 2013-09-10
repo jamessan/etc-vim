@@ -1,3 +1,5 @@
+scriptencoding utf-8
+
 if exists('b:autoloaded_sy')
     finish
 endif
@@ -21,19 +23,19 @@ function! sy#start(path) abort
   " new buffer.. add to list of registered files
   if !has_key(g:sy, a:path)
     if get(g:, 'signify_disable_by_default')
-      let g:sy[a:path] = { 'active': 0, 'type': 'unknown', 'hunks': [], 'id_top': g:id_top }
+      let g:sy[a:path] = { 'active': 0, 'type': 'unknown', 'hunks': [], 'id_top': g:id_top, 'stats': [-1, -1, -1] }
       return
     endif
 
     let [ diff, type ] = sy#repo#detect(a:path)
     if empty(diff)
       " register file as active with either no changes or no found VCS
-      let g:sy[a:path] = { 'active': 1, 'type': 'unknown', 'hunks': [], 'id_top': g:id_top }
+      let g:sy[a:path] = { 'active': 1, 'type': 'unknown', 'hunks': [], 'id_top': g:id_top, 'stats': [0, 0, 0] }
       return
     endif
 
     " register file as active and containing changes
-    let g:sy[a:path] = { 'active': 1, 'type': type, 'hunks': [], 'id_top': g:id_top }
+    let g:sy[a:path] = { 'active': 1, 'type': type, 'hunks': [], 'id_top': g:id_top, 'stats': [0, 0, 0] }
 
   " inactive buffer.. bail out
   elseif !g:sy[a:path].active
@@ -64,12 +66,13 @@ function! sy#start(path) abort
       call sy#highlight#line_disable()
   endif
 
+  execute 'sign place 99999 line=1 name=SignifyPlaceholder file='. a:path
+  call sy#sign#remove_all(a:path)
+
   if !g:signify_sign_overwrite
     call sy#sign#get_others(a:path)
   endif
 
-  execute 'sign place 99999 line=1 name=SignifyPlaceholder file='. a:path
-  call sy#sign#remove_all(a:path)
   call sy#repo#process_diff(a:path, diff)
   sign unplace 99999
 
@@ -104,6 +107,7 @@ function! sy#toggle() abort
     if g:sy[g:sy_path].active
       call sy#stop(g:sy_path)
       let g:sy[g:sy_path].active = 0
+      let g:sy[g:sy_path].stats = [-1, -1, -1]
     else
       let g:sy[g:sy_path].active = 1
       call sy#start(g:sy_path)

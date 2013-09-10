@@ -159,7 +159,9 @@ Default: Both are empty.
 
     let g:signify_sign_overwrite = 1
 
-Overwrite signs set by other plugins by default.
+Overwrite signs set by other plugins by default. Setting this to zero comes
+with a very small performance penalty since other signs have to be managed
+every time Sy sets/removes its own.
 
 ============-
 
@@ -170,6 +172,15 @@ Update signs when entering a buffer that was modified.
 NOTE: This also saves the buffer to disk!
 
 ============-
+
+    let g:signify_update_on_focusgained = 0
+
+Update signs when Vim gains focus.
+
+NOTE: This also saves the buffer to disk!
+
+============-
+
 
     let g:signify_line_highlight = 0
 
@@ -205,6 +216,14 @@ systems that rely on an external diff tool that supports the -U0 flag. These
 are: svn, bzr, darcs, fossil.
 
 Otherwise 'diff' will be used.
+
+Default: Does not exist.
+
+============-
+
+    let g:signify_diffoptions = { 'git': '-w', 'hg': '-w' }
+
+This will pass the given additional options to the selected VCS diff command.
 
 Default: Does not exist.
 
@@ -277,7 +296,7 @@ getting feedback! Same for issues or feature requests.
 
 Thank you for flying mhi airlines. Get the Vim on!
 
-You can also follow me on Twitter: [@_mhinz_](https://twitter.com/_mhinz_)
+You can also follow me on Twitter: @_mhinz_
 
 
 ==============================================================================
