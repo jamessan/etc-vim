@@ -16,11 +16,42 @@ else
   let s:difftool = 'diff'
 endif
 
+let s:vcs_dict = {
+      \ 'git':      'git',
+      \ 'hg':       'hg',
+      \ 'svn':      'svn',
+      \ 'darcs':    'darcs',
+      \ 'bzr':      'bzr',
+      \ 'fossil':   'fossil',
+      \ 'cvs':      'cvs',
+      \ 'rcs':      'rcsdiff',
+      \ 'accurev':  'accurev',
+      \ 'perforce': 'p4'
+      \ }
+
 let s:diffoptions = get(g:, 'signify_diffoptions', {})
+
+let s:vcs_list = get(g:, 'signify_vcs_list', [])
+if empty(s:vcs_list)
+  let s:vcs_list = keys(filter(s:vcs_dict, 'executable(v:val)'))
+endif
 
 " Function: #detect {{{1
 function! sy#repo#detect(path) abort
-  for type in get(g:, 'signify_vcs_list', [ 'git', 'hg', 'svn', 'darcs', 'bzr', 'fossil', 'cvs', 'rcs', 'accurev', 'perforce' ])
+  let dir = fnamemodify(a:path, ':h')
+
+  " Simple cache. If there is a registered VCS-controlled file in this
+  " directory already, assume that this file is probably controlled by
+  " the same VCS. Thus we shuffle that VCS to the top of our vcs_list.
+  if has_key(g:sy_cache, dir)
+    let idx = index(s:vcs_list, g:sy_cache[dir])
+    if idx != -1
+      call remove(s:vcs_list, idx)
+      call insert(s:vcs_list, g:sy_cache[dir], 0)
+    endif
+  endif
+
+  for type in s:vcs_list
     let diff = sy#repo#get_diff_{type}(a:path)
     if !empty(diff)
       return [ diff, type ]
@@ -107,7 +138,7 @@ endfunction
 function! sy#repo#get_diff_cvs(path) abort
   let diffoptions = has_key(s:diffoptions, 'cvs') ? s:diffoptions.cvs : ''
   let diff = system('cd '. sy#util#escape(fnamemodify(a:path, ':h')) .' && cvs diff -U0 '. diffoptions .' -- '. sy#util#escape(fnamemodify(a:path, ':t')))
-  return v:shell_error ? '' : diff
+  return ((v:shell_error == 1) && (diff =~ '+++')) ? diff : ''
 endfunction
 
 " Function: #get_diff_rcs {{{1
