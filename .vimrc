@@ -381,6 +381,12 @@ nnoremap <C-l> :nohlsearch<CR><C-l>
 nnoremap <Leader>i i <ESC>
 nnoremap <Leader>I i <ESC>r
 
+" SkyBison
+nnoremap <Leader>e :<C-u>call SkyBison('e ')<CR>
+nnoremap <Leader>b 2:<C-u>call SkyBison('b ')<CR>
+nnoremap <Leader>tj 2:<C-u>call SkyBison('tj ')<CR>
+nnoremap <Leader>h 2:<C-u>call SkyBison('h ')<CR>
+
 nnoremap <Leader>bd :call <SID>CloseIfOnlyWindow(0)<CR>
 nnoremap <Leader>bD :call <SID>CloseIfOnlyWindow(1)<CR>
 nnoremap <Leader>dp :call <SID>DiffPreview()<CR>
