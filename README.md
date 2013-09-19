@@ -191,7 +191,7 @@ From here, the user may:
   option to select it.
 - Press ctrl-g to toggle numberselect for the current SkyBison session
 - Press ctrl-v to literally insert the next character.  This can be used to
-  bypass numberselect for the next keystroke.  Akin to |c_ctrl-v|.
+  bypass numberselect for the next keystroke.  Akin to `c_ctrl-v`.
 - Press &lt;cr&gt;.  If SkyBison recognizes only one possible value for the last
   term (and ctrl-v was not just pressed), SkyBison will substitute that value
   in for the last term and run the cmdline.  If either ctrl-v just pressed or
@@ -251,7 +251,7 @@ or
 to pick which one you'd like.  If you leave the variable unset,
 g:skybison_input=0 is the default.
 
-With g:skybison_input empty or set to "0", SkyBison will use |getchar()|.  The
+With g:skybison_input empty or set to "0", SkyBison will use `getchar()`.  The
 advantages of this are:
 - It is probably more efficient while waiting for input than the alternative.
 - It seems to work properly.
@@ -262,11 +262,43 @@ With g:skybison_input set to "1", SkyBison will use a while loop waiting for
 getchar(1).  The advantages of this are:
 - Hides the cursor
 The disadvantages are:
-- As of Vim 7.4.9, you have to hit |<esc>| twice for it to be recognized.
-  Note that |ctrl-c| can be used to cancel in one key press.  This is probably
+- As of Vim 7.4.9, you have to hit `<esc>` twice for it to be recognized.
+  Note that `ctrl-c` can be used to cancel in one key press.  This is probably
   Vim's fault; eventually someone will probably patch this.
 - It may keep the CPU awake while waiting for input, and thus be less
   efficient than the alternative.
+
+Miscellaneous
+-------------
+
+SkyBison uses Vim's `cmdline-completion` under-the-hood.  This allows SkyBison
+to support a wide variety of commands without requiring logic per command, and
+thus allows SkyBison to be quite lightweight in comparison to other plugins.
+
+Globbing with `*` and `**` work as one would typically expect.  For example, `:e
+**/*.vim` could be used to prompt for every file ending in `.vim` in the
+current directory or any subdirectory.  See `starstar` for details.
+
+SkyBison works just fine as a general cmdline, not just for specific commands.
+It handles things like pipes properly.
+
+The downside to using Vim's cmdline-completion under-the-hood is that requests
+which can take Vim's cmdline-completion a while to complete will also choke
+SkyBison.  This is particularly noticeable in situations such as:
+- Use of `**` in a directory with many levels of subdirectories and files.
+- Using `:tag`  with very large tag files.
+- Some uses of `:help`, such as hitting `e` after `:h `
+
+When using commands which browse the filesystem, such as `:e`, directories
+will be recognized as valid/selectable options before SkyBison realizes that
+they can be expanded to generate new completion options.  Hence using a
+{count} on such items will select the directory, which is often not desirable.
+It is probably possible to have SkyBison double-check that a given input only
+has one option before automatically selecting it to remedy this should the
+time be taken to investigate it.
+
+Running `:e` on a directory does not currently bring up the netrw window.
+This can probably be fixed should the time be taken to investigate it.
 
 Changelog
 ---------
