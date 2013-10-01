@@ -20,8 +20,10 @@ function s:RunCommandAndQuit(cmdline)
 	" reset changed settings
 	let &laststatus = s:initlaststatus
 	let &showmode = s:initshowmode
-	bdelete!
+	let &shellslash = s:initshellslash
+	silent! hide
 	execute s:initwinnr."wincmd w"
+	execute s:winsizecmd
 	redraw
 
 	" run command, add to history and quit
@@ -51,26 +53,24 @@ function SkyBison(initcmdline)
 	let l:vcount = v:count
 
 	" set the initial g:skybison_numberselect setting for the session
-	if exists("g:skybison_numberselect")
-		let l:numberselect = g:skybison_numberselect
-	else
-		let l:numberselect = 1
-	endif
+	let l:numberselect = get(g:, "skybison_numberselect", 1)
 
 	" use try/catch to make sure we always properly clean up
 	try
 
 	" set and save global settings to restore on exit
+	let s:winsizecmd = winrestcmd()
 	let s:initlaststatus = &laststatus
 	let &laststatus = 0
 	let s:initshowmode = &showmode
 	let &showmode = 1
+	let s:initshellslash = &shellslash
+	let &shellslash = 1
 	let s:initwinnr = winnr()
 
 	" setup output window
-	botright new
+	botright 11new
 	let s:sbwinnr = winnr()
-	resize 11
 	normal "10oggzt"
 	for l:linenumber in range(1,11)
 		call setline(l:linenumber,"")
@@ -80,6 +80,7 @@ function SkyBison(initcmdline)
 	setlocal nocursorline
 	setlocal nonumber
 	setlocal nowrap
+	setlocal bufhidden=delete
 	if exists("&relativenumber")
 		setlocal norelativenumber
 	endif
@@ -93,7 +94,8 @@ function SkyBison(initcmdline)
 	syntax match Comment /^:.*_$/hs=e
 	" remove any signs that could be placed in the output window from things
 	" such as other plugins.
-	if bufnr(".") != -1
+	redir => l:signs | silent execute "sign place buffer=" . bufnr("%") | redir END
+	if len(split(l:signs,"\n")) > 1
 		execute "sign unplace * buffer=" . bufnr(".")
 	endif
 
@@ -122,11 +124,11 @@ function SkyBison(initcmdline)
 		endif
 
 		" fuzz the cmdline
-		if exists("g:skybison_fuzz") && g:skybison_fuzz == 1
+		if get(g:, "skybison_fuzz",0) == 1
 			" full fuzzing
 			" throw an asterisk between every character
 			let l:fuzzed_tail = substitute(l:cmdline_tail,'.','*&','g')
-		elseif exists('g:skybison_fuzz') && g:skybison_fuzz == 2
+		elseif get(g:, "skybison_fuzz", 0) == 2
 			" substring match
 			" prefix groups of wordchars with an asterisk
 			let l:fuzzed_tail = substitute(l:cmdline_tail,'[^/]\+','*&','g')
@@ -225,7 +227,7 @@ function SkyBison(initcmdline)
 		redraw
 
 		" get input from user
-		if exists("g:skybison_input") && g:skybison_input == 1
+		if get(g:, "skybison_input", 0) == 1
 			while getchar(1) == 0
 			endwhile
 		endif
