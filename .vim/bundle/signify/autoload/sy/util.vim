@@ -1,9 +1,6 @@
-scriptencoding utf-8
+" vim: et sw=2 sts=2
 
-if exists('b:autoloaded_sy_util')
-  finish
-endif
-let b:autoloaded_sy_util = 1
+scriptencoding utf-8
 
 " Function: #escape {{{1
 function! sy#util#escape(path) abort
@@ -25,5 +22,3 @@ endfunction
 function! sy#util#separator() abort
   return !exists('+shellslash') || &shellslash ? '/' : '\'
 endfunction
-
-" vim: et sw=2 sts=2

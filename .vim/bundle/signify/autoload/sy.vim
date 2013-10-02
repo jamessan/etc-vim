@@ -1,12 +1,16 @@
-scriptencoding utf-8
+" vim: et sw=2 sts=2
 
-if exists('b:autoloaded_sy')
-    finish
-endif
-let b:autoloaded_sy = 1
+scriptencoding utf-8
 
 " Init: values {{{1
 let g:signify_sign_overwrite = get(g:, 'signify_sign_overwrite', 1)
+if g:signify_sign_overwrite && (v:version < 703 || (v:version == 703 && !has('patch596')))
+  echohl WarningMsg
+  echomsg 'signify: Vim is outdated. Sign overwriting will be disabled.'
+  echohl NONE
+  let g:signify_sign_overwrite = 0
+endif
+
 let g:id_top = 0x100
 let g:sy_cache = {}
 
@@ -122,5 +126,3 @@ function! sy#toggle() abort
     call sy#start(g:sy_path)
   endif
 endfunction
-
-" vim: et sw=2 sts=2

@@ -1,9 +1,6 @@
-scriptencoding utf-8
+" vim: et sw=2 sts=2
 
-if exists('b:autoloaded_sy_sign')
-  finish
-endif
-let b:autoloaded_sy_sign = 1
+scriptencoding utf-8
 
 " Function: #get_others {{{1
 function! sy#sign#get_others(path) abort
@@ -41,7 +38,7 @@ endfunction
 " Function: #remove_all {{{1
 function! sy#sign#remove_all(path) abort
   if g:signify_sign_overwrite
-    sign unplace *
+    execute 'sign unplace * file='. a:path
   else
     for hunk in g:sy[a:path].hunks
       for id in hunk.ids
@@ -53,5 +50,3 @@ function! sy#sign#remove_all(path) abort
   let g:sy[a:path].hunks = []
   let g:sy[a:path].stats = [0, 0, 0]
 endfunction
-
-" vim: et sw=2 sts=2

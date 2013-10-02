@@ -1,9 +1,6 @@
-scriptencoding utf-8
+" vim: et sw=2 sts=2
 
-if exists('b:autoloaded_sy_repo')
-  finish
-endif
-let b:autoloaded_sy_repo = 1
+scriptencoding utf-8
 
 " Init: values {{{1
 if !empty(get(g:, 'signify_difftool'))
@@ -64,7 +61,7 @@ endfunction
 " Function: #get_diff_git {{{1
 function! sy#repo#get_diff_git(path) abort
   let diffoptions = has_key(s:diffoptions, 'git') ? s:diffoptions.git : ''
-  let diff = system('cd '. sy#util#escape(fnamemodify(a:path, ':h')) .' && git diff --no-ext-diff -U0 '. diffoptions .' -- '. sy#util#escape(a:path))
+  let diff = system('cd '. sy#util#escape(fnamemodify(a:path, ':h')) .' && git diff --no-color --no-ext-diff -U0 '. diffoptions .' -- '. sy#util#escape(a:path))
   return v:shell_error ? '' : diff
 endfunction
 
@@ -172,7 +169,11 @@ function! sy#repo#process_diff(path, diff) abort
   for line in filter(split(a:diff, '\n'), 'v:val =~ "^@@ "')
     let tokens = matchlist(line, '^@@ -\v(\d+),?(\d*) \+(\d+),?(\d*)')
 
-    let [ old_line, old_count, new_line, new_count ] = [ str2nr(tokens[1]), empty(tokens[2]) ? 1 : str2nr(tokens[2]), str2nr(tokens[3]), empty(tokens[4]) ? 1 : str2nr(tokens[4]) ]
+    let old_line = str2nr(tokens[1])
+    let new_line = str2nr(tokens[3])
+
+    let old_count = empty(tokens[2]) ? 1 : str2nr(tokens[2])
+    let new_count = empty(tokens[4]) ? 1 : str2nr(tokens[4])
 
     let signs = []
 
@@ -184,10 +185,13 @@ function! sy#repo#process_diff(path, diff) abort
 
     if (old_count == 0) && (new_count >= 1)
       let added += new_count
-
       let offset = 0
+
       while offset < new_count
-        call add(signs, { 'type': 'SignifyAdd', 'lnum': new_line + offset, 'path': a:path })
+        call add(signs, {
+              \ 'type': 'SignifyAdd',
+              \ 'lnum': new_line + offset,
+              \ 'path': a:path })
         let offset += 1
       endwhile
 
@@ -201,9 +205,15 @@ function! sy#repo#process_diff(path, diff) abort
       let deleted += old_count
 
       if new_line == 0
-        call add(signs, { 'type': 'SignifyDeleteFirstLine', 'lnum': 1, 'path': a:path })
+        call add(signs, {
+              \ 'type': 'SignifyDeleteFirstLine',
+              \ 'lnum': 1,
+              \ 'path': a:path })
       else
-        call add(signs, { 'type': (old_count > 9) ? 'SignifyDeleteMore' : 'SignifyDelete'. old_count, 'lnum': new_line, 'path': a:path })
+        call add(signs, {
+              \ 'type': (old_count > 9) ? 'SignifyDeleteMore' : 'SignifyDelete'. old_count,
+              \ 'lnum': new_line,
+              \ 'path': a:path })
       endif
 
     " 2 lines changed:
@@ -216,10 +226,13 @@ function! sy#repo#process_diff(path, diff) abort
 
     elseif old_count == new_count
       let modified += old_count
+      let offset    = 0
 
-      let offset = 0
       while offset < new_count
-        call add(signs, { 'type': 'SignifyChange', 'lnum': new_line + offset, 'path': a:path })
+        call add(signs, {
+              \ 'type': 'SignifyChange',
+              \ 'lnum': new_line + offset,
+              \ 'path': a:path })
         let offset += 1
       endwhile
     else
@@ -236,15 +249,22 @@ function! sy#repo#process_diff(path, diff) abort
 
       if old_count > new_count
         let modified += new_count
-        let deleted  += (old_count - new_count)
+        let removed   = (old_count - new_count)
+        let deleted  += removed
+        let offset    = 0
 
-        let offset = 0
         while offset < (new_count - 1)
-          call add(signs, { 'type': 'SignifyChange', 'lnum': new_line + offset, 'path': a:path })
+          call add(signs, {
+                \ 'type': 'SignifyChange',
+                \ 'lnum': new_line + offset,
+                \ 'path': a:path })
           let offset += 1
         endwhile
-        let deleted += (old_count - new_count)
-        call add(signs, { 'type': (deleted > 9) ? 'SignifyChangeDeleteMore' : 'SignifyChangeDelete'. deleted, 'lnum': new_line, 'path': a:path })
+
+        call add(signs, {
+              \ 'type': (removed > 9) ? 'SignifyChangeDeleteMore' : 'SignifyChangeDelete'. removed,
+              \ 'lnum': new_line,
+              \ 'path': a:path })
 
       " lines changed and added:
 
@@ -258,12 +278,20 @@ function! sy#repo#process_diff(path, diff) abort
         let modified += old_count
         let added    += (new_count - old_count)
         let offset    = 0
+
         while offset < old_count
-          call add(signs, { 'type': 'SignifyChange', 'lnum': new_line + offset, 'path': a:path })
+          call add(signs, {
+                \ 'type': 'SignifyChange',
+                \ 'lnum': new_line + offset,
+                \ 'path': a:path })
           let offset += 1
         endwhile
+
         while offset < new_count
-          call add(signs, { 'type': 'SignifyAdd', 'lnum': new_line + offset, 'path': a:path })
+          call add(signs, {
+                \ 'type': 'SignifyAdd',
+                \ 'lnum': new_line + offset,
+                \ 'path': a:path })
           let offset += 1
         endwhile
       endif
@@ -283,5 +311,3 @@ function! sy#repo#get_stats() abort
 
   return g:sy[g:sy_path].stats
 endfunction
-
-" vim: et sw=2 sts=2

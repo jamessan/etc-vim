@@ -1,9 +1,6 @@
-scriptencoding utf-8
+" vim: et sw=2 sts=2
 
-if exists('b:autoloaded_sy_highlight')
-  finish
-endif
-let b:autoloaded_sy_highlight = 1
+scriptencoding utf-8
 
 " Init: values {{{1
 let s:sign_add               = get(g:, 'signify_sign_add',               '+')
@@ -101,5 +98,3 @@ function! sy#highlight#line_toggle() abort
 
   call sy#start(g:sy_path)
 endfunction
-
-" vim: et sw=2 sts=2
