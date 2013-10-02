@@ -1,9 +1,6 @@
-scriptencoding utf-8
+" vim: et sw=2 sts=2
 
-if exists('b:autoloaded_sy_debug')
-  finish
-endif
-let b:autoloaded_sy_debug = 1
+scriptencoding utf-8
 
 " Function: #list_active_buffers {{{1
 function! sy#debug#list_active_buffers() abort
@@ -19,5 +16,3 @@ function! sy#debug#list_active_buffers() abort
     endfor
   endfor
 endfunction
-
-" vim: et sw=2 sts=2
