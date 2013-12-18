@@ -18,6 +18,10 @@ sign define SignifyPlaceholder text=. texthl=SignifySignChange linehl=
 
 " Function: #start {{{1
 function! sy#start(path) abort
+  if g:signify_locked
+    return
+  endif
+
   if &diff
         \ || !filereadable(a:path)
         \ || (exists('g:signify_skip_filetype') && has_key(g:signify_skip_filetype, &ft))
@@ -96,8 +100,8 @@ endfunction
 
 " Function: #stop {{{1
 function! sy#stop(bnum) abort
-  let bvars = getbufvar(a:bnum, '', {})
-  if !has_key(bvars, 'sy')
+  let bvars = getbufvar(a:bnum, '')
+  if empty(bvars) || !has_key(bvars, 'sy')
     return
   endif
 
