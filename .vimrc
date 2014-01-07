@@ -357,16 +357,6 @@ function! s:SynInfo()
     return info
 endfunction
 
-fun! s:ToggleFugitiveStatusline(enter)
-    if expand('<afile>') =~# '^fugitive:'
-        if a:enter
-            let &l:stl = substitute(&stl, '^%f', '%t%{fugitive#statusline()}', '')
-        else
-            set statusline<
-        endif
-    endif
-endfunction
-
 " Make Y act like D, C, S, etc.
 nnoremap Y y$
 
@@ -406,8 +396,6 @@ if has('autocmd')
 
         autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") |
                              \exe "normal! g'\"" | endif
-        autocmd BufWinEnter * call <SID>ToggleFugitiveStatusline(1)
-        autocmd BufWinLeave * call <SID>ToggleFugitiveStatusline(0)
     augroup END
 endif
 " vim: set et sts=4 sw=4:
