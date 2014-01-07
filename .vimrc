@@ -170,7 +170,6 @@ let g:GPGDefaultRecipients = [ '0x61326d40' ]
 let g:secure_modelines_allowed_items = [
             \ "iskeyword",   "isk",
             \ "textwidth",   "tw",
-            \ "softtabstop", "sts",
             \ "tabstop",     "ts",
             \ "shiftwidth",  "sw",
             \ "expandtab",   "et",   "noexpandtab", "noet",
@@ -398,4 +397,4 @@ if has('autocmd')
                              \exe "normal! g'\"" | endif
     augroup END
 endif
-" vim: set et sts=4 sw=4:
+" vim: set et sw=4:
