@@ -395,6 +395,8 @@ if has('autocmd')
 
         autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") |
                              \exe "normal! g'\"" | endif
+
+        autocmd BufRead,BufNewFile */safe/catmerge/mgmt/{RemoteAgent,daq,MP_Engine}/* setlocal noexpandtab tabstop=4 shiftwidth=4
     augroup END
 endif
 " vim: set et sw=4:
