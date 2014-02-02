@@ -202,6 +202,9 @@ elseif executable('ack') == 1
     set grepformat^=%f:%l:%c:%m
 endif
 
+" Load matchit
+runtime macros/matchit.vim
+
 " Custom Functions
 
 function! <SID>ValidAltBuffer(bufnr)
