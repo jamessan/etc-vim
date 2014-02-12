@@ -366,15 +366,15 @@ function! s:GenDaqTags(workspace) abort
     let opts = '-I CSX_CLASS_EXPORT,FBE_API_CALL --extra=+fq --fields=+Sia --languages=C,C++ --c-kinds=+p --c++-kinds=+p -R --tag-relative=yes'
     exe chdir .' '. fnameescape(workspace.'/safe/catmerge')
     if has('win32') || has('win64')
-        exe '!start /b ctags '. opts .' --exclude=mgmt . ../Targets/armada64_checked ../../sys-common'
+        exe '!start /b ctags '. opts .' -f '. workspace .'/tags.product --exclude=mgmt . ../Targets/armada64_checked ../../sys-common'
     else
-        exe '!ctags '. opts .' --exclude=mgmt . ../Targets/armada64_checked ../../sys-common &'
+        exe '!ctags '. opts .' -f '. workspace .'/tags.product --exclude=mgmt . ../Targets/armada64_checked ../../sys-common &'
     endif
     exe chdir .' mgmt'
     if has('win32') || has('win64')
-        exe '!start /b ctags '. opts . ' .'
+        exe '!start /b ctags '. opts . ' -f '. workspace .'/tags.daq .'
     else
-        exe '!ctags '. opts .' . &'
+        exe '!ctags '. opts .' -f '. workspace .'/tags.daq . &'
     endif
     exe chdir .' '. fnameescape(cwd)
 endfunction
