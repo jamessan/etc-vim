@@ -361,21 +361,22 @@ endfunction
 
 function! s:GenDaqTags(workspace) abort
     let cwd = getcwd()
+    let chdir = haslocaldir() ? 'lcd' : 'cd'
     let workspace = fnamemodify(expand(a:workspace), '%:p')
     let opts = '-I CSX_CLASS_EXPORT,FBE_API_CALL --extra=+fq --fields=+Sia --languages=C,C++ --c-kinds=+p --c++-kinds=+p -R --tag-relative=yes'
-    exe 'cd ' . fnameescape(workspace.'/safe/catmerge')
+    exe chdir .' '. fnameescape(workspace.'/safe/catmerge')
     if has('win32') || has('win64')
         exe '!start /b ctags '. opts .' --exclude=mgmt . ../Targets/armada64_checked ../../sys-common'
     else
         exe '!ctags '. opts .' --exclude=mgmt . ../Targets/armada64_checked ../../sys-common &'
     endif
-    cd mgmt
+    exe chdir .' mgmt'
     if has('win32') || has('win64')
         exe '!start /b ctags '. opts . ' .'
     else
         exe '!ctags '. opts .' . &'
     endif
-    exe 'cd ' . fnameescape(cwd)
+    exe chdir .' '. fnameescape(cwd)
 endfunction
 
 command! -nargs=1 -complete=dir GenDaqTags call <SID>GenDaqTags(<f-args>)
