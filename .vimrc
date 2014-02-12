@@ -362,7 +362,7 @@ endfunction
 function! s:GenDaqTags(workspace) abort
     let cwd = getcwd()
     let chdir = haslocaldir() ? 'lcd' : 'cd'
-    let workspace = fnamemodify(expand(a:workspace), '%:p')
+    let workspace = fnamemodify(expand(a:workspace), ':p')
     let opts = '-I CSX_CLASS_EXPORT,FBE_API_CALL --extra=+fq --fields=+Sia --languages=C,C++ --c-kinds=+p --c++-kinds=+p -R --tag-relative=yes'
     exe chdir .' '. fnameescape(workspace.'/safe/catmerge')
     if has('win32') || has('win64')
@@ -422,7 +422,7 @@ if has('autocmd')
                              \exe "normal! g'\"" | endif
 
         autocmd BufRead,BufNewFile */safe/catmerge/mgmt/{RemoteAgent,daq,MP_Engine}/* setlocal noexpandtab tabstop=4 shiftwidth=4
-        autocmd BufRead,BufNewFile */views/{safe,sys-common}/* setlocal tags=./tags.daq;,./tags.product;
+        autocmd BufRead,BufNewFile */views/*/{safe,sys-common}/* setlocal tags=./tags.daq;,./tags.product;
     augroup END
 endif
 " vim: set et sw=4:
