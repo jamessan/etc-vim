@@ -164,7 +164,7 @@ let [ c_no_comment_fold, c_ansi_typedefs, c_no_if0_fold ] = [ 1, 1, 1]
 let [ debchangelog_fold_enable, debcontrol_fold_enabled ] = [ 1, 1 ]
 
 " gnupg
-let g:GPGDefaultRecipients = [ '0x61326d40' ]
+let g:GPGDefaultRecipients = [ '0xDFE691AE331BA3DB' ]
 
 " securemodelines
 let g:secure_modelines_allowed_items = [
