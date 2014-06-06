@@ -10,7 +10,7 @@ let g:loaded_scriptease = 1
 " Utility {{{1
 
 function! s:function(name) abort
-  return function(substitute(a:name,'^s:',matchstr(expand('<sfile>'), '<SNR>\d\+_'),''))
+  return function(substitute(a:name,'^s:',matchstr(expand('<sfile>'), '.*\zs<SNR>\d\+_'),''))
 endfunction
 
 function! s:sub(str,pat,rep) abort
@@ -176,10 +176,42 @@ function! s:dumpmsg(bang, count, value) abort
   endif
 endfunction
 
-command! -bang -range=999998 -nargs=1 -complete=expression PP
-      \ :let v:errmsg = ''|call s:dump(<bang>0, <count>, eval(<q-args>))
-command! -bang -range=0      -nargs=1 -complete=expression PPmsg
-      \ :let v:errmsg = ''|call s:dumpmsg(<bang>0, <count>, eval(<q-args>))
+command! -bang -range=999998 -nargs=? -complete=expression PP
+      \ if empty(<q-args>) |
+      \   let s:more = &more |
+      \   try |
+      \     set nomore |
+      \     while 1 |
+      \       let s:input = input('PP> ', '', 'expression') |
+      \       if empty(s:input) |
+      \         break |
+      \       endif |
+      \       echon "\n" |
+      \       let v:errmsg = '' |
+      \       try |
+      \         call s:dump(<bang>0, 999998, eval(s:input)) |
+      \       catch |
+      \         echohl ErrorMsg |
+      \         echo v:exception |
+      \         echo v:throwpoint |
+      \         echohl NONE |
+      \       endtry |
+      \     endwhile |
+      \ finally |
+      \   let &more = s:more |
+      \ endtry |
+      \ else |
+      \   let v:errmsg = '' |
+      \   call s:dump(<bang>0, <count>, eval(<q-args>)) |
+      \ endif
+
+command! -bang -range=0      -nargs=? -complete=expression PPmsg
+      \ if !empty(<q-args>) |
+      \   let v:errmsg = '' |
+      \   call s:dumpmsg(<bang>0, <count>, empty(<q-args>) ? expand('<sfile>') : eval(<q-args>)) |
+      \ elseif &verbose >= <count> && !empty(expand('<sfile>')) |
+      \  echomsg expand('<sfile>').', line '.expand('<slnum>') |
+      \ endif
 
 " }}}1
 " g! {{{1
@@ -250,7 +282,7 @@ function! s:Verbose(level, excmd)
         \ 'finally|' .
         \ 'let &verbosefile = '.string(verbosefile).'|' .
         \ 'endtry|' .
-        \ 'pedit '.temp.'|wincmd P|nnoremap q :bd<CR>'
+        \ 'pedit '.temp.'|wincmd P|nnoremap <buffer> q :bd<CR>'
 endfunction
 
 " }}}1
@@ -316,12 +348,12 @@ function! s:unlet_for(files) abort
   if empty(guards)
     return ''
   else
-    return 'unlet! '.join(guards, ' ')
+    return 'unlet! '.join(map(guards, '"g:".v:val'), ' ')
   endif
 endfunction
 
 function! s:lencompare(a, b)
-  return len(a:b) - len(a:b)
+  return len(a:a) - len(a:b)
 endfunction
 
 function! s:findinrtp(path)
@@ -331,10 +363,10 @@ function! s:findinrtp(path)
     let candidates += filter(split(glob(glob), "\n"), 'path[0 : len(v:val)-1] ==# v:val && path[len(v:val)] =~# "[\\/]"')
   endfor
   if empty(candidates)
-    return ''
+    return ['', '']
   endif
   let preferred = sort(candidates, s:function('s:lencompare'))[-1]
-  return path[strlen(preferred)+1 : -1]
+  return [preferred, path[strlen(preferred)+1 : -1]]
 endfunction
 
 function! s:runtime(bang, ...) abort
@@ -345,12 +377,12 @@ function! s:runtime(bang, ...) abort
   if a:0
     let files = a:000
   elseif &filetype ==# 'vim' || expand('%:e') ==# 'vim'
-    let files = [s:findinrtp(expand('%:p'))]
+    let files = [s:findinrtp(expand('%:p'))[1]]
     if empty(files[0])
       let files = ['%']
     endif
-    if &modified
-      let predo = 'silent write|'
+    if &modified && (&autowrite || &autowriteall)
+      let predo = 'silent wall|'
     endif
   else
     for ft in split(&filetype, '\.')
@@ -700,15 +732,47 @@ endfunction
 
 function! s:setup() abort
   setlocal suffixesadd=.vim keywordprg=:help
+  let b:dispatch = ':Runtime'
+  command! -bar -bang -buffer Console Runtime|PP
 endfunction
 
 augroup scriptease
   autocmd!
   autocmd FileType vim,help let &l:path = escape(&runtimepath, ' ')
+  autocmd FileType help command! -bar -bang -buffer Console PP
   autocmd FileType vim call s:setup()
   " Recent versions of vim.vim set iskeyword to include ":", which breaks among
   " other things tags. :(
+  autocmd FileType vim setlocal iskeyword-=:
   autocmd Syntax vim setlocal iskeyword-=:
+augroup END
+
+" }}}1
+" Projectionist {{{1
+
+function! s:projectionist_detect() abort
+  let file = get(g:, 'projectionist_file', '')
+  let path = s:sub(s:findinrtp(file)[0], '[\/]after$', '')
+  if !empty(path)
+    let reload = ":Runtime ./{open}autoload,plugin{close}/**/*.vim"
+    call projectionist#append(path, {
+          \ "*": {"start": reload},
+          \ "*.vim": {"start": reload},
+          \ "plugin/*.vim":   {"command": "plugin", "alternate": "autoload/{}.vim"},
+          \ "autoload/*.vim": {"command": "autoload", "alternate": "plugin/{}.vim"},
+          \ "compiler/*.vim": {"command": "compiler"},
+          \ "ftdetect/*.vim": {"command": "ftdetect"},
+          \ "syntax/*.vim":   {"command": "syntax", "alternate": ["ftplugin/{}.vim", "indent/{}.vim"]},
+          \ "ftplugin/*.vim": {"command": "ftplugin", "alternate": ["indent/{}.vim", "syntax/{}.vim"]},
+          \ "indent/*.vim":   {"command": "indent", "alternate": ["syntax/{}.vim", "ftplugin/{}.vim"]},
+          \ "after/*.vim":    {"command": "after"},
+          \ "doc/*.txt":      {"command": "doc", "start": reload}})
+  endif
+endfunction
+
+augroup scriptease_projectionist
+  autocmd!
+  autocmd User ProjectionistDetect call s:projectionist_detect()
 augroup END
 
 " }}}1
