@@ -363,6 +363,9 @@ function! s:GenDaqTags(workspace) abort
     let cwd = getcwd()
     let chdir = haslocaldir() ? 'lcd' : 'cd'
     let workspace = fnamemodify(expand(a:workspace), ':p')
+    " Remove the trailing slash, since that causes problems with
+    " --tag-relative
+    let workspace = workspace[:-2]
     let opts = '-I CSX_CLASS_EXPORT,FBE_API_CALL --extra=+fq --fields=+Sia --languages=C,C++ --c-kinds=+p --c++-kinds=+p -R --tag-relative=yes'
     exe chdir .' '. fnameescape(workspace.'/safe/catmerge')
     if has('win32') || has('win64')
