@@ -11,6 +11,10 @@ if g:signify_sign_overwrite && (v:version < 703 || (v:version == 703 && !has('pa
   let g:signify_sign_overwrite = 0
 endif
 
+if !exists('g:signify_skip_filetype')
+  let g:signify_skip_filetype = { 'help': 1 }
+endif
+
 let g:id_top = 0x100
 let g:sy_cache = {}
 
@@ -24,7 +28,9 @@ function! sy#start(path) abort
 
   if &diff
         \ || !filereadable(a:path)
-        \ || (exists('g:signify_skip_filetype') && has_key(g:signify_skip_filetype, &ft))
+        \ || (exists('g:signify_skip_filetype') && (has_key(g:signify_skip_filetype, &ft)
+        \                                       || (has_key(g:signify_skip_filetype, 'help')
+        \                                       && &bt == 'help')))
         \ || (exists('g:signify_skip_filename') && has_key(g:signify_skip_filename, a:path))
     return
   endif
@@ -114,7 +120,7 @@ endfunction
 
 " Function: #toggle {{{1
 function! sy#toggle() abort
-  if empty(b:sy.path)
+  if !exists('b:sy') || empty(b:sy.path)
     echomsg 'signify: I cannot sy empty buffers!'
     return
   endif
