@@ -122,7 +122,6 @@ set formatoptions=tcrqn " See Help (complex)
 set wrap
 set sidescroll=1
 set sidescrolloff=7
-set smarttab
 set noshiftround
 set cpoptions+=n " When 'wrap' is enabled, the 'number' column is used to
                  " display wrapped text
