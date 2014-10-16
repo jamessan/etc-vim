@@ -10,10 +10,6 @@ call pathogen#infect()
 
 " Theme/Colors
 
-" Let Vim know that screen/tmux can use bce
-if &term =~ '^screen-.*-bce$'
-    set t_ut=y
-end
 " Change the cursor to an underline in insert mode
 if &term =~ 'xterm\|screen'
     set t_SI=[4\ q
