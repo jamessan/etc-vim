@@ -33,6 +33,7 @@ TOC                                                           *signify-contents*
   OPTIONS ........................ |signify-options|
   COMMANDS ....................... |signify-commands|
   MAPPINGS ....................... |signify-mappings|
+  OBJECTS ........................ |signify-objects|
   COLORS ......................... |signify-colors|
 
 ==============================================================================
@@ -74,7 +75,7 @@ Sign explanation:~
 
     `!1`    This line was modified and a number of lines below were deleted.
     `!>`    It is a combination of `!` and `_`. If the number is larger than 9,
-            `!>` will be shown instead.
+          `!>` will be shown instead.
 
     `‾`     The first line was removed. It's a special case of the `_` sign.
 
@@ -94,14 +95,15 @@ All available options:~
     |g:signify_mapping_toggle|
     |g:signify_skip_filetype|
     |g:signify_skip_filename|
-    |g:signify_sign_overwrite|
     |g:signify_update_on_bufenter|
     |g:signify_update_on_focusgained|
     |g:signify_line_highlight|
-    |g:signify_sign_delete_first_line|
-    |g:signify_sign_delete|
-    |g:signify_sign_change|
     |g:signify_sign_add|
+    |g:signify_sign_delete|
+    |g:signify_sign_delete_first_line|
+    |g:signify_sign_change|
+    |g:signify_sign_changedelete|
+    |g:signify_sign_show_count|
     |g:signify_cursorhold_normal|
     |g:signify_cursorhold_insert|
     |g:signify_difftool|
@@ -167,6 +169,9 @@ Alternatively, you can also map it yourself:
 <
 There is no difference between both variants.
 
+NOTE: Analog to Vim's diff mode, you can also use |]c| and |[c| for jumping
+between hunks.
+
 ------------------------------------------------------------------------------
                                             *g:signify_mapping_toggle_highlight*
 >
@@ -195,21 +200,6 @@ NOTE: Filenames have to be absolute paths.
 Default: Both are empty.
 
 ------------------------------------------------------------------------------
-                                                      *g:signify_sign_overwrite*
->
-    let g:signify_sign_overwrite = 0
-<
-Setting this to 1 means that Sy doesn't have to manage its signs and just
-removes ALL signs before adding its own signs. This typically results
-in a tad more performance, especially when a lot of signs are in use.
-
-If you need plugin compatibility though, you should set this to 0. In this
-case Sy will remember which signs it set last and only removes those at the
-next update.
-
-NOTE: This feature needs at least Vim 7.3.596!
-
-------------------------------------------------------------------------------
                                                   *g:signify_update_on_bufenter*
 >
     let g:signify_update_on_bufenter = 0
@@ -233,18 +223,40 @@ Update signs when Vim gains focus.
 Enable line highlighting in addition to using signs by default.
 
 ------------------------------------------------------------------------------
-                                              *g:signify_sign_delete_first_line*
-                                              *g:signify_sign_delete*
-                                              *g:signify_sign_change*
                                               *g:signify_sign_add*
+                                              *g:signify_sign_delete*
+                                              *g:signify_sign_delete_first_line*
+                                              *g:signify_sign_change*
+                                              *g:signify_sign_changedelete*
 >
     let g:signify_sign_add               = '+'
-    let g:signify_sign_change            = '!'
     let g:signify_sign_delete            = '_'
     let g:signify_sign_delete_first_line = '‾'
+    let g:signify_sign_change            = '!'
+    let g:signify_sign_changedelete      = g:signify_sign_change
 <
 The sign to use if a line was added, deleted or changed or a combination of
 these.
+
+NOTE: You can use unicode characters.
+
+NOTE: You can use up to 2 characters for the signs with two exceptions that
+      happen in combination with |g:signify_sign_show_count| set:
+
+1) |g:signify_sign_delete| uses only 1 character and truncates while the count
+   increases.
+
+2) |g:signify_sign_changedelete| uses only 1 character and truncates if
+   necessary.
+
+------------------------------------------------------------------------------
+                                                     *g:signify_sign_show_count*
+>
+    let g:signify_sign_show_count = 1
+<
+Add the number of deleted lines to |g:signify_sign_delete| (up to 99) and
+|g:signify_sign_changedelete| (up to 9). Otherwise only the normal signs will
+be shown.
 
 ------------------------------------------------------------------------------
                                                    *g:signify_cursorhold_normal*
@@ -296,19 +308,38 @@ Toggle line highlighting for lines containing changes.
 Default mapping:  <leader>gh
 
 ==============================================================================
+OBJECTS                                                        *signify-objects*
+
+Sy also provides text objects that operate on the current hunk:
+>
+    ic
+>
+Operate on all the lines of the current hunk.
+>
+    ac
+<
+Does the same as ic and also removes all trailing empty lines.
+
+NOTE: Don't be surprised that this also works with "deleted lines".
+
+==============================================================================
 COLORS                                                          *signify-colors*
 
 This plugin defines highlighting groups for two different places: for lines
 and signs. Per default these don't really exist but are linked to the standard
 highlighting groups: DiffAdd, DiffChange, DiffDelete:
 >
-    highlight link SignifyLineAdd    DiffAdd
-    highlight link SignifyLineChange DiffChange
-    highlight link SignifyLineDelete DiffDelete
+    highlight link SignifyLineAdd             DiffAdd
+    highlight link SignifyLineChange          DiffChange
+    highlight link SignifyLineDelete          DiffDelete
+    highlight link SignifyLineChangeDelete    SignifyLineChange
+    highlight link SignifyLineDeleteFirstLine SignifyLineDelete
 
-    highlight link SignifySignAdd    DiffAdd
-    highlight link SignifySignChange DiffChange
-    highlight link SignifySignDelete DiffDelete
+    highlight link SignifySignAdd             DiffAdd
+    highlight link SignifySignChange          DiffChange
+    highlight link SignifySignDelete          DiffDelete
+    highlight link SignifySignChangeDelete    SignifySignChange
+    highlight link SignifySignDeleteFirstLine SignifySignDelete
 <
 Thus if you do not want to change the standard highlighting groups, but want
 different colors for either your signs or lines, you can define one of these 6
