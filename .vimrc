@@ -157,6 +157,9 @@ let [ debchangelog_fold_enable, debcontrol_fold_enabled ] = [ 1, 1 ]
 " gnupg
 let g:GPGDefaultRecipients = [ '0xDFE691AE331BA3DB' ]
 
+" Sy
+let g:signify_vcs_list = filter([ 'git', 'hg', 'accurev', 'svn', 'bzr' ], 'executable(v:val)')
+
 " securemodelines
 let g:secure_modelines_allowed_items = [
             \ "iskeyword",   "isk",
