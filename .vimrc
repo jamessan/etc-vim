@@ -117,6 +117,9 @@ set nostartofline " Don't move to ^ after various actions.
 " Text Formatting/Layout
 
 set formatoptions=tcrqn " See Help (complex)
+if v:version > 703 || v:version == 703 && has("patch541")
+    set formatoptions+=j " Make joining comment lines work properly
+end
 set wrap
 set sidescroll=1
 set sidescrolloff=7
