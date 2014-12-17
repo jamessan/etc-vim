@@ -16,9 +16,7 @@ if &term =~ 'xterm\|screen'
     set t_EI=[2\ q
 endif
 
-if has('gui_running')
-    colorscheme jellyx
-elseif &t_Co >= 88
+if &t_Co >= 88
     colorscheme janah
 else
     set background=dark
