@@ -189,11 +189,12 @@ if executable('dpkg-architecture')
     endif
 endif
 
-if executable('ack-grep') == 1
-    set grepprg=ack-grep\ -H\ --column
+let ack = filter(['ack-grep', 'ack'], 'executable(v:val)')
+if !empty(ack)
+    let &grepprg=ack[0]. ' -H --column'
     set grepformat^=%f:%l:%c:%m
-elseif executable('ack') == 1
-    set grepprg=ack\ -H\ --column
+elseif executable('ag')
+    let &grepprg='ag --vimgrep'
     set grepformat^=%f:%l:%c:%m
 endif
 
