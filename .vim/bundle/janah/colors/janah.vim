@@ -27,9 +27,10 @@ highlight  SpecialKey         ctermfg=237   ctermbg=NONE  cterm=NONE
 highlight  Statement          ctermfg=150   ctermbg=NONE  cterm=NONE
 highlight  String             ctermfg=110   ctermbg=NONE  cterm=NONE
 highlight  Title              ctermfg=156   ctermbg=NONE  cterm=NONE
+highlight  Todo               ctermfg=223   ctermbg=NONE  cterm=NONE
 highlight  Type               ctermfg=115   ctermbg=NONE  cterm=NONE
 highlight  VertSplit          ctermfg=237   ctermbg=237   cterm=NONE
-highlight  WildMenu           ctermfg=161   ctermbg=234   cterm=bold
+highlight  WildMenu           ctermfg=161   ctermbg=237   cterm=bold
 
 " Cursor lines {{{1
 
@@ -52,6 +53,10 @@ highlight  StatusLineNC       ctermfg=244   ctermbg=237   cterm=NONE
 highlight  CursorLineNr       ctermfg=102   ctermbg=237   cterm=NONE
 highlight  LineNr             ctermfg=102   ctermbg=237   cterm=NONE
 
+" Color column {{{1
+
+highlight  ColorColumn        ctermfg=NONE  ctermbg=237   cterm=NONE
+
 " Diff & Signs {{{1
 
 highlight  SignColumn         ctermfg=NONE  ctermbg=237   cterm=NONE
@@ -60,10 +65,6 @@ highlight  DiffAdd            ctermfg=119   ctermbg=NONE  cterm=NONE
 highlight  DiffDelete         ctermfg=167   ctermbg=NONE  cterm=NONE
 highlight  DiffChange         ctermfg=227   ctermbg=NONE  cterm=NONE
 highlight  DiffText           ctermfg=203   ctermbg=52    cterm=bold
-
-highlight  SignifySignAdd     ctermfg=119   ctermbg=237   cterm=bold
-highlight  SignifySignDelete  ctermfg=167   ctermbg=237   cterm=bold
-highlight  SignifySignChange  ctermfg=227   ctermbg=237   cterm=bold
 
 " Folds {{{1
 
@@ -77,6 +78,7 @@ highlight  Search            ctermfg=7     ctermbg=161   cterm=NONE
 
 " Messages {{{1
 
+highlight  Error             ctermfg=255   ctermbg=160   cterm=NONE
 highlight  ErrorMsg          ctermfg=255   ctermbg=160   cterm=NONE
 highlight  ModeMsg           ctermfg=156   ctermbg=NONE  cterm=bold
 highlight  MoreMsg           ctermfg=7     ctermbg=26    cterm=NONE
@@ -95,10 +97,32 @@ highlight  PmenuSel          ctermfg=167   ctermbg=238   cterm=bold
 highlight  PmenuThumb        ctermfg=NONE  ctermbg=167   cterm=NONE
 
 " Spell {{{1
-"highlight  SpellBad         ctermfg=167   ctermbg=NONE  cterm=bold
-"highlight  SpellCap         ctermfg=NONE  ctermbg=12    cterm=NONE
-"highlight  SpellRare        ctermfg=NONE  ctermbg=13    cterm=NONE
-"highlight  SpellLocal       ctermfg=NONE  ctermbg=14    cterm=NONE
+highlight  SpellBad          ctermfg=7     ctermbg=167   cterm=NONE
+highlight  SpellCap          ctermfg=7     ctermbg=26    cterm=NONE
+highlight  SpellLocal        ctermfg=7     ctermbg=91    cterm=NONE
+highlight  SpellRare         ctermfg=7     ctermbg=29    cterm=NONE
+
+" Plugin: vim-easymotion {{{1
+highlight EasyMotionTarget        ctermfg=161 ctermbg=NONE cterm=bold
+highlight EasyMotionTarget2First  ctermfg=75  ctermbg=NONE cterm=NONE
+highlight EasyMotionTarget2Second ctermfg=63  ctermbg=NONE cterm=NONE
+
+" Plugin: vim-signify {{{1
+highlight SignifySignAdd     ctermfg=119   ctermbg=237   cterm=bold
+highlight SignifySignDelete  ctermfg=167   ctermbg=237   cterm=bold
+highlight SignifySignChange  ctermfg=227   ctermbg=237   cterm=bold
+
+" Plugin: vim-startify {{{1
+highlight StartifyBracket ctermfg=240   ctermbg=NONE   cterm=NONE
+highlight StartifyFile    ctermfg=255   ctermbg=NONE   cterm=NONE
+highlight StartifyFooter  ctermfg=240   ctermbg=NONE   cterm=NONE
+highlight StartifyHeader  ctermfg=114   ctermbg=NONE   cterm=NONE
+highlight StartifyNumber  ctermfg=215   ctermbg=NONE   cterm=NONE
+highlight StartifyPath    ctermfg=245   ctermbg=NONE   cterm=NONE
+highlight StartifySection ctermfg=181   ctermbg=NONE   cterm=NONE
+highlight StartifySelect  ctermfg=81    ctermbg=NONE   cterm=NONE
+highlight StartifySlash   ctermfg=240   ctermbg=NONE   cterm=NONE
+highlight StartifySpecial ctermfg=240   ctermbg=NONE   cterm=NONE
 
 " Unused {{{1
 
@@ -128,7 +152,6 @@ highlight  PmenuThumb        ctermfg=NONE  ctermbg=167   cterm=NONE
 "highlight  StorageClass     ctermfg=115                 cterm=NONE
 "highlight  Structure        ctermfg=115                 cterm=NONE
 "highlight  Tag              ctermfg=181                 cterm=NONE
-"highlight  Todo             ctermfg=NONE  ctermbg=233   cterm=NONE
 "highlight  Typedef          ctermfg=115                 cterm=NONE
 "highlight  Underlined       ctermfg=fg                  cterm=underline
 
