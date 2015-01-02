@@ -101,7 +101,7 @@ endfunction
 function! dispatch#prepare_start(request, ...) abort
   let exec = 'echo $$ > ' . a:request.file . '.pid; '
   if executable('perl')
-    let exec .= 'perl -e "select(undef,undef,undef,0.1)"; '
+    let exec .= 'perl -e "select(undef,undef,undef,0.1)" 2>/dev/null; '
   else
     let exec .= 'sleep 1; '
   endif
@@ -464,10 +464,16 @@ function! dispatch#compile_command(bang, args, count) abort
   cclose
   let &errorfile = request.file
 
+  let efm = &l:efm
+  let makeprg = &l:makeprg
+  let compiler = get(b:, 'current_compiler', '')
   let modelines = &modelines
   let after = ''
   try
     let &modelines = 0
+    call s:set_current_compiler(get(request, 'compiler', ''))
+    let &l:efm = request.format
+    let &l:makeprg = request.command
     silent doautocmd QuickFixCmdPre dispatch-make
     let request.directory = getcwd()
     let request.expanded = dispatch#expand(request.command)
@@ -484,6 +490,9 @@ function! dispatch#compile_command(bang, args, count) abort
   finally
     silent doautocmd QuickFixCmdPost dispatch-make
     let &modelines = modelines
+    let &l:efm = efm
+    let &l:makeprg = makeprg
+    call s:set_current_compiler(compiler)
   endtry
   execute after
   return ''
