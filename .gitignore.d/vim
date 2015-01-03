@@ -11,6 +11,7 @@
 !/.vim/after/indent/cpp.vim
 !/.vim/after/indent/c.vim
 !/.vim/autoload
+!/.vim/autoload/mergeutil.vim
 !/.vim/autoload/pathogen.vim
 !/.vim/autoload/repeat.vim
 !/.vim/bundle
