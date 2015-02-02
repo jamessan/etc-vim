@@ -50,6 +50,8 @@
 !/.vim/bundle/.mrconfig
 !/.vim/bundle/nerdtree
 !/.vim/bundle/nerdtree/autoload
+!/.vim/bundle/nerdtree/autoload/nerdtree
+!/.vim/bundle/nerdtree/autoload/nerdtree/ui_glue.vim
 !/.vim/bundle/nerdtree/autoload/nerdtree.vim
 !/.vim/bundle/nerdtree/doc
 !/.vim/bundle/nerdtree/doc/NERD_tree.txt
@@ -58,13 +60,18 @@
 !/.vim/bundle/nerdtree/lib/nerdtree
 !/.vim/bundle/nerdtree/lib/nerdtree/bookmark.vim
 !/.vim/bundle/nerdtree/lib/nerdtree/creator.vim
+!/.vim/bundle/nerdtree/lib/nerdtree/event.vim
+!/.vim/bundle/nerdtree/lib/nerdtree/flag_set.vim
 !/.vim/bundle/nerdtree/lib/nerdtree/key_map.vim
 !/.vim/bundle/nerdtree/lib/nerdtree/menu_controller.vim
 !/.vim/bundle/nerdtree/lib/nerdtree/menu_item.vim
+!/.vim/bundle/nerdtree/lib/nerdtree/nerdtree.vim
+!/.vim/bundle/nerdtree/lib/nerdtree/notifier.vim
 !/.vim/bundle/nerdtree/lib/nerdtree/opener.vim
 !/.vim/bundle/nerdtree/lib/nerdtree/path.vim
 !/.vim/bundle/nerdtree/lib/nerdtree/tree_dir_node.vim
 !/.vim/bundle/nerdtree/lib/nerdtree/tree_file_node.vim
+!/.vim/bundle/nerdtree/lib/nerdtree/ui.vim
 !/.vim/bundle/nerdtree/nerdtree_plugin
 !/.vim/bundle/nerdtree/nerdtree_plugin/exec_menuitem.vim
 !/.vim/bundle/nerdtree/nerdtree_plugin/fs_menu.vim
@@ -140,6 +147,7 @@
 !/.vim/bundle/tabular/.gitignore
 !/.vim/bundle/tabular/plugin
 !/.vim/bundle/tabular/plugin/Tabular.vim
+!/.vim/bundle/tabular/README.md
 !/.vim/bundle/unstack
 !/.vim/bundle/unstack/autoload
 !/.vim/bundle/unstack/autoload/unstack
