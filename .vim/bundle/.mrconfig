@@ -1,0 +1,43 @@
+[DEFAULT]
+include = cat /usr/share/mr/git-subtree
+git_subtree_test = true
+checkout = true
+
+[dispatch]
+update = git_subtree_update --squash --prefix=.vim/bundle/dispatch https://github.com/tpope/vim-dispatch.git master
+
+[janah]
+update = git_subtree_update --squash --prefix=.vim/bundle/janah https://github.com/mhinz/vim-janah.git master
+
+[jellyx]
+update = git_subtree_update --squash --prefix=.vim/bundle/jellyx https://github.com/guns/jellyx.vim.git master
+
+[nerdtree]
+update = git_subtree_update --squash --prefix=.vim/bundle/nerdtree https://github.com/scrooloose/nerdtree.git master
+
+[repeat]
+update = git_subtree_update --squash --prefix=.vim/bundle/repeat https://github.com/tpope/vim-repeat.git master
+
+[scriptease]
+update = git_subtree_update --squash --prefix=.vim/bundle/scriptease https://github.com/tpope/vim-scriptease.git master
+
+[securemodelines]
+update = git_subtree_update --squash --prefix=.vim/bundle/securemodelines https://github.com/ciaranm/securemodelines.git master
+
+[signify]
+update = git_subtree_update --squash --prefix=.vim/bundle/signify https://github.com/mhinz/vim-signify.git master
+
+[SkyBison]
+update = git_subtree_update --squash --prefix=.vim/bundle/SkyBison https://github.com/paradigm/SkyBison.git master
+
+[sleuth]
+update = git_subtree_update --squash --prefix=.vim/bundle/sleuth https://github.com/tpope/vim-sleuth.git master
+
+[surround]
+update = git_subtree_update --squash --prefix=.vim/bundle/surround https://github.com/tpope/vim-surround.git master
+
+[tabular]
+update = git_subtree_update --squash --prefix=.vim/bundle/tabular https://github.com/godlygeek/tabular.git master
+
+[unstack]
+update = git_subtree_update --squash --prefix=.vim/bundle/unstack https://github.com/mattboehm/vim-unstack.git master

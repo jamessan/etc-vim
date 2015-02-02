@@ -2,6 +2,7 @@
 !/.gitignore.d
 !/.gitignore.d/vim
 !/.gvimrc
+!/.mrtrust
 !/.vim
 !/.vim/after
 !/.vim/after/ftplugin
@@ -46,6 +47,7 @@
 !/.vim/bundle/jellyx/scripts
 !/.vim/bundle/jellyx/scripts/jellyx-devmode.vim
 !/.vim/bundle/jellyx/scripts/parametrize
+!/.vim/bundle/.mrconfig
 !/.vim/bundle/nerdtree
 !/.vim/bundle/nerdtree/autoload
 !/.vim/bundle/nerdtree/autoload/nerdtree.vim
