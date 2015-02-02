@@ -104,7 +104,7 @@ endfunction
 " Function: #get_diff_hg {{{1
 function! sy#repo#get_diff_hg() abort
   let diffoptions = has_key(g:signify_diffoptions, 'hg') ? g:signify_diffoptions.hg : ''
-  let diff = system('hg diff --nodates -U0 '. diffoptions .' -- '. sy#util#escape(b:sy.path))
+  let diff = sy#util#run_in_dir(fnamemodify(b:sy.path, ':h'), 'hg diff --config extensions.color=! --config defaults.diff= --nodates -U0 '. diffoptions .' -- '. sy#util#escape(b:sy.path))
 
   return v:shell_error ? [0, ''] : [1, diff]
 endfunction
@@ -163,7 +163,7 @@ endfunction
 " Function: #get_diff_perforce {{{1
 function! sy#repo#get_diff_perforce() abort
   let diffoptions = has_key(g:signify_diffoptions, 'perforce') ? g:signify_diffoptions.perforce : ''
-  let diff = system('p4 monitor show 2>&1 >/dev/null && env P4DIFF=diff p4 diff -dU0 '. diffoptions .' '. sy#util#escape(b:sy.path))
+  let diff = system('p4 monitor show 2>&1 >' . sy#util#devnull() . ' && env P4DIFF=diff p4 diff -dU0 '. diffoptions .' '. sy#util#escape(b:sy.path))
   return v:shell_error ? [0, ''] : [1, diff]
 endfunction
 
