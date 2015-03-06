@@ -2,7 +2,6 @@
 !/.gitignore.d
 !/.gitignore.d/vim
 !/.gvimrc
-!/.mrtrust
 !/.vim
 !/.vim/after
 !/.vim/after/ftplugin
