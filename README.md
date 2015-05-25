@@ -59,9 +59,9 @@ documentation for further customization:
     :h signify
 
 _NOTE_: The single most important option by far is `g:signify_vcs_list`. Please
-read `:h signify-option-vcs_list`.
+read `:h g:signify_vcs_list`.
 
 License
 -------
 
-MIT license. Copyright (c) 2013 Marco Hinz.
+MIT license. Copyright (c) 2015 Marco Hinz.
