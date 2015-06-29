@@ -2,7 +2,7 @@ let s:isWin = (has('win32') || has('win64'))
 let s:devnull = s:isWin ? 'nul' : '/dev/null'
 let s:cmp = executable('fc') ? 'fc' : 'cmp'
 
-function! mergeutil#accurev() abort
+function! mergeutil#threeway() abort
   " Vim is called with the following arguments:
   " argv[0] = common ancestor
   " argv[1] = yours
