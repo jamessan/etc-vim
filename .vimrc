@@ -92,21 +92,21 @@ else
     set listchars=eol:$,tab:>-,trail:.,extends:>,precedes:<
 endif
 set visualbell t_vb= " don't blink and no noises
-set statusline=   " clear the statusline for when vimrc is reloaded
-set statusline+=%f                           " filename
+set statusline=[%n]%<
+set statusline+=%{pathshorten(fnamemodify(expand('%'),':~:.'))}
+set statusline+=%{jamessan#stl#sy_stats()}
 set statusline+=%m%r\                        " flags
 try
     set statusline+=%q                       " Added in 7.3
 catch /^Vim(set):E539/
 endtry
 set statusline+=%h%w\ 
-set statusline+=[%n:                         " buffer number
-set statusline+=%{&fileformat}/
-set statusline+=%{strlen(&fenc)?&fenc:&enc}/ " encoding
-set statusline+=%Y]                          " filetype
-set statusline+=%=%<                         " right align
+set statusline+=%#ErrorMsg#%{&paste?'paste/':''}%*
+set statusline+=%#WarningMsg#%{jamessan#stl#fileformat()}%*
+set statusline+=%#WarningMsg#%{jamessan#stl#encoding()}%*
+set statusline+=%y                           " filetype
+set statusline+=%=                           " right align
 set statusline+=[0x%04.4B]                   " current char
-set statusline+=[%03c%04V]                   " column
 set statusline+=[%p%%\ line\ %l\ of\ %L]     " position in buffer
 set laststatus=2 " always show the status line
 set nostartofline " Don't move to ^ after various actions.
