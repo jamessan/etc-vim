@@ -12,32 +12,34 @@ function! sy#start() abort
     return
   endif
 
-  let b:sy_path = resolve(expand('%:p'))
+  let sy_path = resolve(expand('%:p'))
 
   if &diff
-        \ || !filereadable(b:sy_path)
+        \ || !filereadable(sy_path)
         \ || (exists('g:signify_skip_filetype') && (has_key(g:signify_skip_filetype, &ft)
         \                                       || (has_key(g:signify_skip_filetype, 'help')
         \                                       && &bt == 'help')))
-        \ || (exists('g:signify_skip_filename') && has_key(g:signify_skip_filename, b:sy_path))
+        \ || (exists('g:signify_skip_filename') && has_key(g:signify_skip_filename, sy_path))
+    if exists('b:sy')
+      call sy#sign#remove_all_signs(bufnr(''))
+      unlet! b:sy b:sy_info
+    endif
     return
   endif
 
   " sy_info is used in autoload/sy/repo
-  if !exists('b:sy_info')
-    let b:sy_info = {
-          \ 'chdir': haslocaldir() ? 'lcd' : 'cd',
-          \ 'cwd':   getcwd(),
-          \ 'dir':   fnamemodify(b:sy_path, ':p:h'),
-          \ 'path':  sy#util#escape(b:sy_path),
-          \ 'file':  sy#util#escape(fnamemodify(b:sy_path, ':t')),
-          \ }
-  endif
+  let b:sy_info = {
+        \ 'chdir': haslocaldir() ? 'lcd' : 'cd',
+        \ 'cwd':   fnameescape(getcwd()),
+        \ 'dir':   fnamemodify(sy_path, ':p:h'),
+        \ 'path':  sy#util#escape(sy_path),
+        \ 'file':  sy#util#escape(fnamemodify(sy_path, ':t')),
+        \ }
 
   " new buffer.. add to list of registered files
-  if !exists('b:sy') || b:sy.path != b:sy_path
+  if !exists('b:sy') || b:sy.path != sy_path
     let b:sy = {
-          \ 'path'  : b:sy_path,
+          \ 'path'  : sy_path,
           \ 'buffer': bufnr(''),
           \ 'active': 0,
           \ 'type'  : 'unknown',
@@ -106,10 +108,6 @@ function! sy#stop(bufnr) abort
   endif
 
   call sy#sign#remove_all_signs(a:bufnr)
-
-  augroup signify
-    execute printf('autocmd! * <buffer=%d>', sy.buffer)
-  augroup END
 endfunction
 
 " Function: #toggle {{{1
