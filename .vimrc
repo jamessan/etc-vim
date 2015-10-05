@@ -41,7 +41,6 @@ set diffopt+=horizontal
 set linespace=0 " space it out just like unix
 set wildmenu " turn on wild menu
 set wildmode=longest:list
-set ruler " Always show current positions along the bottom
 set cmdheight=2 " the command bar is 2 high
 " Only use numbers if we can adjust the width of the number column
 if exists('+numberwidth')
