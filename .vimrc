@@ -130,13 +130,6 @@ set autoindent
 filetype plugin indent on
 syntax enable
 
-" NetRW
-let netrw_silent = 1
-let netrw_dirhistmax = 0
-
-" NERD Tree
-let NERDTreeQuitOpen = 1
-
 " Python
 let python_highlight_builtins = 1
 let python_highlight_exceptions = 1
