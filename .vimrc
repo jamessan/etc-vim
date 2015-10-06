@@ -196,115 +196,6 @@ runtime macros/matchit.vim
 
 " Custom Functions
 
-function! <SID>ValidAltBuffer(bufnr)
-    " &buftype requires +quickfix
-    " Checking that it's '' should preclude quickfix, minibufexpl, etc from
-    " being considered a valid buffer to switch to
-    " bufwinnr() check is to make sure we don't have another window displaying
-    " the buffer
-    return (!has('quickfix') || getbufvar(a:bufnr, '&buftype') == '') && bufwinnr(a:bufnr) == -1
-endfunction
-
-function! <SID>FindBuffer(bufstart, cond, bufend, operand)
-    exe "let l:bufnr = a:bufstart " . a:operand . " 1"
-    exe "while l:bufnr " . a:cond . " " . a:bufend
-        if buflisted(l:bufnr) && <SID>ValidAltBuffer(l:bufnr)
-            exe "b " . l:bufnr
-            return l:bufnr
-        else
-            exe "let l:bufnr = l:bufnr " . a:operand . " 1"
-        endif
-    endwhile
-    return a:bufstart
-endfunction
-
-" For all windows/tabpages curbuf is displayed, execute cmd
-function! <SID>ExeCmdInAllBufWindows(curbuf, cmd)
-    let l:lz = &lz
-    let &lz = 1
-
-    let l:tbpgnr = tabpagenr()
-    let l:winnr = winnr()
-    " Maintain a list of [tabpage, bufinwindow, origwindow]
-    let l:buflist = []
-    for l:i in range(tabpagenr('$'))
-        exe "tabn " . i+1
-        let l:nr = winnr()
-        for l:j in range(winnr('$'))
-            exe l:j+1 . "wincmd w"
-            if bufnr('') == a:curbuf
-                call add(buflist, [l:i+1, l:j+1, l:nr])
-            endif
-        endfor
-        exe l:nr . "wincmd w"
-    endfor
-
-    " For all the [tabpage, bufinwindow, origwindow] sets we have:
-    " 1. change to tabpage
-    " 2. change to bufinwindow
-    " 3. change the buffer (as instructed by a:cmd)
-    " 4. put the cursor back in origwindow
-    for l:L in l:buflist
-        exe "tabn " . l:L[0]
-        exe l:L[1] . "wincmd w"
-        exe a:cmd
-        exe l:L[2] . "wincmd w"
-    endfor
-
-    " Change back to our original tabpage and window
-    exe "tabn " . l:tbpgnr
-    exe l:winnr . "wincmd w"
-    let &lz = l:lz
-endfunction
-
-function! <SID>CloseIfOnlyWindow(force)
-    let l:curbuf = bufnr('%')
-    let l:displayedbufs = []
-    for i in range(tabpagenr('$'))
-        call extend(l:displayedbufs, tabpagebuflist(i+1))
-    endfor
-
-    " There is only one buffer being displayed and therefore only one
-    " window/tabpage.  We can just delete the buffer
-    if len(l:displayedbufs) == 1
-        if a:force
-            bd!
-        else
-            bd
-        endif
-        return
-    endif
-
-    let l:bufnr = l:curbuf
-    let l:cmd = ''
-    if buflisted(bufnr('#')) && <SID>ValidAltBuffer('#')
-        let l:bufnr = bufnr('#')
-        let l:cmd = 'b ' . l:bufnr
-    else
-        let l:bufnr = <SID>FindBuffer(l:curbuf, '>', 0, '-')
-        if l:bufnr == l:curbuf
-            let l:bufnr = <SID>FindBuffer(l:curbuf, '<=', bufnr('$'), '+')
-        endif
-        if l:bufnr == l:curbuf
-            let l:cmd = 'enew'
-        else
-            let l:cmd = 'b ' . l:bufnr
-        endif
-    endif
-
-    if count(displayedbufs, l:curbuf) > 1
-        call <SID>ExeCmdInAllBufWindows(l:curbuf, l:cmd)
-    else
-        exe l:cmd
-    endif
-
-    if a:force
-        exe 'bd! ' . l:curbuf
-    else
-        exe 'bd ' . l:curbuf
-    endif
-endfunction
-
 function! <SID>DiffPreview()
     vert new
     set buftype=nofile
@@ -399,8 +290,6 @@ nnoremap <Leader>b 2:<C-u>call SkyBison('b ')<CR>
 nnoremap <Leader>tj 2:<C-u>call SkyBison('tj ')<CR>
 nnoremap <Leader>h 2:<C-u>call SkyBison('h ')<CR>
 
-nnoremap <Leader>bd :call <SID>CloseIfOnlyWindow(0)<CR>
-nnoremap <Leader>bD :call <SID>CloseIfOnlyWindow(1)<CR>
 nnoremap <Leader>dp :call <SID>DiffPreview()<CR>
 nnoremap <Leader>si :echo <SID>SynInfo()<CR>
 if exists('*synstack')
