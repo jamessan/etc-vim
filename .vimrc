@@ -33,7 +33,6 @@ else
     set backupdir^=$HOME/.vim/backup " where to put backup file
     set directory^=$HOME/.vim/tmp// " where to put swapfiles
 endif
-set makeef=error.err " When using make, where should it dump the file
 
 " Vim UI
 
