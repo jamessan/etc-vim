@@ -60,7 +60,7 @@ endif
 set lazyredraw " do not redraw while running macros (much faster)
 set hidden " you can change buffer without saving
 set backspace=2 " make backspace work normal
-set whichwrap+=<,>,h,l  " backspace and cursor keys wrap to
+set whichwrap+=<,>  " cursor keys wrap to
 set mouse=a " use mouse everywhere
 set ignorecase " easier to ignore case for searching
 set smartcase " match case if upper case characters are used in the search
