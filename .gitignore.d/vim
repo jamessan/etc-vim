@@ -84,13 +84,6 @@
 !/.vim/bundle/signify/README.md
 !/.vim/bundle/signify/showcolors.bash
 !/.vim/bundle/signify/signify.gif
-!/.vim/bundle/SkyBison
-!/.vim/bundle/SkyBison/doc
-!/.vim/bundle/SkyBison/doc/skybison.txt
-!/.vim/bundle/SkyBison/.gitignore
-!/.vim/bundle/SkyBison/plugin
-!/.vim/bundle/SkyBison/plugin/skybison.vim
-!/.vim/bundle/SkyBison/README.md
 !/.vim/bundle/sleuth
 !/.vim/bundle/sleuth/CONTRIBUTING.markdown
 !/.vim/bundle/sleuth/doc
