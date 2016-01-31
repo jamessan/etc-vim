@@ -279,6 +279,11 @@ nnoremap <Leader>un :UnicodeName<CR>
 " Clear the active 'hlsearch' highlighting and refresh the screen
 nnoremap <C-l> :nohlsearch<CR><C-l>
 
+" Make <C-p>/<C-n> act like <Up>/<Down> in cmdline mode, so they can be used
+" to navigate history with partially completed commands
+cnoremap <C-p> <Up>
+cnoremap <C-n> <Down>
+
 " SkyBison
 nnoremap <Leader>e :<C-u>call SkyBison('e ')<CR>
 nnoremap <Leader>b 2:<C-u>call SkyBison('b ')<CR>
