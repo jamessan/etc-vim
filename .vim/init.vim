@@ -1,1 +1,1 @@
-/home/jamessan/.vimrc
+../.vimrc
