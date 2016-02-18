@@ -68,6 +68,7 @@ function! mergeutil#threeway() abort
   endif
 
   " Populate output file with original "mine" file
+  lockmarks %delete _
   exe 'lockmarks read '. fnameescape(mine)
   lockmarks 1delete _
   windo diffthis
