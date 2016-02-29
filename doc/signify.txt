@@ -63,6 +63,7 @@ Supported VCS:~
     fossil
     accurev
     perforce
+    tfs
 <
 Sign explanation:~
 
@@ -123,6 +124,7 @@ Possible values: 'accurev'
                  'perforce'
                  'rcs'
                  'svn'
+                 'tfs'
 
 NOTE: This is the most important option, so read closely.
 
@@ -142,7 +144,8 @@ So either the one you set through |g:signify_difftool| or "diff" by default.
 
 NOTE: If you don't set this option and Sy is activated, updating signs for a
 non-VCS file can lead to significant delay since all supported and installed
-VCS will be tested for.
+VCS will be tested for. (But this also happens only once, afterwards the
+buffer is registered as inactive.)
 
 ------------------------------------------------------------------------------
                                                             *g:signify_vcs_cmds*
@@ -185,6 +188,7 @@ Default:
       \ 'rcs':      'rcsdiff -U0 %f 2>%n',
       \ 'accurev':  'accurev diff %f -- -U0',
       \ 'perforce': 'p4 info '. sy#util#shell_redirect('%n') .' && env P4DIFF=%d p4 diff -dU0 %f'
+      \ 'tfs':      'tf diff -version:W -noprompt %f',
       \ }
 <
 ------------------------------------------------------------------------------
@@ -310,6 +314,23 @@ Default: [3, 8]
 
 ==============================================================================
 COMMAND                                                       *signify-commands*
+                                                        *signify-:SignifyEnable*
+>
+    :SignifyEnable
+<
+Enable the plugin for the current buffer only.
+
+Can also be used to when a repository was initialized while Sy was already
+loaded.
+
+------------------------------------------------------------------------------
+                                                       *signify-:SignifyDisable*
+>
+    :SignifyDisable
+<
+Disable the plugin for the current buffer only.
+
+------------------------------------------------------------------------------
                                                         *signify-:SignifyToggle*
 >
     :SignifyToggle
@@ -333,7 +354,7 @@ Refresh signs in all windows.
 ------------------------------------------------------------------------------
                                                           *signify-:SignifyFold*
 >
-    :SignifyFold
+    :SignifyFold[!]
 <
 Open the current buffer in a new tabpage and set |'foldexpr'| so that only
 changed lines with their surrounding context are unfolded.
@@ -343,6 +364,9 @@ The number of lines per context can be changed via |g:signify_fold_context|.
 The |foldtext| will be set so that the left side shows the first line in the
 fold and the right side shows something like "50 [1]" which whereas "50"
 stands for the number of folded lines and the "1" is the foldlevel.
+
+If [!] is given, Sy will do the same without opening an extra tabpage. Another
+":SignifyFold!" will toggle back to the previous settings.
 
 See |folds| to learn more about folding.
 
@@ -374,18 +398,22 @@ It will show all tried commands and its output. Errors will be highlighted via
 ==============================================================================
 MAPPINGS                                                      *signify-mappings*
 
-There are no default mappings, except for ]c / [c, but there are additional
-plug mappings available that you can put into your vimrc.
-
 ------------------------------------------------------------------------------
 Hunk jumping:~
+
+    ]c   Jump to next hunk.
+    [c   Jump to previous hunk.
+
+    ]C   Jump to last hunk.
+    [C   Jump to first hunk.
+
+If you don't like these mappings, you can map them yourself:
 >
     nmap <leader>gj <plug>(signify-next-hunk)
     nmap <leader>gk <plug>(signify-prev-hunk)
+    nmap <leader>gJ 9999<leader>gj
+    nmap <leader>gK 9999<leader>gk
 <
-NOTE: Analog to Vim's diff mode, you can also use |]c| and |[c| for
-jumping between hunks.
-
 ------------------------------------------------------------------------------
 Hunk text object:~
 >

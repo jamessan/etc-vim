@@ -55,6 +55,7 @@ function! sy#start() abort
 
     let [ diff, b:sy.type ] = sy#repo#detect()
     if b:sy.type == 'unknown'
+      call sy#disable()
       return
     endif
 
@@ -80,6 +81,7 @@ function! sy#start() abort
     let [ diff, b:sy.type ] = sy#repo#detect()
     if b:sy.type == 'unknown'
       " no VCS found
+      call sy#disable()
       return
     endif
 
@@ -110,19 +112,38 @@ function! sy#stop(bufnr) abort
   call sy#sign#remove_all_signs(a:bufnr)
 endfunction
 
-" Function: #toggle {{{1
-function! sy#toggle() abort
+" Function: #enable {{{1
+function! sy#enable() abort
   if !exists('b:sy')
     call sy#start()
     return
   endif
 
-  if b:sy.active
-    call sy#stop(b:sy.buffer)
-    let b:sy.active = 0
-    let b:sy.stats = [-1, -1, -1]
-  else
+  if !b:sy.active
     let b:sy.active = 1
     call sy#start()
   endif
+endfunction
+
+" Function: #disable {{{1
+function! sy#disable() abort
+  if exists('b:sy') && b:sy.active
+    call sy#stop(b:sy.buffer)
+    let b:sy.active = 0
+    let b:sy.stats = [-1, -1, -1]
+  endif
+endfunction
+
+" Function: #toggle {{{1
+function! sy#toggle() abort
+  if !exists('b:sy') || !b:sy.active
+    call sy#enable()
+  else
+    call sy#disable()
+  endif
+endfunction
+
+" Function: #buffer_is_active {{{1
+function! sy#buffer_is_active()
+  return exists('b:sy') && b:sy.active
 endfunction
