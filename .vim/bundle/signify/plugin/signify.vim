@@ -38,13 +38,15 @@ augroup END
 
 " Init: commands {{{1
 
-command! -nargs=0 -bar SignifyDebug           call sy#debug#list_active_buffers()
-command! -nargs=0 -bar SignifyDebugDiff       call sy#debug#verbose_diff_cmd()
-command! -nargs=0 -bar SignifyDebugUnknown    call sy#repo#debug_detection()
-command! -nargs=0 -bar SignifyFold            call sy#fold#do()
-command! -nargs=0 -bar SignifyRefresh         call sy#util#refresh_windows()
-command! -nargs=0 -bar SignifyToggle          call sy#toggle()
-command! -nargs=0 -bar SignifyToggleHighlight call sy#highlight#line_toggle()
+command! -nargs=0 -bar       SignifyDebug           call sy#debug#list_active_buffers()
+command! -nargs=0 -bar       SignifyDebugDiff       call sy#debug#verbose_diff_cmd()
+command! -nargs=0 -bar       SignifyDebugUnknown    call sy#repo#debug_detection()
+command! -nargs=0 -bar -bang SignifyFold            call sy#fold#dispatch(<bang>1)
+command! -nargs=0 -bar       SignifyRefresh         call sy#util#refresh_windows()
+command! -nargs=0 -bar       SignifyEnable          call sy#enable()
+command! -nargs=0 -bar       SignifyDisable         call sy#disable()
+command! -nargs=0 -bar       SignifyToggle          call sy#toggle()
+command! -nargs=0 -bar       SignifyToggleHighlight call sy#highlight#line_toggle()
 
 " Init: mappings {{{1
 
@@ -58,9 +60,11 @@ nnoremap <silent> <expr> <plug>(signify-prev-hunk) &diff
 
 if empty(maparg(']c', 'n'))
   nmap ]c <plug>(signify-next-hunk)
+  nmap ]C 9999]c
 endif
 if empty(maparg('[c', 'n'))
   nmap [c <plug>(signify-prev-hunk)
+  nmap [C 9999[c
 endif
 
 " hunk text object
