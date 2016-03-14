@@ -17,7 +17,7 @@ if &term =~ 'xterm\|screen'
 endif
 
 if &t_Co >= 88
-    colorscheme janah
+    colorscheme nofrils-dark
 else
     set background=dark
 end
