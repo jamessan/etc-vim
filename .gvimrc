@@ -4,4 +4,4 @@ elseif has('gui_gtk2')
     set guifont=Dejavu\ Sans\ Mono\ 10
 endif
 set guioptions=cM
-colorscheme jellyx
+colorscheme nofrils-dark
