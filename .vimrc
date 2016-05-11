@@ -16,6 +16,10 @@ if &term =~ 'xterm\|screen'
     set t_EI=[2\ q
 endif
 
+if &term !~# '^screen' && exists('+termguicolors')
+    set termguicolors
+endif
+
 if &t_Co >= 88
     colorscheme nofrils-dark
 else
