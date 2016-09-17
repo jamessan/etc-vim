@@ -310,6 +310,10 @@ if has('autocmd')
         autocmd!
         autocmd FileType help nnoremap <buffer> <Enter> <C-]>
 
+        if exists('##TermOpen')
+            autocmd TermOpen * setlocal nolist
+        endif
+
         autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") |
                              \exe "normal! g'\"" | endif
 
