@@ -21,8 +21,9 @@ if &term !~# '^screen' && exists('+termguicolors')
 endif
 
 if &t_Co >= 88
+    let g:nofrils_strbackgrounds = 1
     colorscheme nofrils-dark
-else
+elseif !has('nvim')
     set background=dark
 end
 
@@ -156,9 +157,6 @@ let g:GPGDefaultRecipients = [ '0xDFE691AE331BA3DB' ]
 
 " Sy
 let g:signify_vcs_list = filter([ 'git', 'hg', 'accurev', 'svn', 'bzr' ], 'executable(v:val)')
-
-" Nofrils
-let g:nofrils_strbackgrounds = 1
 
 " securemodelines
 let g:secure_modelines_allowed_items = [
