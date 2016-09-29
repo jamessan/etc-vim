@@ -157,6 +157,9 @@ let g:GPGDefaultRecipients = [ '0xDFE691AE331BA3DB' ]
 " Sy
 let g:signify_vcs_list = filter([ 'git', 'hg', 'accurev', 'svn', 'bzr' ], 'executable(v:val)')
 
+" Nofrils
+let g:nofrils_strbackgrounds = 1
+
 " securemodelines
 let g:secure_modelines_allowed_items = [
             \ "iskeyword",   "isk",
