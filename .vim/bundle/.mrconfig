@@ -40,4 +40,4 @@ update = git_subtree_update --squash --prefix=.vim/bundle/tabular https://github
 update = git_subtree_update --squash --prefix=.vim/bundle/unstack https://github.com/mattboehm/vim-unstack.git master
 
 [nofrils]
-update = git_subtre_update --squash --prefix=.vim/bundle/nofrils https://github.com/robertmeta/nofrils.git master
+update = git_subtree_update --squash --prefix=.vim/bundle/nofrils https://github.com/robertmeta/nofrils.git master
