@@ -81,7 +81,7 @@ set noequalalways " Don't automatically make windows the same size. <C-w>= works
 set showmatch " show matching brackets
 set showcmd
 set matchtime=5 " how many tenths of a second to blink matching brackets for
-set nohlsearch " do not highlight searched for phrases
+set hlsearch " highlight searched for phrases
 set incsearch " BUT do highlight as you type you search phrase
 set list " show chars on end of line, whitespace, etc.
 " gui_running implies multi_byte since GTK requires it
