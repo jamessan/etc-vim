@@ -5,6 +5,7 @@ set enc=utf-8
 scriptencoding utf-8
 set history=10000 " How many lines of history to remember
 set ffs=unix,dos,mac
+set nomodeline " Let securemodelines plugin handle this
 
 call pathogen#infect()
 
