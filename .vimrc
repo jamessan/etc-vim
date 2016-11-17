@@ -13,9 +13,12 @@ call pathogen#infect()
 
 " Theme/Colors
 
-" Change the cursor to an underline in insert mode
-if &term =~ 'xterm\|screen'
-    set t_SI=[4\ q
+" Change the cursor to an underline in replace mode, bar in insert
+if has('nvim')
+    let $NVIM_TUI_ENABLE_CURSOR_SHAPE = 1
+elseif &term =~ 'xterm\|screen'
+    set t_SI=[6\ q
+    set t_SR=[4\ q
     set t_EI=[2\ q
 endif
 
