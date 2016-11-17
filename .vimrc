@@ -1,7 +1,9 @@
 " General
 set nocompatible " get out of horrible vi-compatible mode
-let &tenc=&enc
-set enc=utf-8
+if !has('nvim')
+    let &tenc=&enc
+    set enc=utf-8
+endif
 scriptencoding utf-8
 set history=10000 " How many lines of history to remember
 set ffs=unix,dos,mac
