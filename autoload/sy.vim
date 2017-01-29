@@ -3,7 +3,6 @@
 scriptencoding utf-8
 
 " Init: values {{{1
-let g:id_top = 0x100
 let g:sy_cache = {}
 
 let s:has_doau_modeline = v:version > 703 || v:version == 703 && has('patch442')
@@ -11,12 +10,14 @@ let s:has_doau_modeline = v:version > 703 || v:version == 703 && has('patch442')
 " Function: #start {{{1
 function! sy#start() abort
   if g:signify_locked
+    call sy#verbose('Locked.')
     return
   endif
 
   let sy_path = resolve(expand('%:p'))
 
   if s:skip(sy_path)
+    call sy#verbose('Skip file.')
     if exists('b:sy')
       call sy#sign#remove_all_signs(bufnr(''))
       unlet! b:sy b:sy_info
@@ -24,73 +25,55 @@ function! sy#start() abort
     return
   endif
 
-
-  function! s:chdir()
-    return haslocaldir() ? 'lcd' : (exists(':tcd') && haslocaldir(-1, 0)) ? 'tcd' : 'cd'
-  endfunction
-
   " sy_info is used in autoload/sy/repo
   let b:sy_info = {
-        \ 'chdir': s:chdir(),
-        \ 'cwd':   fnameescape(getcwd()),
         \ 'dir':   fnamemodify(sy_path, ':p:h'),
         \ 'path':  sy#util#escape(sy_path),
         \ 'file':  sy#util#escape(fnamemodify(sy_path, ':t')),
         \ }
 
-  " new buffer.. add to list of registered files
   if !exists('b:sy') || b:sy.path != sy_path
+    call sy#verbose('Register new file.')
     let b:sy = {
           \ 'path'  : sy_path,
           \ 'buffer': bufnr(''),
           \ 'active': 0,
-          \ 'type'  : 'unknown',
+          \ 'vcs'   : 'unknown',
           \ 'hunks' : [],
-          \ 'id_top': g:id_top,
+          \ 'signid': 0x100,
           \ 'stats' : [-1, -1, -1] }
     if get(g:, 'signify_disable_by_default')
+      call sy#verbose('Disabled by default.')
       return
     endif
-
-    " register buffer as active
     let b:sy.active = 1
+    call sy#repo#detect(1)
+  elseif !b:sy.active
+    call sy#verbose('Inactive buffer.')
+    return
+  elseif b:sy.vcs == 'unknown'
+    call sy#verbose('No VCS found. Disabling.')
+    call sy#disable()
+  else
+    call sy#verbose('Updating signs.')
+    call sy#repo#get_diff_start(b:sy.vcs, 0)
+  endif
+endfunction
 
-    let [ diff, b:sy.type ] = sy#repo#detect()
-    if b:sy.type == 'unknown'
-      call sy#disable()
-      return
-    endif
+" Function: #set_signs {{{1
+function! sy#set_signs(diff, do_register) abort
+  call sy#verbose('set_signs()', b:sy.vcs)
 
-    " register file as active with found VCS
+  if a:do_register
     let b:sy.stats = [0, 0, 0]
-
     let dir = fnamemodify(b:sy.path, ':h')
     if !has_key(g:sy_cache, dir)
-      let g:sy_cache[dir] = b:sy.type
+      let g:sy_cache[dir] = b:sy.vcs
     endif
-
-    if empty(diff)
-      " no changes found
+    if empty(a:diff)
+      call sy#verbose('No changes found.', b:sy.vcs)
       return
     endif
-
-  " inactive buffer.. bail out
-  elseif !b:sy.active
-    return
-
-  " retry detecting VCS
-  elseif b:sy.type == 'unknown'
-    let [ diff, b:sy.type ] = sy#repo#detect()
-    if b:sy.type == 'unknown'
-      " no VCS found
-      call sy#disable()
-      return
-    endif
-
-  " update signs
-  else
-    let diff = sy#repo#get_diff_{b:sy.type}()[1]
-    let b:sy.id_top = g:id_top
   endif
 
   if get(g:, 'signify_line_highlight')
@@ -99,9 +82,7 @@ function! sy#start() abort
     call sy#highlight#line_disable()
   endif
 
-  call sy#sign#process_diff(diff)
-
-  let b:sy.id_top = (g:id_top - 1)
+  call sy#sign#process_diff(a:diff)
 
   if exists('#User#Signify')
     execute 'doautocmd' (s:has_doau_modeline ? '<nomodeline>' : '') 'User Signify'
@@ -120,15 +101,8 @@ endfunction
 
 " Function: #enable {{{1
 function! sy#enable() abort
-  if !exists('b:sy')
-    call sy#start()
-    return
-  endif
-
-  if !b:sy.active
-    let b:sy.active = 1
-    call sy#start()
-  endif
+  silent! unlet b:sy b:sy_info
+  call sy#start()
 endfunction
 
 " Function: #disable {{{1
@@ -154,6 +128,14 @@ function! sy#buffer_is_active()
   return exists('b:sy') && b:sy.active
 endfunction
 
+" Function: #verbose {{{1
+function! sy#verbose(msg, ...) abort
+  if &verbose
+    echomsg printf('[sy%s] %s', (a:0 ? ':'.a:1 : ''), a:msg)
+  endif
+endfunction
+
+" Function: s:skip {{{1
 function! s:skip(path)
   if &diff || !filereadable(a:path)
     return 1
