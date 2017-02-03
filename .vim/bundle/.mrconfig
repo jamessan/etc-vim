@@ -41,3 +41,6 @@ update = git_subtree_update --squash --prefix=.vim/bundle/unstack https://github
 
 [nofrils]
 update = git_subtree_update --squash --prefix=.vim/bundle/nofrils https://github.com/robertmeta/nofrils.git master
+
+[neomake]
+update = git_subtree_update --squash --prefix=.vim/bundle/neomake https://github.com/neomake/neomake.git master
