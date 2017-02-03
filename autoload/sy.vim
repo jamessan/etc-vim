@@ -52,8 +52,14 @@ function! sy#start() abort
     call sy#verbose('Inactive buffer.')
     return
   elseif b:sy.vcs == 'unknown'
-    call sy#verbose('No VCS found. Disabling.')
-    call sy#disable()
+    if get(b:sy, 'retry')
+      let b:sy.retry = 0
+      call sy#verbose('Redetecting VCS.')
+      call sy#repo#detect(1)
+    else
+      call sy#verbose('No VCS found. Disabling.')
+      call sy#disable()
+    endif
   else
     call sy#verbose('Updating signs.')
     call sy#repo#get_diff_start(b:sy.vcs, 0)
@@ -61,17 +67,17 @@ function! sy#start() abort
 endfunction
 
 " Function: #set_signs {{{1
-function! sy#set_signs(diff, do_register) abort
-  call sy#verbose('set_signs()', b:sy.vcs)
+function! sy#set_signs(sy, diff, do_register) abort
+  call sy#verbose('set_signs()', a:sy.vcs)
 
   if a:do_register
-    let b:sy.stats = [0, 0, 0]
-    let dir = fnamemodify(b:sy.path, ':h')
+    let a:sy.stats = [0, 0, 0]
+    let dir = fnamemodify(a:sy.path, ':h')
     if !has_key(g:sy_cache, dir)
-      let g:sy_cache[dir] = b:sy.vcs
+      let g:sy_cache[dir] = a:sy.vcs
     endif
     if empty(a:diff)
-      call sy#verbose('No changes found.', b:sy.vcs)
+      call sy#verbose('No changes found.', a:sy.vcs)
       return
     endif
   endif
@@ -82,7 +88,7 @@ function! sy#set_signs(diff, do_register) abort
     call sy#highlight#line_disable()
   endif
 
-  call sy#sign#process_diff(a:diff)
+  call sy#sign#process_diff(a:sy, a:diff)
 
   if exists('#User#Signify')
     execute 'doautocmd' (s:has_doau_modeline ? '<nomodeline>' : '') 'User Signify'
@@ -101,8 +107,16 @@ endfunction
 
 " Function: #enable {{{1
 function! sy#enable() abort
-  silent! unlet b:sy b:sy_info
-  call sy#start()
+  if !exists('b:sy')
+    call sy#start()
+    return
+  endif
+
+  if !b:sy.active
+    let b:sy.active = 1
+    let b:sy.retry  = 1
+    call sy#start()
+  endif
 endfunction
 
 " Function: #disable {{{1
