@@ -11,6 +11,24 @@ set nomodeline " Let securemodelines plugin handle this
 
 call pathogen#infect()
 
+" Autocommands
+if has('autocmd')
+    augroup jamessan
+        autocmd!
+        autocmd FileType help nnoremap <buffer> <Enter> <C-]>
+
+        if exists('##TermOpen')
+            autocmd TermOpen * setlocal nolist
+        endif
+
+        autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") |
+                             \exe "normal! g'\"" | endif
+
+        autocmd BufRead,BufNewFile */safe/catmerge/mgmt/{RemoteAgent,daq,MP_Engine}/* setlocal noexpandtab tabstop=4 shiftwidth=4
+        autocmd BufRead,BufNewFile */views/*/{safe,sys-common}/* setlocal tags=./tags.daq;,./tags.product;
+    augroup END
+endif
+
 " Theme/Colors
 
 " Change the cursor to an underline in replace mode, bar in insert
@@ -310,22 +328,4 @@ endif
 " I can open the help with :help, kthx
 map <F1> <nop>
 map! <F1> <nop>
-" Autocommands
-
-if has('autocmd')
-    augroup jamessan
-        autocmd!
-        autocmd FileType help nnoremap <buffer> <Enter> <C-]>
-
-        if exists('##TermOpen')
-            autocmd TermOpen * setlocal nolist
-        endif
-
-        autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") |
-                             \exe "normal! g'\"" | endif
-
-        autocmd BufRead,BufNewFile */safe/catmerge/mgmt/{RemoteAgent,daq,MP_Engine}/* setlocal noexpandtab tabstop=4 shiftwidth=4
-        autocmd BufRead,BufNewFile */views/*/{safe,sys-common}/* setlocal tags=./tags.daq;,./tags.product;
-    augroup END
-endif
 " vim: set et sw=4:
