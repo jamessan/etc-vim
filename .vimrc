@@ -46,7 +46,7 @@ endif
 
 if &t_Co >= 88
     let g:nofrils_strbackgrounds = 1
-    colorscheme nofrils-dark
+    colorscheme nofrils-sepia
 elseif !has('nvim')
     set background=dark
 end
