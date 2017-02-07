@@ -204,15 +204,19 @@ let g:secure_modelines_allowed_items = [
 let g:neomake_buildall_maker = {
             \ 'exe': 'build_all',
             \ 'mapexpr': 'jamessan#neomake#build_all_adjust(v:val)',
-            \ 'postprocess': function('jamessan#neomake#build_all_post'),
+            \ 'postprocess': function('jamessan#neomake#make_post'),
             \ }
 let g:neomake_c_lint_maker = {
             \ 'exe': 'make',
             \ 'args': function('jamessan#neomake#c_lint_args'),
+            \ 'postprocess': function('jamessan#neomake#make_post'),
             \ 'errorformat': '%f:%l: %m',
             \ 'append_file': 0,
             \ }
-let g:neomake_make_maker = {}
+let g:neomake_cpp_lint_maker = g:neomake_c_lint_maker
+let g:neomake_make_maker = {
+            \ 'postprocess': function('jamessan#neomake#make_post'),
+            \}
 let g:neomake_enabled_makers = ['make']
 
 " Is this a Debian system?

@@ -18,7 +18,7 @@ function! jamessan#neomake#build_all_adjust(ln) abort
   return ln
 endfunction
 
-function! jamessan#neomake#build_all_post(entry) abort
+function! jamessan#neomake#make_post(entry) abort
   if a:entry.text =~ 'recipe for target'
     let a:entry.valid = -1
   endif
