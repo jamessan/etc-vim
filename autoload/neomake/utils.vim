@@ -1,60 +1,93 @@
 " vim: ts=4 sw=4 et
 scriptencoding utf-8
 
-let s:level_to_name = {
-            \ 0: 'error',
-            \ 1: 'quiet',
-            \ 2: 'verb ',
-            \ 3: 'debug',
-            \ }
+let s:level_to_name = {0: 'error  ', 1: 'warning', 2: 'verbose', 3: 'debug  '}
+let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 
-if has('reltime')
-    let s:reltime_start = reltime()
+if exists('*reltimefloat')
+    function! s:reltimefloat() abort
+        return reltimefloat(reltime())
+    endfunction
+else
+    function! s:reltimefloat() abort
+        let t = split(reltimestr(reltime()), '\V.')
+        return str2float(t[0] . '.' . t[1])
+    endfunction
 endif
-function! s:timestr() abort
-    if exists('s:reltime_start')
-        let cur_time = split(split(reltimestr(reltime(s:reltime_start)))[0], '\.')
-        return cur_time[0].'.'.cur_time[1][0:2]
+
+function! s:reltime_lastmsg() abort
+    if exists('s:last_msg_ts')
+        let cur = s:reltimefloat()
+        let diff = (cur - s:last_msg_ts)
+    else
+        let diff = 0
     endif
-    return strftime('%H:%M:%S')
+    let s:last_msg_ts = s:reltimefloat()
+
+    if diff < 0.01
+        return '     '
+    elseif diff < 10
+        let format = '+%.2f'
+    elseif diff < 100
+        let format = '+%.1f'
+    elseif diff < 100
+        let format = '  +%.0f'
+    elseif diff < 1000
+        let format = ' +%.0f'
+    else
+        let format = '+%.0f'
+    endif
+    return printf(format, diff)
 endfunction
 
-let s:unset = {}
-
 function! neomake#utils#LogMessage(level, msg, ...) abort
-    let verbose = get(g:, 'neomake_verbose', 1)
-    let logfile = get(g:, 'neomake_logfile')
+    let jobinfo = a:0 ? a:1 : {}
+    if has_key(jobinfo, 'make_id')
+        let verbosity = neomake#GetMakeOptions(jobinfo.make_id).verbosity
+    else
+        let verbosity = get(g:, 'neomake_verbose', 1) + &verbose
+    endif
+    let logfile = get(g:, 'neomake_logfile', '')
 
-    if exists(':Log') != 2 && verbose < a:level && logfile is# ''
+    let is_testing = exists('g:neomake_test_messages')
+    if !is_testing && verbosity < a:level && logfile is# ''
         return
     endif
 
     if a:0
-        let jobinfo = a:1
         if has_key(jobinfo, 'id')
             let msg = printf('[%s.%d] %s', get(jobinfo, 'make_id', '-'), jobinfo.id, a:msg)
         else
             let msg = printf('[%s] %s', get(jobinfo, 'make_id', '?'), a:msg)
         endif
     else
-        let jobinfo = {}
         let msg = a:msg
     endif
 
     " Use Vader's log for messages during tests.
-    if exists('*vader#log') && exists('g:neomake_test_messages')
-        let test_msg = '['.s:level_to_name[a:level].'] ['.s:timestr().']: '.msg
+    " @vimlint(EVL104, 1, l:timediff)
+    if is_testing && get(g:, 'neomake_test_log_all_messages', (verbosity >= a:level))
+        let timediff = s:reltime_lastmsg()
+        if timediff !=# '     '
+            let test_msg = '['.s:short_level_to_name[a:level].' '.timediff.']: '.msg
+        else
+            let test_msg = '['.s:level_to_name[a:level].']: '.msg
+        endif
+
         call vader#log(test_msg)
         " Only keep jobinfo entries that are relevant for / used in the message.
         let g:neomake_test_messages += [[a:level, a:msg,
                     \ filter(copy(jobinfo), "index(['id', 'make_id'], v:key) != -1")]]
-    elseif verbose >= a:level
+    elseif verbosity >= a:level
         redraw
         if a:level ==# 0
             echohl ErrorMsg
         endif
-        if verbose > 2
-            echom 'Neomake ['.s:timestr().']: '.msg
+        if verbosity > 2
+            if !exists('timediff')
+                let timediff = s:reltime_lastmsg()
+            endif
+            echom 'Neomake ['.timediff.']: '.msg
         else
             echom 'Neomake: '.msg
         endif
@@ -63,9 +96,15 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
         endif
     endif
     if type(logfile) ==# type('') && len(logfile)
-        let date = strftime('%Y-%m-%dT%H:%M:%S%z')
-        call writefile(['['.date.' @'.s:timestr().', '.s:level_to_name[a:level].'] '.msg], logfile, 'a')
+        let date = strftime('%H:%M:%S')
+        if !exists('timediff')
+            let timediff = s:reltime_lastmsg()
+        endif
+        call neomake#compat#writefile([printf('%s [%s %s] %s',
+                    \ date, s:short_level_to_name[a:level], timediff, msg)],
+                    \ logfile, 'a')
     endif
+    " @vimlint(EVL104, 0, l:timediff)
 endfunction
 
 function! neomake#utils#ErrorMessage(...) abort
@@ -90,12 +129,20 @@ function! neomake#utils#Stringify(obj) abort
         return '['.join(ls, ', ').']'
     elseif type(a:obj) == type({})
         let ls = []
-        for key in keys(a:obj)
-            call add(ls, key.': '.neomake#utils#Stringify(a:obj[key]))
+        for [k, V] in items(a:obj)
+            if type(V) == type(function('tr'))
+                let fname = substitute(string(V), ', {\zs.*\ze})', '…', '')
+                call add(ls, k.': '.fname)
+            else
+                call add(ls, k.': '.neomake#utils#Stringify(V))
+            endif
+            unlet V  " vim73
         endfor
         return '{'.join(ls, ', ').'}'
+    elseif type(a:obj) == type(function('tr'))
+        return string(a:obj)
     else
-        return ''.a:obj
+        return a:obj
     endif
 endfunction
 
@@ -146,6 +193,11 @@ function! neomake#utils#DevNull() abort
     return '/dev/null'
 endfunction
 
+" Get directory separator
+function! neomake#utils#Slash() abort " {{{2
+    return (!exists('+shellslash') || &shellslash) ? '/' : '\'
+endfunction " }}}2
+
 function! neomake#utils#Exists(exe) abort
     " DEPRECATED: just use executable() directly.
     return executable(a:exe)
@@ -170,52 +222,26 @@ let s:command_maker = {
             \ 'remove_invalid_entries': 0,
             \ }
 function! s:command_maker.fn(jobinfo) dict abort
-    let maker = filter(copy(self), "v:key !~# '^__' && v:key !~# 'fn'")
-    let argv = split(&shell) + split(&shellcmdflag)
     let command = self.__command
+    let argv = split(&shell) + split(&shellcmdflag)
 
-    if a:jobinfo.file_mode && get(maker, 'append_file', 1)
+    if a:jobinfo.file_mode && get(self, 'append_file', 1)
         let command .= ' '.fnameescape(fnamemodify(bufname(a:jobinfo.bufnr), ':p'))
-        let maker.append_file = 0
+        let self.append_file = 0
     endif
-    call extend(maker, {
+    call extend(self, {
                 \ 'exe': argv[0],
                 \ 'args': argv[1:] + [command],
                 \ })
-    return maker
+    return filter(copy(self), "v:key !~# '^__' && v:key !~# 'fn'")
 endfunction
 
 function! neomake#utils#MakerFromCommand(command) abort
-    " XXX: use neomake#utils#ExpandArgs and/or remove it.
-    "      Expansion should happen later already!
-    " NOTE: useful when calling it from cmdline..
-    let command = substitute(a:command, '%\(:[a-z]\)*',
-                           \ '\=expand(submatch(0))', 'g')
+    let command = neomake#utils#ExpandArgs([a:command])[0]
     " Create a maker object, with a "fn" callback.
     let maker = copy(s:command_maker)
     let maker.__command = command
     return maker
-endfunction
-
-let s:available_makers = {}
-function! neomake#utils#MakerIsAvailable(ft, maker_name) abort
-    if a:maker_name ==# 'makeprg'
-        " makeprg refers to the actual makeprg, which we don't need to check
-        " for our purposes
-        return 1
-    endif
-    let maker = neomake#GetMaker(a:maker_name, a:ft)
-    if empty(maker)
-        return 0
-    endif
-    if !has_key(s:available_makers, maker.exe)
-        let s:available_makers[maker.exe] = executable(maker.exe)
-    endif
-    return s:available_makers[maker.exe]
-endfunction
-
-function! neomake#utils#AvailableMakers(ft, makers) abort
-    return filter(copy(a:makers), 'neomake#utils#MakerIsAvailable(a:ft, v:val)')
 endfunction
 
 function! neomake#utils#GetSupersetOf(ft) abort
@@ -241,6 +267,8 @@ function! neomake#utils#GetSortedFiletypes(ft) abort
     return sort(split(a:ft, '\.'), function('CompareFiletypes'))
 endfunction
 
+let s:unset = {}  " Sentinel.
+
 " Get a setting by key, based on filetypes, from the buffer or global
 " namespace, defaulting to default.
 function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
@@ -254,20 +282,16 @@ function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
         break
     endif
     let config_var = 'neomake_'.part.'_'.a:key
+    unlet! bufcfgvar  " vim73
+    let bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
+    if bufcfgvar isnot s:unset
+        return copy(bufcfgvar)
+    endif
     if has_key(g:, config_var)
-          \ || neomake#compat#getbufvar(a:bufnr, config_var, s:unset) isnot s:unset
-      break
+        return copy(get(g:, config_var))
     endif
   endfor
 
-  if exists('config_var')
-    let bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
-    if bufcfgvar isnot s:unset
-      return copy(bufcfgvar)
-    elseif has_key(g:, config_var)
-      return copy(get(g:, config_var))
-    endif
-  endif
   if has_key(a:maker, a:key)
     return a:maker[a:key]
   endif
@@ -347,10 +371,23 @@ function! neomake#utils#redir(cmd) abort
 endfunction
 
 function! neomake#utils#ExpandArgs(args) abort
-    " Expand args that start with '%' only.
-    " It handles '%:r.o', by splitting it into '%:r' and '.o', and only
-    " expanding the first part.
-    call map(a:args, "v:val =~# '\\(^%$\\|^%:\\l\\+\\)' ? join(map(split(v:val, '^%:\\l\\+\\zs'), 'v:key == 0 ? expand(v:val) : v:val'), '') : v:val")
+    " Expand % in args like when using :!
+    " \% is ignored
+    " \\% is expanded to \\file.ext
+    " %% becomes %
+    " % must be followed with an expansion keyword
+    let isk = &iskeyword
+    set iskeyword=p,h,t,r,e,%,:
+    try
+        let ret = map(a:args,
+                    \ 'substitute(v:val, '
+                    \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtre]\+\)*\)\ze\)\w\@!'', '
+                    \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
+                    \ . '''g'')')
+    finally
+        let &iskeyword = isk
+    endtry
+    return ret
 endfunction
 
 function! neomake#utils#hook(event, context, ...) abort
@@ -408,4 +445,41 @@ endfunction
 
 function! neomake#utils#path_sep() abort
     return neomake#utils#IsRunningWindows() ? ';' : ':'
+endfunction
+
+" Find a file by going up the directories from the start directory
+" and performing glob search for the file.
+function! neomake#utils#FindGlobFile(startDir, file) abort
+    let curDir = a:startDir
+    let fileFound = ''
+
+    while empty(fileFound)
+        let fileFound = globpath(curDir, a:file, 1)
+        let lastFolder = curDir
+        let curDir = fnamemodify(curDir, ':h')
+        if curDir ==# lastFolder
+            break
+        endif
+    endwhile
+
+    return fileFound
+endfunction
+
+function! neomake#utils#JSONdecode(json) abort
+    return neomake#compat#json_decode(a:json)
+endfunction
+
+" Smarter shellescape, via vim-fugitive.
+function! s:gsub(str,pat,rep) abort
+  return substitute(a:str,'\v\C'.a:pat,a:rep,'g')
+endfunction
+
+function! neomake#utils#shellescape(arg) abort
+  if a:arg =~# '^[A-Za-z0-9_/.-]\+$'
+    return a:arg
+  elseif &shell =~? 'cmd' || exists('+shellslash') && !&shellslash
+    return '"'.s:gsub(s:gsub(a:arg, '"', '""'), '\%', '"%"').'"'
+  else
+    return shellescape(a:arg)
+  endif
 endfunction

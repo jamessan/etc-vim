@@ -10,5 +10,149 @@ Execute (Run EnabledMakers for all filetype makers):
   for maker_file in ft_makers
     let ft = fnamemodify(maker_file, ':t:r')
     let enabled = call('neomake#makers#ft#'.ft.'#EnabledMakers', [])
-"     Log ft.': '.string(enabled)
   endfor
+  AssertEqual exists('*neomake#makers#ft#neomake_tests#EnabledMakers'), 1
+
+Execute (neomake#GetEnabledMakers without make_id):
+  runtime autoload/neomake.vim
+
+  Save g:neomake_myft_enabled_makers
+  let g:neomake_myft_enabled_makers = ['nonexisting_custom']
+  let makers = neomake#GetEnabledMakers('myft')
+  AssertNeomakeMessage "Maker not found (for filetypes ['myft']): nonexisting_custom", 0, {}
+
+Execute (Neomake with non-existing maker (configured)):
+  Save &filetype
+  set filetype=myft
+
+  Save g:neomake_myft_enabled_makers
+  let g:neomake_myft_enabled_makers = ['nonexisting_custom']
+
+  let make_id_before = neomake#GetStatus().last_make_id
+  RunNeomake
+  let make_id = neomake#GetStatus().last_make_id
+  AssertNeomakeMessage "Maker not found (for filetypes ['myft']): nonexisting_custom", 0, {'make_id': make_id}
+  AssertNeomakeMessage 'Nothing to make: no enabled file mode makers.', 3, {'make_id': make_id}
+  AssertEqual len(g:neomake_test_messages), 2
+  AssertEqua make_id_before + 1, neomake#GetStatus().last_make_id
+
+Execute (Neomake with non-existing default makers):
+  Save &filetype
+  set filetype=neomake_tests
+
+  RunNeomake
+  AssertNeomakeMessage "Exe (maker_without_exe) of auto-configured maker maker_without_exe is not executable, skipping.", 3
+
+  RunNeomake
+  AssertNeomakeMessage "Exe (maker_without_exe) of auto-configured maker maker_without_exe is not executable, skipping.", 3
+
+Execute (Neomake with non-existing default makers, explicitly called):
+  Save &filetype
+  set filetype=neomake_tests
+
+  RunNeomake maker_without_exe
+  AssertNeomakeMessage "Exe (maker_without_exe) of maker maker_without_exe is not executable.", 0
+
+  RunNeomake maker_without_exe
+  AssertNeomakeMessage "Exe (maker_without_exe) of maker maker_without_exe is not executable.", 3
+
+Execute (neomake#GetEnabledMakers with defaults):
+  Save &filetype
+  set filetype=neomake_tests
+  let makers = neomake#GetEnabledMakers(&ft)
+  AssertEqual map(copy(makers), 'v:val.auto_enabled'), [1]
+  AssertEqual len(g:neomake_test_messages), 0
+
+Execute (neomake#GetEnabledMakers with configuration):
+  Save &filetype
+  set filetype=neomake_tests
+
+  Save b:neomake_neomake_tests_enabled_makers
+  let b:neomake_neomake_tests_enabled_makers = ['maker_without_exe']
+
+  let makers = neomake#GetEnabledMakers(&ft)
+  AssertEqual map(copy(makers), 'v:val.auto_enabled'), [0]
+  AssertEqual len(g:neomake_test_messages), 0
+
+Execute (neomake#GetEnabledMakers without filetype):
+  Save g:neomake_enabled_makers
+  unlet! g:neomake_enabled_makers
+
+  let makers = neomake#GetEnabledMakers()
+  AssertEqual makers, []
+
+  Save g:neomake_mymaker_maker
+  let g:neomake_mymaker_maker = {}
+  let g:neomake_enabled_makers = ['mymaker']
+  let makers = neomake#GetEnabledMakers()
+  AssertEqual map(copy(makers), '[v:val.name, v:val.auto_enabled]'),
+  \ [['mymaker', 0]]
+
+  " Should use a more specific maker based on &filetype.
+  set filetype=myft
+  let g:neomake_myft_mymaker_maker = {}
+  let makers = neomake#GetEnabledMakers()
+  AssertEqual map(copy(makers), '[v:val.name, v:val.auto_enabled]'),
+  \ [['mymaker', 0]]
+
+  " Should fallback to global maker if not found through filetype.
+  unlet g:neomake_myft_mymaker_maker
+  let makers = neomake#GetEnabledMakers()
+  AssertEqual map(copy(makers), '[v:val.name, v:val.auto_enabled]'),
+  \ [['mymaker', 0]]
+
+  AssertEqual len(g:neomake_test_messages), 0
+
+Execute (neomake#GetMaker errors):
+  AssertThrows call neomake#GetMaker('cargo', 'foo')
+  AssertEqual g:vader_exception, "Neomake: Maker not found (for filetypes ['foo']): cargo"
+
+Execute (neomake#GetMaker for project maker):
+  Save g:neomake_enabled_makers
+  let g:neomake_enabled_makers = ['cargo']
+  set ft=myft
+
+  AssertThrows call neomake#GetMaker('cargo', 'foo')
+  AssertEqual g:vader_exception, "Neomake: Maker not found (for filetypes ['foo']): cargo"
+
+Execute (maker.fn can set env var):
+  let maker = {
+  \ 'exe': 'sh',
+  \ 'args': ['-c', 'echo MYENV:$MYENV'],
+  \ 'append_file': 0,
+  \ 'errorformat': '%m',
+  \ }
+
+  function! maker.fn(jobinfo)
+    let self.args = ['MYENV=custom', self.exe] + self.args
+    let self.exe = 'env'
+
+    let self.errorformat = '%m'
+    return self
+  endfunction
+
+  let prev_maker = deepcopy(maker)
+  call neomake#Make(1, [maker])
+  AssertEqual maker, prev_maker
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['MYENV:custom']
+
+Execute (Set env from maker config):
+  Save g:neomake_rust_rustc_maker
+
+  let maker = neomake#GetMaker('rustc', 'rust')
+  let maker.args = ['-c', 'env MYENV:$MYENV'] + [maker.exe] + maker.args
+  let maker.exe = 'sh'
+
+  let g:neomake_rust_rustc_maker = maker
+
+  let makers = neomake#GetEnabledMakers('rust')
+  AssertEqual makers[0], extend(maker, {'auto_enabled': 1})
+
+Execute (Correct function binding from base maker):
+  let maker = neomake#GetMaker({'name': 'maker1'})
+  AssertEqual maker.exe, 'maker1'
+  " Not sure about this one, but it asserts that there is no dict in the string
+  " representation of the object's function, when dumping the object.  This was
+  " different before, when assigning the function from the base maker dict.
+  Assert string(maker) =~# '\v''_get_argv'': function\(''\d+''\),', 'Simple _get_argv'
