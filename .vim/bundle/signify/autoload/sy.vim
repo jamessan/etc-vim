@@ -35,13 +35,14 @@ function! sy#start() abort
   if !exists('b:sy') || b:sy.path != sy_path
     call sy#verbose('Register new file.')
     let b:sy = {
-          \ 'path'  : sy_path,
-          \ 'buffer': bufnr(''),
-          \ 'active': 0,
-          \ 'vcs'   : 'unknown',
-          \ 'hunks' : [],
-          \ 'signid': 0x100,
-          \ 'stats' : [-1, -1, -1] }
+          \ 'path'  :    sy_path,
+          \ 'buffer':    bufnr(''),
+          \ 'active':    0,
+          \ 'detecting': 0,
+          \ 'vcs'   :    'unknown',
+          \ 'hunks' :    [],
+          \ 'signid':    0x100,
+          \ 'stats' :    [-1, -1, -1] }
     if get(g:, 'signify_disable_by_default')
       call sy#verbose('Disabled by default.')
       return
@@ -60,12 +61,21 @@ function! sy#start() abort
       call sy#verbose('Redetecting VCS.')
       call sy#repo#detect(1)
     else
-      call sy#verbose('No VCS found. Disabling.')
-      call sy#disable()
+      if get(b:sy, 'detecting')
+        call sy#verbose('Detection is already in progress.')
+      else
+        call sy#verbose('No VCS found. Disabling.')
+        call sy#disable()
+      endif
     endif
   else
-    call sy#verbose('Updating signs.')
-    call sy#repo#get_diff_start(b:sy.vcs, 0)
+    let job_id = get(b:, 'sy_job_id_'.b:sy.vcs)
+    if type(job_id) != type(0) || job_id > 0
+      call sy#verbose('Update is already in progress.', b:sy.vcs)
+    else
+      call sy#verbose('Updating signs.', b:sy.vcs)
+      call sy#repo#get_diff_start(b:sy.vcs, 0)
+    endif
   endif
 endfunction
 
