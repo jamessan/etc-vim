@@ -1,5 +1,10 @@
 " vim: ts=4 sw=4 et
 
+if !exists('s:compile_script')
+    let s:slash = neomake#utils#Slash()
+    let s:compile_script = expand('<sfile>:p:h', 1).s:slash.'python'.s:slash.'compile.py'
+endif
+
 function! neomake#makers#ft#python#EnabledMakers() abort
     if exists('s:python_makers')
         return s:python_makers
@@ -27,7 +32,7 @@ function! neomake#makers#ft#python#pylint() abort
     return {
         \ 'args': [
             \ '--output-format=text',
-            \ '--msg-template="{path}:{line}:{column}:{C}: [{symbol}] {msg}"',
+            \ '--msg-template="{path}:{line}:{column}:{C}: [{symbol}] {msg} [{msg_id}]"',
             \ '--reports=no'
         \ ],
         \ 'errorformat':
@@ -36,8 +41,10 @@ function! neomake#makers#ft#python#pylint() abort
             \ '%A%f:(%l): %m,' .
             \ '%-Z%p^%.%#,' .
             \ '%-G%.%#',
-        \ 'postprocess': function('neomake#makers#ft#python#PylintEntryProcess')
-        \ }
+        \ 'postprocess': [
+        \   function('neomake#postprocess#GenericLengthPostprocess'),
+        \   function('neomake#makers#ft#python#PylintEntryProcess'),
+        \ ]}
 endfunction
 
 function! neomake#makers#ft#python#PylintEntryProcess(entry) abort
@@ -101,23 +108,37 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
     if strlen(l:token)
         " remove quotes
         let l:token = substitute(l:token, "'", '', 'g')
-        if a:entry.type ==# 'F' && a:entry.nr == 401
-            " The unused import error column is incorrect
+        if a:entry.type ==# 'F' && (a:entry.nr == 401 ||  a:entry.nr == 811)
+            " The unused column is incorrect for import errors and redefinition
+            " errors.
             let l:view = winsaveview()
             call cursor(a:entry.lnum, a:entry.col)
+            " The number of lines to give up searching afterwards
+            let l:search_lines = 5
 
-            if searchpos('from', 'cnW', a:entry.lnum)[1] == a:entry.col
+            if searchpos('\<from\>', 'cnW', a:entry.lnum)[1] == a:entry.col
                 " for 'from xxx.yyy import zzz' the token looks like
                 " xxx.yyy.zzz, but only the zzz part should be highlighted. So
                 " this discards the module part
                 let l:token = split(l:token, '\.')[-1]
+
+                " Also the searhch should be started at the import keyword.
+                " Otherwise for 'from os import os' the first os will be
+                " found. This moves the cursor there.
+                echom search('\<import\>', 'cW', a:entry.lnum + l:search_lines)
             endif
 
             " Search for the first occurrence of the token and highlight in
             " the next couple of lines and change the lnum and col to that
             " position.
-            let l:search_lines = 5
-            let l:ident_pos = searchpos('\<' . l:token . '\>', 'cnW',
+            " Don't match entries surrounded by dots, even though
+            " it ends a word, we want to find a full identifier. It also
+            " matches all seperators such as spaces and newlines with
+            " backslashes until it knows for sure the previous real character
+            " was not a dot.
+            let l:ident_pos = searchpos('\(\.\(\_s\|\\\)*\)\@<!\<' .
+                        \ l:token . '\>\(\(\_s\|\\\)*\.\)\@!',
+                        \ 'cnW',
                         \ a:entry.lnum + l:search_lines)
             if l:ident_pos[1] > 0
                 let a:entry.lnum = l:ident_pos[0]
@@ -211,17 +232,7 @@ endfunction
 
 function! neomake#makers#ft#python#python() abort
     return {
-        \ 'args': [ '-c',
-            \ "from __future__ import print_function\r" .
-            \ "from sys import argv, exit\r" .
-            \ "if len(argv) != 2:\r" .
-            \ "    exit(64)\r" .
-            \ "try:\r" .
-            \ "    compile(open(argv[1]).read(), argv[1], 'exec', 0, 1)\r" .
-            \ "except SyntaxError as err:\r" .
-            \ "    print('%s:%s:%s: %s' % (err.filename, err.lineno, err.offset, err.msg))\r" .
-            \ '    exit(1)'
-        \ ],
+        \ 'args': [s:compile_script],
         \ 'errorformat': '%E%f:%l:%c: %m',
         \ 'serialize': 1,
         \ 'serialize_abort_on_error': 1,
@@ -251,7 +262,7 @@ endfunction
 " --silent-imports: replaced by --ignore-missing-imports --follow-imports=skip
 function! neomake#makers#ft#python#mypy() abort
     let args = ['--ignore-missing-imports', '--follow-imports=skip']
-    if neomake#utils#IsRunningWindows()
+    if !neomake#utils#IsRunningWindows()
         let args += ['--fast-parser']
     endif
     return {

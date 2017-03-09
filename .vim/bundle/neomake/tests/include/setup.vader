@@ -2,17 +2,19 @@
 
 Before:
   let g:neomake_test_messages = []
+  let g:neomake_test_log_all_messages = 1
   let g:neomake_test_messages_last_idx = -1
 
+  cgetexpr ''
+  lgetexpr ''
+
   " One-time setup.
-  if exists(':NeomakeTestsWaitForFinishedJobs') == 2
-    finish
-  endif
+  if exists(':NeomakeTestsWaitForFinishedJobs') != 2
+
   function! s:wait_for_jobs(filter)
-    let max = 60
+    let max = 45
     let filter = a:filter
     while 1
-      let max -= 1
       let jobs = copy(neomake#GetJobs())
       if len(a:filter)
         let jobs = filter(jobs, a:filter)
@@ -20,33 +22,51 @@ Before:
       if !len(jobs)
         break
       endif
+      let max -= 1
       if max == 0
         for j in jobs
           Log "Remaining job: ".string(j)
         endfor
+        NeomakeCancelJobs!
         throw len(jobs).' jobs did not finish after 3s.'
       endif
-      sleep 50m
+      exe 'sleep' (max < 25 ? 100 : max < 35 ? 50 : 10).'m'
     endwhile
   endfunction
   command! NeomakeTestsWaitForFinishedJobs call s:wait_for_jobs("!get(v:val, 'finished')")
   command! NeomakeTestsWaitForRemovedJobs call s:wait_for_jobs('')
 
   function! s:wait_for_next_message()
-    let max = 60
+    let max = 45
     let n = len(g:neomake_test_messages)
     while 1
       let max -= 1
-      sleep 50m
       if max == 0
         throw 'No new message appeared after 3s.'
       endif
+      exe 'sleep' (max < 25 ? 100 : max < 35 ? 50 : 10).'m'
       if len(g:neomake_test_messages) != n
         break
       endif
     endwhile
   endfunction
   command! NeomakeTestsWaitForNextMessage call s:wait_for_next_message()
+
+  function! s:wait_for_finished_job()
+    let max = 45
+    let n = len(neomake#GetJobs())
+    while 1
+      let max -= 1
+      if max == 0
+        throw 'No job finished after 3s.'
+      endif
+      exe 'sleep' (max < 25 ? 100 : max < 35 ? 50 : 10).'m'
+      if len(neomake#GetJobs()) != n
+        break
+      endif
+    endwhile
+  endfunction
+  command! NeomakeTestsWaitForNextFinishedJob call s:wait_for_finished_job()
 
   command! -nargs=* RunNeomake Neomake <args>
     \ | NeomakeTestsWaitForFinishedJobs
@@ -70,7 +90,10 @@ Before:
     let dir_separator = exists('+shellslash') ? '\' : '/'
     let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
     if $PATH !~# tmpbindir . path_separator
-      call mkdir(tmpbindir, 'p', 0770)
+      Save $PATH
+      if !isdirectory(tmpbindir)
+        call mkdir(tmpbindir, 'p', 0770)
+      endif
       let $PATH = tmpbindir . ':' . $PATH
     endif
     let exe = tmpbindir.dir_separator.a:name
@@ -177,6 +200,12 @@ Before:
   endfunction
   command! -nargs=+ AssertNeomakeMessageAbsent call s:AssertNeomakeMessageAbsent(<args>)
 
+  function! s:NeomakeTestsResetMessages()
+    let g:neomake_test_messages = []
+    let g:neomake_test_messages_last_idx = -1
+  endfunction
+  command! NeomakeTestsResetMessages call s:NeomakeTestsResetMessages()
+
   function! g:NeomakeSetupAutocmdWrappers()
     let g:neomake_test_finished = []
     function! s:OnNeomakeFinished(context)
@@ -201,13 +230,23 @@ Before:
     augroup END
   endfunction
 
+  command! -nargs=1 NeomakeTestsSkip call vader#log('SKIP: ' . <args>)
+
   function! NeomakeAsyncTestsSetup()
     if neomake#has_async_support()
       call neomake#statusline#ResetCounts()
       call g:NeomakeSetupAutocmdWrappers()
       return 1
     endif
-    Log "SKIP: no async support."
+    NeomakeTestsSkip 'no async support.'
+  endfunction
+
+  function! NeomakeTestsCommandMaker(name, cmd)
+    let maker = neomake#utils#MakerFromCommand(a:cmd)
+    return extend(maker, {
+    \ 'name': a:name,
+    \ 'errorformat': '%m',
+    \ 'append_file': 0})
   endfunction
 
   " Fixtures
@@ -238,30 +277,45 @@ Before:
         \ 'append_file': 0,
         \ }
 
-After:
-  Restore
+  function! s:After()
+    Restore
 
-  " Stop any (non-canceled) jobs.  Canceled jobs might take a while to call the
-  " exit handler, but that is OK.
-  let jobs = filter(neomake#GetJobs(), "!get(v:val, 'canceled', 0)")
-  if len(jobs)
-    for job in jobs
-      call neomake#CancelJob(job.id, 1)
-    endfor
-    throw 'There were '.len(jobs).' jobs left: '.string(map(jobs, 'v:val.make_id.".".v:val.id'))
-  endif
+    " Stop any (non-canceled) jobs.  Canceled jobs might take a while to call the
+    " exit handler, but that is OK.
+    let jobs = filter(neomake#GetJobs(), "!get(v:val, 'canceled', 0)")
+    if len(jobs)
+      for job in jobs
+        call neomake#CancelJob(job.id, !neomake#has_async_support())
+      endfor
+      throw 'There were '.len(jobs).' jobs left: '.string(map(jobs, 'v:val.make_id.".".v:val.id'))
+    endif
 
-  NeomakeTestsWaitForRemovedJobs
+    NeomakeTestsWaitForRemovedJobs
 
-  if exists('#neomake_tests')
-    autocmd! neomake_tests
-  endif
+    if exists('#neomake_tests')
+      autocmd! neomake_tests
+    endif
 
-  if !get(g:, '_neomake_test_thrown_win_assertion', 0)
     if winnr('$') > 1
-      let g:_neomake_test_thrown_win_assertion = 1
-      throw "More than 1 window after tests: "
+      let error = "More than 1 window after tests: "
         \ .string(map(range(1, winnr('$')),
         \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
+      try
+        let bufs = sort(tabpagebuflist())
+        if exists('*uniq')
+          let bufs = uniq(bufs)
+        endif
+        for b in bufs
+          silent exe 'bd!' b
+        endfor
+      catch
+        Log "Error while cleaning windows: ".v:exception
+      endtry
+      throw error
     endif
+  endfunction
+  command! NeomakeTestsGlobalAfter call s:After()
   endif
+
+After:
+  NeomakeTestsGlobalAfter
