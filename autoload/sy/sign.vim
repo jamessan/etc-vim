@@ -189,6 +189,12 @@ function! sy#sign#process_diff(sy, diff) abort
     execute 'sign unplace' a:sy.internal[line].id 'buffer='.a:sy.buffer
   endfor
 
+  if has('gui_macvim') && has('gui_running')
+    " MacVim needs an extra kick in the butt, when setting signs from the
+    " exit handler. :redraw would trigger a "hanging cursor" issue.
+    call feedkeys("\<c-l>")
+  endif
+
   let a:sy.stats = [added, modified, deleted]
 endfunction
 

@@ -7,32 +7,57 @@ if exists('g:loaded_signify') || !has('signs') || &compatible
 endif
 
 " Init: values {{{1
-
 let g:loaded_signify = 1
 let g:signify_locked = 0
+let s:has_doau_modeline = v:version > 703 || v:version == 703 && has('patch442')
 
 " Init: autocmds {{{1
-
 augroup signify
   autocmd!
-
-  autocmd BufRead,BufWritePost * call sy#start()
 
   autocmd QuickFixCmdPre  *vimgrep* let g:signify_locked = 1
   autocmd QuickFixCmdPost *vimgrep* let g:signify_locked = 0
 
-  if get(g:, 'signify_update_on_bufenter')
-    autocmd BufEnter * nested call s:save()
-  endif
-  if get(g:, 'signify_cursorhold_normal')
-    autocmd CursorHold * nested call s:save()
-  endif
-  if get(g:, 'signify_cursorhold_insert')
-    autocmd CursorHoldI * nested call s:save()
+  autocmd CmdwinEnter * let g:signify_cmdwin_active = 1
+  autocmd CmdwinLeave * let g:signify_cmdwin_active = 0
+
+  autocmd BufWritePost * call sy#start()
+
+  if get(g:, 'signify_realtime') && has('patch-7.4.1967')
+    autocmd WinEnter * call sy#start()
+    if get(g:, 'signify_update_on_bufenter')
+      autocmd BufEnter * nested call s:save()
+    else
+      autocmd BufEnter * call sy#start()
+    endif
+    if get(g:, 'signify_cursorhold_normal', 1)
+      autocmd CursorHold * nested call s:save()
+    endif
+    if get(g:, 'signify_cursorhold_insert', 1)
+      autocmd CursorHoldI * nested call s:save()
+    endif
+    if get(g:, 'signify_update_on_focusgained', 1)
+      autocmd FocusGained * SignifyRefresh
+    endif
+  else
+    autocmd BufRead * call sy#start()
+    if get(g:, 'signify_update_on_bufenter')
+      autocmd BufEnter * nested call s:save()
+    endif
+    if get(g:, 'signify_cursorhold_normal')
+      autocmd CursorHold * nested call s:save()
+    endif
+    if get(g:, 'signify_cursorhold_insert')
+      autocmd CursorHoldI * nested call s:save()
+    endif
+    if get(g:, 'signify_update_on_focusgained')
+      autocmd FocusGained * SignifyRefresh
+    endif
   endif
 
-  if get(g:, 'signify_update_on_focusgained') && !has('gui_win32')
-    autocmd FocusGained * SignifyRefresh
+  if has('gui_running') && has('win32') && argc()
+    " Fix 'no signs at start' race.
+    autocmd GUIEnter * redraw
   endif
 augroup END
 
@@ -79,3 +104,7 @@ function! s:save()
     write
   endif
 endfunction
+
+if exists('#User#SignifySetup')
+  execute 'doautocmd' (s:has_doau_modeline ? '<nomodeline>' : '') 'User SignifySetup'
+endif
