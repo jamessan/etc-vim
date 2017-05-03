@@ -3,21 +3,10 @@
 scriptencoding utf-8
 
 " Function: #detect {{{1
-function! sy#repo#detect(do_register) abort
-  let vcs_list = s:vcs_list
-  " Simple cache. If there is a registered VCS-controlled file in this
-  " directory already, assume that this file is probably controlled by
-  " the same VCS. Thus we shuffle that VCS to the top of our copy of
-  " s:vcs_list, so we don't affect the preference order of s:vcs_list.
-  if has_key(g:sy_cache, b:sy_info.dir)
-    let vcs_list = [g:sy_cache[b:sy_info.dir]] +
-          \ filter(copy(s:vcs_list), 'v:val != "'.
-          \        g:sy_cache[b:sy_info.dir] .'"')
-  endif
-
-  for vcs in vcs_list
+function! sy#repo#detect() abort
+  for vcs in s:vcs_list
     let b:sy.detecting += 1
-    call sy#repo#get_diff_start(vcs, a:do_register)
+    call sy#repo#get_diff_start(vcs)
   endfor
 endfunction
 
@@ -34,7 +23,7 @@ endfunction
 
 " Function: s:callback_nvim_exit {{{1
 function! s:callback_nvim_exit(_job_id, exitval, _event) dict abort
-  call s:job_exit(self.bufnr, self.vcs, a:exitval, self.stdoutbuf, self.do_register)
+  call s:job_exit(self.bufnr, self.vcs, a:exitval, self.stdoutbuf)
 endfunction
 
 " Function: s:callback_vim_stdout {{{1
@@ -52,25 +41,28 @@ function! s:callback_vim_close(channel) dict abort
     endif
     sleep 10m
   endwhile
-  call s:job_exit(self.bufnr, self.vcs, exitval, self.stdoutbuf, self.do_register)
+  call s:job_exit(self.bufnr, self.vcs, exitval, self.stdoutbuf)
 endfunction
 
 " Function: s:job_exit {{{1
-function! s:job_exit(bufnr, vcs, exitval, diff, do_register) abort
+function! s:job_exit(bufnr, vcs, exitval, diff) abort
   call sy#verbose('job_exit()', a:vcs)
   let sy = getbufvar(a:bufnr, 'sy')
   if empty(sy)
     call sy#verbose(printf('No b:sy found for %s', bufname(a:bufnr)), a:vcs)
     return
-  elseif sy.vcs == 'unknown' && sy.active
+  elseif !empty(sy.updated_by)
+    call sy#verbose(printf('Signs already got updated by %s.', sy.updated_by), a:vcs)
+    return
+  elseif empty(sy.vcs) && sy.active
     let sy.detecting -= 1
   endif
-  call sy#repo#get_diff_{a:vcs}(sy, a:exitval, a:diff, a:do_register)
+  call sy#repo#get_diff_{a:vcs}(sy, a:exitval, a:diff)
   call setbufvar(a:bufnr, 'sy_job_id_'.a:vcs, 0)
 endfunction
 
 " Function: sy#get_diff_start {{{1
-function! sy#repo#get_diff_start(vcs, do_register) abort
+function! sy#repo#get_diff_start(vcs) abort
   call sy#verbose('get_diff_start()', a:vcs)
 
   let job_id = get(b:, 'sy_job_id_'.a:vcs)
@@ -80,7 +72,7 @@ function! sy#repo#get_diff_start(vcs, do_register) abort
       silent! call jobstop(job_id)
     endif
 
-    let [cmd, options] = s:initialize_job(a:vcs, a:do_register)
+    let [cmd, options] = s:initialize_job(a:vcs)
     let [cwd, chdir] = sy#util#chdir()
 
     call sy#verbose(printf('CMD: %s | CWD: %s', string(cmd), b:sy_info.dir), a:vcs)
@@ -96,7 +88,7 @@ function! sy#repo#get_diff_start(vcs, do_register) abort
       silent! call job_stop(job_id)
     endif
 
-    let [cmd, options] = s:initialize_job(a:vcs, a:do_register)
+    let [cmd, options] = s:initialize_job(a:vcs)
     let [cwd, chdir] = sy#util#chdir()
 
     try
@@ -115,63 +107,67 @@ function! sy#repo#get_diff_start(vcs, do_register) abort
   " Older Vim
   else
     let diff = split(s:run(a:vcs), '\n')
-    call sy#repo#get_diff_{a:vcs}(b:sy, v:shell_error, diff, a:do_register)
+    call sy#repo#get_diff_{a:vcs}(b:sy, v:shell_error, diff)
   endif
 endfunction
 
 " Function: s:get_diff_end {{{1
-function! s:get_diff_end(sy, found_diff, vcs, diff, do_register) abort
+function! s:get_diff_end(sy, found_diff, vcs, diff) abort
   call sy#verbose('get_diff_end()', a:vcs)
   if a:found_diff
-    let a:sy.vcs = a:vcs
-    call sy#set_signs(a:sy, a:diff, a:do_register)
+    if index(a:sy.vcs, a:vcs) == -1
+      let a:sy.vcs += [a:vcs]
+    endif
+    call sy#set_signs(a:sy, a:vcs, a:diff)
+  else
+    call sy#verbose('No valid diff found. Disabling this VCS.', a:vcs)
   endif
 endfunction
 
 " Function: #get_diff_git {{{1
-function! sy#repo#get_diff_git(sy, exitval, diff, do_register) abort
+function! sy#repo#get_diff_git(sy, exitval, diff) abort
   call sy#verbose('get_diff_git()', 'git')
   let [found_diff, diff] = a:exitval ? [0, []] : [1, a:diff]
-  call s:get_diff_end(a:sy, found_diff, 'git', diff, a:do_register)
+  call s:get_diff_end(a:sy, found_diff, 'git', diff)
 endfunction
 
 " Function: #get_diff_hg {{{1
-function! sy#repo#get_diff_hg(sy, exitval, diff, do_register) abort
+function! sy#repo#get_diff_hg(sy, exitval, diff) abort
   call sy#verbose('get_diff_hg()', 'hg')
   let [found_diff, diff] = a:exitval ? [0, []] : [1, a:diff]
-  call s:get_diff_end(a:sy, found_diff, 'hg', diff, a:do_register)
+  call s:get_diff_end(a:sy, found_diff, 'hg', diff)
 endfunction
 
 " Function: #get_diff_svn {{{1
-function! sy#repo#get_diff_svn(sy, exitval, diff, do_register) abort
+function! sy#repo#get_diff_svn(sy, exitval, diff) abort
   call sy#verbose('get_diff_svn()', 'svn')
   let [found_diff, diff] = a:exitval ? [0, []] : [1, a:diff]
-  call s:get_diff_end(a:sy, found_diff, 'svn', diff, a:do_register)
+  call s:get_diff_end(a:sy, found_diff, 'svn', diff)
 endfunction
 
 " Function: #get_diff_bzr {{{1
-function! sy#repo#get_diff_bzr(sy, exitval, diff, do_register) abort
+function! sy#repo#get_diff_bzr(sy, exitval, diff) abort
   call sy#verbose('get_diff_bzr()', 'bzr')
   let [found_diff, diff] = (a:exitval =~ '[012]') ? [1, a:diff] : [0, []]
-  call s:get_diff_end(a:sy, found_diff, 'bzr', diff, a:do_register)
+  call s:get_diff_end(a:sy, found_diff, 'bzr', diff)
 endfunction
 
 " Function: #get_diff_darcs {{{1
-function! sy#repo#get_diff_darcs(sy, exitval, diff, do_register) abort
+function! sy#repo#get_diff_darcs(sy, exitval, diff) abort
   call sy#verbose('get_diff_darcs()', 'darcs')
   let [found_diff, diff] = a:exitval ? [0, []] : [1, a:diff]
-  call s:get_diff_end(a:sy, found_diff, 'darcs', diff, a:do_register)
+  call s:get_diff_end(a:sy, found_diff, 'darcs', diff)
 endfunction
 
 " Function: #get_diff_fossil {{{1
-function! sy#repo#get_diff_fossil(sy, exitval, diff, do_register) abort
+function! sy#repo#get_diff_fossil(sy, exitval, diff) abort
   call sy#verbose('get_diff_fossil()', 'fossil')
   let [found_diff, diff] = a:exitval ? [0, []] : [1, a:diff]
-  call s:get_diff_end(a:sy, found_diff, 'fossil', diff, a:do_register)
+  call s:get_diff_end(a:sy, found_diff, 'fossil', diff)
 endfunction
 
 " Function: #get_diff_cvs {{{1
-function! sy#repo#get_diff_cvs(sy, exitval, diff, do_register) abort
+function! sy#repo#get_diff_cvs(sy, exitval, diff) abort
   call sy#verbose('get_diff_cvs()', 'cvs')
   let [found_diff, diff] = [0, []]
   if a:exitval == 1
@@ -182,35 +178,35 @@ function! sy#repo#get_diff_cvs(sy, exitval, diff, do_register) abort
       endif
     endfor
   endif
-  call s:get_diff_end(a:sy, found_diff, 'cvs', diff, a:do_register)
+  call s:get_diff_end(a:sy, found_diff, 'cvs', diff)
 endfunction
 
 " Function: #get_diff_rcs {{{1
-function! sy#repo#get_diff_rcs(sy, exitval, diff, do_register) abort
+function! sy#repo#get_diff_rcs(sy, exitval, diff) abort
   call sy#verbose('get_diff_rcs()', 'rcs')
   let [found_diff, diff] = a:exitval ? [0, []] : [1, a:diff]
-  call s:get_diff_end(a:sy, found_diff, 'rcs', diff, a:do_register)
+  call s:get_diff_end(a:sy, found_diff, 'rcs', diff)
 endfunction
 
 " Function: #get_diff_accurev {{{1
-function! sy#repo#get_diff_accurev(sy, exitval, diff, do_register) abort
+function! sy#repo#get_diff_accurev(sy, exitval, diff) abort
   call sy#verbose('get_diff_accurev()', 'accurev')
   let [found_diff, diff] = (a:exitval >= 2) ? [0, []] : [1, a:diff]
-  call s:get_diff_end(a:sy, found_diff, 'accurev', diff, a:do_register)
+  call s:get_diff_end(a:sy, found_diff, 'accurev', diff)
 endfunction
 
 " Function: #get_diff_perforce {{{1
-function! sy#repo#get_diff_perforce(sy, exitval, diff, do_register) abort
+function! sy#repo#get_diff_perforce(sy, exitval, diff) abort
   call sy#verbose('get_diff_perforce()', 'perforce')
   let [found_diff, diff] = a:exitval ? [0, []] : [1, a:diff]
-  call s:get_diff_end(a:sy, found_diff, 'perforce', diff, a:do_register)
+  call s:get_diff_end(a:sy, found_diff, 'perforce', diff)
 endfunction
 
 " Function: #get_diff_tfs {{{1
-function! sy#repo#get_diff_tfs(sy, exitval, diff, do_register) abort
+function! sy#repo#get_diff_tfs(sy, exitval, diff) abort
   call sy#verbose('get_diff_tfs()', 'tfs')
   let [found_diff, diff] = a:exitval ? [0, []] : [1, s:strip_context(a:diff)]
-  call s:get_diff_end(a:sy, found_diff, 'tfs', diff, a:do_register)
+  call s:get_diff_end(a:sy, found_diff, 'tfs', diff)
 endfunction
 
 " Function: #get_stats {{{1
@@ -249,7 +245,7 @@ function! sy#repo#debug_detection()
 endfunction
 
 " Function: s:initialize_job {{{1
-function! s:initialize_job(vcs, do_register) abort
+function! s:initialize_job(vcs) abort
   let vcs_cmd = s:expand_cmd(a:vcs)
   if has('win32')
     if has('nvim')
@@ -263,7 +259,6 @@ function! s:initialize_job(vcs, do_register) abort
   let options = {
         \ 'stdoutbuf':   [],
         \ 'vcs':         a:vcs,
-        \ 'do_register': a:do_register,
         \ 'bufnr':       bufnr('%'),
         \ }
   return [cmd, options]
@@ -438,7 +433,7 @@ let s:vcs_cmds = {
 if exists('g:signify_vcs_cmds')
   call extend(g:signify_vcs_cmds, s:vcs_cmds, 'keep')
 else
-    let g:signify_vcs_cmds = s:vcs_cmds
+  let g:signify_vcs_cmds = s:vcs_cmds
 endif
 
 let s:difftool = sy#util#escape(s:difftool)
