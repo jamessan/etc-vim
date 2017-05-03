@@ -35,9 +35,9 @@ endif
 " Theme/Colors
 
 " Change the cursor to an underline in replace mode, bar in insert
-if has('nvim')
+if has('nvim') && !has('nvim-0.2')
     let $NVIM_TUI_ENABLE_CURSOR_SHAPE = 1
-elseif &term =~ 'xterm\|screen'
+elseif &term =~ 'xterm\|screen\|tmux'
     set t_SI=[6\ q
     set t_SR=[4\ q
     set t_EI=[2\ q
