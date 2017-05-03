@@ -216,10 +216,16 @@ let g:neomake_buildall_maker = {
             \ }
 let g:neomake_c_lint_maker = {
             \ 'exe': 'make',
-            \ 'args': function('jamessan#neomake#c_lint_args'),
+            \ 'args': ['clint', 'LINT_FILE=%'],
             \ 'postprocess': function('jamessan#neomake#make_post'),
             \ 'errorformat': '%f:%l: %m',
             \ 'append_file': 0,
+            \ }
+let g:neomake_clint_maker = {
+            \ 'exe': 'make',
+            \ 'args': ['clint'],
+            \ 'postprocess': function('jamessan#neomake#make_post'),
+            \ 'errorformat': '%f:%l: %m',
             \ }
 let g:neomake_cpp_lint_maker = g:neomake_c_lint_maker
 let g:neomake_make_maker = {
