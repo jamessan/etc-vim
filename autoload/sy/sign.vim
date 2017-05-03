@@ -50,7 +50,7 @@ endfunction
 
 
 " Function: #process_diff {{{1
-function! sy#sign#process_diff(sy, diff) abort
+function! sy#sign#process_diff(sy, vcs, diff) abort
   let a:sy.signtable             = {}
   let a:sy.hunks                 = []
   let [added, modified, deleted] = [0, 0, 0]
@@ -189,10 +189,17 @@ function! sy#sign#process_diff(sy, diff) abort
     execute 'sign unplace' a:sy.internal[line].id 'buffer='.a:sy.buffer
   endfor
 
-  if has('gui_macvim') && has('gui_running')
+  if has('gui_macvim') && has('gui_running') && mode() == 'n'
     " MacVim needs an extra kick in the butt, when setting signs from the
     " exit handler. :redraw would trigger a "hanging cursor" issue.
     call feedkeys("\<c-l>")
+  endif
+
+  call sy#verbose('Signs updated.', a:vcs)
+  let a:sy.updated_by = a:vcs
+  if len(a:sy.vcs) > 1
+    call sy#verbose('Disable all other VCS.', a:vcs)
+    let a:sy.vcs = [a:vcs]
   endif
 
   let a:sy.stats = [added, modified, deleted]
