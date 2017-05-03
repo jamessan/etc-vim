@@ -43,7 +43,15 @@ elseif &term =~ 'xterm\|screen\|tmux'
     set t_EI=[2\ q
 endif
 
-if &term !~# '^screen' && exists('+termguicolors')
+if exists('+termguicolors')
+    if !has('nvim')
+        if empty(&t_8f)
+            let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+        endif
+        if empty(&t_8b)
+            let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+        endif
+    endif
     set termguicolors
 endif
 
