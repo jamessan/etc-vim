@@ -2,7 +2,9 @@ Include: include/setup.vader
 
 Execute (Output is only processed in normal/insert mode (loclist)):
   if NeomakeAsyncTestsSetup()
-    call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
+    new
+    file file_sleep_efm
+    call neomake#Make(1, [g:sleep_efm_maker])
     norm! V
     NeomakeTestsWaitForFinishedJobs
     AssertEqual getloclist(0), [], 'Location list has not been updated'
@@ -19,11 +21,14 @@ Execute (Output is only processed in normal/insert mode (loclist)):
     AssertEqual len(g:neomake_test_finished), 1, "b"
     AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
     AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
+    bwipe
   endif
 
 Execute (Output is only processed in normal/insert mode (qflist)):
   if NeomakeAsyncTestsSetup()
-    call neomake#Make(0, [g:neomake_test_sleep_efm_maker])[0]
+    new
+    file file_sleep_efm
+    call neomake#Make(0, [g:sleep_efm_maker])[0]
     let jobinfo = neomake#GetJobs()[-1]
     norm! V
     NeomakeTestsWaitForFinishedJobs
@@ -34,14 +39,17 @@ Execute (Output is only processed in normal/insert mode (qflist)):
     AssertEqual mode(), 'n'
     doautocmd CursorHold
     AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
-    AssertNeomakeMessage 'Processed pending output', 3, jobinfo
+    AssertNeomakeMessage 'Processed pending output.', 3, jobinfo
     AssertEqual map(copy(getqflist()), 'v:val.text'), ['error message', 'warning', 'error2']
     NeomakeTestsWaitForRemovedJobs
+    call neomake#signs#ResetProject()
+    call neomake#signs#CleanAllOldSigns('project')
+    bwipe!
   endif
 
 Execute (Output is only processed in normal/insert mode (from loclist)):
   if NeomakeAsyncTestsSetup()
-    call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
+    call neomake#Make(1, [g:sleep_efm_maker])
     lopen
     AssertEqual &buftype, 'quickfix'
     AssertEqual winnr(), 2
@@ -63,13 +71,14 @@ Execute (Output is only processed in normal/insert mode (from loclist)):
 
 Execute (Output gets not processed from loclist):
   if NeomakeAsyncTestsSetup()
-    lgetexpr ''
-    call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
+    new
+    file file_sleep_efm
+    call neomake#Make(1, [g:sleep_efm_maker])
     lopen
     AssertEqual &buftype, 'quickfix'
-    AssertEqual winnr(), 2
+    AssertEqual winnr(), 3
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual winnr(), 2
+    AssertEqual winnr(), 3
 
     AssertEqual len(g:neomake_test_finished), 0
     AssertEqual len(g:neomake_test_countschanged), 0
@@ -79,6 +88,7 @@ Execute (Output gets not processed from loclist):
     AssertEqual len(g:neomake_test_finished), 1
     AssertEqual len(g:neomake_test_countschanged), 1
     AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
+    bwipe
   endif
 
 Execute (Unbuffered output handled correctly (loclist)):
@@ -98,8 +108,8 @@ Execute (Unbuffered output handled correctly (loclist)):
     AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.', 3
     wincmd p
     NeomakeTestsWaitForRemovedJobs
-    AssertNeomakeMessage 'Processed pending output', 3, jobinfo1
-    AssertNeomakeMessage 'Processed pending output', 3, jobinfo2
+    AssertNeomakeMessage 'Processed pending output.', 3, jobinfo1
+    AssertNeomakeMessage 'Processed pending output.', 3, jobinfo2
     AssertEqual len(g:neomake_test_countschanged), 2
     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
       \ ['1', '2', '3', '4', '5', '2_1', '2_2', '2_3', '2_4', '2_5']
@@ -121,9 +131,9 @@ Execute (Unbuffered output handled correctly (qflist)):
     exe "norm! <Esc>"
     doautocmd CursorHold
     NeomakeTestsWaitForRemovedJobs
-    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 0}"
+    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'jobinfo': '…', 'file_mode': 0}."
     let make_id = neomake#GetStatus().last_make_id
-    AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 0, 'make_id': ".make_id."}", 2
+    AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'jobinfo': '…', 'file_mode': 0, 'make_id': ".make_id."}.", 2
     AssertEqual len(g:neomake_test_countschanged), 1
     AssertEqual map(copy(getqflist()), 'v:val.text'), map(range(1, 5), 'v:val . ""')
   endif
@@ -139,7 +149,7 @@ Execute (Sleep in postprocess gets handled correctly):
     let s:sleep = has('nvim') ? '0.01' : '0.1'
     Save g:neomake_test_postprocess_count
     let g:neomake_test_postprocess_count = 0
-    function! Postprocess(entry) dict
+    function! s:postprocess(entry) dict
       let g:neomake_test_postprocess_count += 1
       if g:neomake_test_postprocess_count == 1
         let sleep = has('nvim') ? 50 : 400
@@ -147,13 +157,13 @@ Execute (Sleep in postprocess gets handled correctly):
       endif
     endfunction
 
-    let maker_1 = extend(neomake#utils#MakerFromCommand(
+    let maker = extend(neomake#utils#MakerFromCommand(
       \ 'echo out-1; sleep '.s:sleep.'; echo out-22; sleep '.s:sleep.'; echo out-333'), {
       \ 'buffer_output': 0, 'errorformat': '%m',
       \ 'append_file': 0,
-      \ 'postprocess': function('Postprocess')})
+      \ 'postprocess': function('s:postprocess')})
 
-    let job_ids = neomake#Make(1, [maker_1])
+    let job_ids = neomake#Make(1, [maker])
     let jobinfo = neomake#GetJob(job_ids[0])
     " norm! V
     NeomakeTestsWaitForFinishedJobs
@@ -161,24 +171,24 @@ Execute (Sleep in postprocess gets handled correctly):
     " doautocmd CursorHold
     AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
     if !has('nvim-0.2.0')
-      AssertNeomakeMessage 'exit (delayed): unnamed_maker: 0', 3, jobinfo
-      AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+      AssertNeomakeMessage 'exit (delayed): unnamed_maker: 0.', 3, jobinfo
+      AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'jobinfo': '…', 'file_mode': 1}."
     endif
 
-    AssertNeomakeMessage "stdout: unnamed_maker: ['out-22', '']", 3, jobinfo
+    AssertNeomakeMessage "stdout: unnamed_maker: ['out-22', ''].", 3, jobinfo
     AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
-    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'jobinfo': '…', 'file_mode': 1}."
 
-    AssertNeomakeMessage "stdout: unnamed_maker: ['out-333', '']", 3, jobinfo
+    AssertNeomakeMessage "stdout: unnamed_maker: ['out-333', ''].", 3, jobinfo
     AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
-    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'jobinfo': '…', 'file_mode': 1}."
 
     if !has('nvim-0.2.0')
-      AssertNeomakeMessage 'Trigger delayed exit', 3, jobinfo
+      AssertNeomakeMessage 'Trigger delayed exit.', 3, jobinfo
     endif
 
     let make_id = neomake#GetStatus().last_make_id
-    AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 1, 'make_id': ".make_id."}", 2
+    AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'jobinfo': '…', 'file_mode': 1, 'make_id': ".make_id."}.", 2
 
     AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['out-1', 'out-22', 'out-333']
     AssertEqual g:neomake_test_postprocess_count, 3, 'postprocess count should be 3, but is '.g:neomake_test_postprocess_count
@@ -188,42 +198,112 @@ Execute (Sleep in postprocess gets handled correctly):
 
 Execute (Pending output with restarted job when not in normal/insert mode (loclist)):
   if NeomakeAsyncTestsSetup()
+    let g:neomake_test_inc_maker_counter = 0
+
+    new
     file b1
     let first_jobs = neomake#Make(1, [g:neomake_test_inc_maker])
+    let jobinfo1 = neomake#GetJob(first_jobs[0])
     let make_id = neomake#GetStatus().last_make_id
     norm! V
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage 'Not processing output for mode V', 3
+    AssertNeomakeMessage 'Not processing output for mode "V".', 3
     exe "norm! \<Esc>"
     call neomake#Make(1, [g:neomake_test_inc_maker])
-    AssertNeomakeMessage 'Restarting already running job ('
+
+    " Maker is different because of args.
+    AssertNeomakeMessageAbsent 'Restarting already running job ('
       \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
+    AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    \ ['2:0: buf: b1', '2:1: buf: b1']
     doautocmd CursorHold
 
-    " TODO: should have output from 2nd job, should work on serialize branch.
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
+    " TODO: Should have still the output from 2nd job.
+    " Discard output from earlier makes?"
+"     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+"     \ ['2:0: buf: b1', '2:1: buf: b1']
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    \ ['1:0: buf: b1']
+    AssertEqual len(g:neomake_test_finished), 2
+    AssertEqual len(g:neomake_test_jobfinished), 2
+    bwipe
   endif
 
 Execute (Pending output with restarted job when not in normal/insert mode (quickfix)):
   if NeomakeAsyncTestsSetup()
+    let g:neomake_test_inc_maker_counter = 0
+
+    new
     file b1
     let first_jobs = neomake#Make(0, [g:neomake_test_inc_maker])
+    let jobinfo1 = neomake#GetJob(first_jobs[0])
     let make_id = neomake#GetStatus().last_make_id
     norm! V
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage 'Not processing output for mode V', 3
+    AssertNeomakeMessage 'Not processing output for mode "V".', 3
     exe "norm! \<Esc>"
     call neomake#Make(0, [g:neomake_test_inc_maker])
-    AssertNeomakeMessage 'Restarting already running job ('
+
+    " Maker is different because of args.
+    AssertNeomakeMessageAbsent 'Restarting already running job ('
       \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
+    AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getqflist()), 'v:val.text'), []
+    AssertEqual map(copy(getqflist()), 'v:val.text'),
+    \ ['2:0: buf: b1', '2:1: buf: b1']
     doautocmd CursorHold
 
-    " TODO: should have output from 2nd job, should work on serialize branch.
-    AssertEqual map(copy(getqflist()), 'v:val.text'), []
+    " TODO: Should have still the output from 2nd job.
+"     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+"     \ ['2:0: buf: b1', '2:1: buf: b1']
+    AssertEqual map(copy(getqflist()), 'v:val.text'),
+    \ ['1:0: buf: b1']
+
+    AssertEqual len(g:neomake_test_finished), 2
+    AssertEqual len(g:neomake_test_jobfinished), 2
+    bwipe
+  endif
+
+Execute (Handle finished job that got canceled (#1158)):
+  call g:NeomakeSetupAutocmdWrappers()
+  norm! V
+  let jobs = neomake#Make(0, [g:success_maker])
+  NeomakeTestsWaitForFinishedJobs
+  let jobs = neomake#Make(0, [g:success_maker])
+  if neomake#has_async_support()
+    AssertNeomakeMessage '\mRestarting already running job (\d\+.\d\+) for the same maker.'
+    NeomakeTestsWaitForFinishedJobs
+    call neomake#CancelJob(jobs[0])
+    AssertEqual len(g:neomake_test_jobfinished), 0
+  else
+    " XXX: should not run in non-async Vim (in this constructed case).
+    AssertEqual len(g:neomake_test_jobfinished), 2
+  endif
+
+Execute (Job does not get restarted when canceled):
+  if NeomakeAsyncTestsSetup()
+    let maker = NeomakeTestsCommandMaker('mymaker', 'echo output; sleep .1; echo output2')
+    let jobs = neomake#Make(1, [maker])
+    let jobinfo = neomake#GetJob(jobs[0])
+    NeomakeTestsWaitForMessage "stdout: mymaker: ['output', ''].", 3, jobinfo
+    call neomake#CancelJob(jobinfo.id)
+    let jobinfo2 = neomake#GetJob(neomake#Make(1, [maker])[0])
+    NeomakeTestsWaitForFinishedJobs
+
+    AssertNeomakeMessage "stdout: mymaker: ['output', ''].", 3, jobinfo2
+
+    " Vim does not call the output handler if a job is stopped (reliably)?!
+    if has('nvim')
+      AssertNeomakeMessage 'Ignoring output (job was canceled).', 3, jobinfo
+    endif
+    AssertNeomakeMessage "stdout: mymaker: ['output2', ''].", 3, jobinfo2
+    AssertNeomakeMessage 'exit: job was canceled.', 3, jobinfo, {'ignore_order': 1}
+
+    AssertEqual len(g:neomake_test_finished), 1
+    AssertEqual len(g:neomake_test_jobfinished), 1
+    AssertEqual len(g:neomake_test_countschanged), 1
   endif
 
 Execute (100 lines of output should not get processed one by one):
@@ -237,16 +317,85 @@ Execute (100 lines of output should not get processed one by one):
   Assert len(c) < 50, 'There were 50+ count changes: '.len(c)
 
 Execute (Mixed newlines get handled correctly):
-  if has('nvim')
-    NeomakeTestsSkip 'only for Vim/Windows'
-  else
+  let maker = {
+  \ 'exe': 'printf',
+  \ 'args': 'line1\\nline2\\r\\nline3',
+  \ 'errorformat': '%m',
+  \ }
+  call neomake#Make(0, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getqflist()), 'v:val.text'),
+  \ ['line1', 'line2', 'line3']
+
+Execute (Exception in process_output gets logged as error):
+  if NeomakeAsyncTestsSetup()
+    function! Neomake_test_maker_process_output(context) abort
+      throw "TEST_ERROR"
+    endfunction
+
     let maker = {
     \ 'exe': 'printf',
-    \ 'args': 'line1\\nline2\\r\\nline3',
-    \ 'errorformat': '%m',
-    \ }
-    call neomake#Make(0, [maker])
+    \ 'args': ['foo'],
+    \ 'append_file': 0,
+    \ 'process_output': function('Neomake_test_maker_process_output')}
+
+    let jobinfo = neomake#GetJob(neomake#Make(1, [maker])[0])
+    let make_id = neomake#GetStatus().last_make_id
+
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getqflist()), 'v:val.text'),
-    \ ['line1', 'line2', 'line3']
+    AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.'
+    AssertNeomakeMessage 'Error during output processing for unnamed_maker: TEST_ERROR.', 0, jobinfo
+  endif
+
+Execute (Already running job gets restarted in case of exception):
+  if NeomakeAsyncTestsSetup()
+    Save g:neomake_test_counter
+    let g:neomake_test_counter = 0
+    function! Neomake_test_maker_process_output(context) abort
+      let g:neomake_test_counter += 1
+      if g:neomake_test_counter == 1
+        throw 'NeomakeTestsException'
+      endif
+      return []
+    endfunction
+
+    let maker = {
+    \ 'exe': 'printf',
+    \ 'args': ['foo'],
+    \ 'append_file': 0,
+    \ 'process_output': function('Neomake_test_maker_process_output')}
+
+    let jobinfo = neomake#GetJob(neomake#Make(1, [maker])[0])
+    let make_id = neomake#GetStatus().last_make_id
+
+    AssertThrows NeomakeTestsWaitForFinishedJobs
+    AssertEqual g:vader_exception, 'NeomakeTestsException'
+    AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.'
+
+    AssertEqual len(neomake#GetJobs()), 1, 'the job has not been clean because of the exception'
+
+    " Restart, which should work directly.
+    call neomake#Make(1, [maker])
+
+    AssertNeomakeMessage printf('Restarting already running job (%d.%d) for the same maker.',
+    \ make_id, jobinfo.id), 2, {'make_id': make_id+1}
+
+    if has('nvim')
+      AssertNeomakeMessage 'jobstop failed: Vim(call):E900: Invalid job id.', 2, jobinfo
+    else
+      try
+        AssertNeomakeMessage 'job_stop: job was not running anymore.', 2, jobinfo
+      catch
+        " Happens at least on Vim 8.0.69.
+        if !has('patch-8.0.70')
+          throw v:exception.' (might be a flaky test)'
+        endif
+      endtry
+    endif
+
+    AssertNeomakeMessage "Starting async job: ['printf', 'foo']."
+
+    " Needs careful cleanup after exception.
+    NeomakeTestsWaitForMessage 'Cleaning jobinfo.'
+    NeomakeCancelJobs!
   endif

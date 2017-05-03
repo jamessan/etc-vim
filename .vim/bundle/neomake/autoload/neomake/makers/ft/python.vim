@@ -18,7 +18,7 @@ function! neomake#makers#ft#python#EnabledMakers() abort
         if executable('flake8')
             call add(makers, 'flake8')
         else
-            call extend(makers, ['pyflakes', 'pep8', 'pydocstyle'])
+            call extend(makers, ['pyflakes', 'pycodestyle', 'pydocstyle'])
         endif
 
         call add(makers, 'pylint')  " Last because it is the slowest
@@ -122,10 +122,10 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
                 " this discards the module part
                 let l:token = split(l:token, '\.')[-1]
 
-                " Also the searhch should be started at the import keyword.
+                " Also the search should be started at the import keyword.
                 " Otherwise for 'from os import os' the first os will be
                 " found. This moves the cursor there.
-                echom search('\<import\>', 'cW', a:entry.lnum + l:search_lines)
+                call search('\<import\>', 'cW', a:entry.lnum + l:search_lines)
             endif
 
             " Search for the first occurrence of the token and highlight in
@@ -167,11 +167,21 @@ function! neomake#makers#ft#python#pyflakes() abort
         \ }
 endfunction
 
-function! neomake#makers#ft#python#pep8() abort
+function! neomake#makers#ft#python#pycodestyle() abort
+    if !exists('s:_pycodestyle_exe')
+        " Use the preferred exe to avoid deprecation warnings.
+        let s:_pycodestyle_exe = executable('pycodestyle') ? 'pycodestyle' : 'pep8'
+    endif
     return {
+        \ 'exe': s:_pycodestyle_exe,
         \ 'errorformat': '%f:%l:%c: %m',
         \ 'postprocess': function('neomake#makers#ft#python#Pep8EntryProcess')
         \ }
+endfunction
+
+" Note: pep8 has been renamed to pycodestyle, but is kept also as alias.
+function! neomake#makers#ft#python#pep8() abort
+    return neomake#makers#ft#python#pycodestyle()
 endfunction
 
 function! neomake#makers#ft#python#Pep8EntryProcess(entry) abort
@@ -185,11 +195,11 @@ function! neomake#makers#ft#python#Pep8EntryProcess(entry) abort
 endfunction
 
 function! neomake#makers#ft#python#pydocstyle() abort
-  if !exists('s:_pydocstyle_exe')
-    " Use the preferred exe to avoid deprecation warnings.
-    let s:_pydocstyle_exe = executable('pydocstyle') ? 'pydocstyle' : 'pep257'
-  endif
-  return {
+    if !exists('s:_pydocstyle_exe')
+        " Use the preferred exe to avoid deprecation warnings.
+        let s:_pydocstyle_exe = executable('pydocstyle') ? 'pydocstyle' : 'pep257'
+    endif
+    return {
         \ 'exe': s:_pydocstyle_exe,
         \ 'errorformat':
         \   '%W%f:%l %.%#:,' .
@@ -207,7 +217,7 @@ function! neomake#makers#ft#python#PylamaEntryProcess(entry) abort
     if a:entry.nr == -1
         " Get number from the beginning of text.
         let nr = matchstr(a:entry.text, '\v^\u\zs\d+')
-        if len(nr)
+        if !empty(nr)
             let a:entry.nr = nr + 0
         endif
     endif

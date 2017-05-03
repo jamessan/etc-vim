@@ -3,7 +3,7 @@ let s:loclist_counts = {}
 
 function! s:incCount(counts, item, buf) abort
     let type = toupper(a:item.type)
-    if len(type) && (!a:buf || a:item.bufnr ==# a:buf)
+    if !empty(type) && (!a:buf || a:item.bufnr ==# a:buf)
         let a:counts[type] = get(a:counts, type, 0) + 1
         return 1
     endif
@@ -17,7 +17,7 @@ function! neomake#statusline#ResetCountsForBuf(...) abort
     if r
         call neomake#utils#hook('NeomakeCountsChanged', {
                     \ 'file_mode': 1,
-                    \ 'bufnr': bufnr})
+                    \ 'bufnr': bufnr + 0})
     endif
     return r
 endfunction
@@ -33,6 +33,7 @@ function! neomake#statusline#ResetCountsForProject(...) abort
     return r
 endfunction
 
+" TODO: deprecate/remove.
 function! neomake#statusline#ResetCounts() abort
     let r = neomake#statusline#ResetCountsForProject()
     for bufnr in keys(s:loclist_counts)
