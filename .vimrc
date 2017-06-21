@@ -24,8 +24,10 @@ if has('autocmd')
             autocmd TermOpen * setlocal nolist
         endif
 
-        autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") |
-                             \exe "normal! g'\"" | endif
+        autocmd BufReadPost *
+                \ if line("'\"") > 1 && line("'\"") <= line("$") && &ft !~# 'commit'
+                \ | exe "normal! g`\""
+                \ | endif
 
         autocmd BufRead,BufNewFile */safe/catmerge/mgmt/{RemoteAgent,daq,MP_Engine}/* setlocal noexpandtab tabstop=4 shiftwidth=4
         autocmd BufRead,BufNewFile */views/*/{safe,sys-common}/* setlocal tags=./tags.daq;,./tags.product;
