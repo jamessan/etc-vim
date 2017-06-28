@@ -14,10 +14,13 @@ function! neomake#makers#ft#vim#vint() abort
 
     return {
         \ 'args': l:args,
-        \ 'errorformat': '%I%f:%l:%c:style_problem:%m,%f:%l:%c:%t%*[^:]:%m',
+        \ 'errorformat': '%I%f:%l:%c:style_problem:%m,'
+        \   .'%f:%l:%c:%t%*[^:]:E%n: %m,'
+        \   .'%f:%l:%c:%t%*[^:]:%m',
+        \ 'output_stream': 'stdout',
         \ 'postprocess': {
         \   'fn': function('neomake#postprocess#GenericLengthPostprocess'),
-        \   'pattern': '\vUndefined variable: \zs([^ ]+)',
+        \   'pattern': '\v(Undefined variable: |:)\zs([^ ]+)',
         \ }}
 endfunction
 
@@ -25,8 +28,10 @@ function! neomake#makers#ft#vim#vimlint() abort
     return {
         \ 'args': ['-u'],
         \ 'errorformat': '%f:%l:%c:%trror: EVL%n: %m,'
-        \   . '%f:%l:%c:%tarning: EVL%n: %m',
+        \   . '%f:%l:%c:%tarning: EVL%n: %m,'
+        \   . '%f:%l:%c:%t%*[^:]: EVP_%#E%#%n: %m',
         \ 'postprocess': function('neomake#makers#ft#vim#PostprocessVimlint'),
+        \ 'output_stream': 'stdout',
         \ }
 endfunction
 

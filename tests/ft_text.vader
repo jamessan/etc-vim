@@ -1,23 +1,23 @@
 Include: include/setup.vader
 
 Execute (writegood: postprocess: length):
-  function! F(entry)
+  function! s:F(entry)
     if !has_key(a:entry, 'col')
       let a:entry.col = 0
     endif
     call neomake#makers#ft#text#PostprocessWritegood(a:entry)
     return a:entry
   endfunction
-  AssertEqual F({'text': '"Currently" can weaken meaning'}).length, 9
-  AssertEqual F({'text': '"Currently" can "weaken" meaning'}).length, 9
-  Assert !has_key(F({'text': '"Currently can weaken meaning'}), 'length')
+  AssertEqual s:F({'text': '"Currently" can weaken meaning'}).length, 9
+  AssertEqual s:F({'text': '"Currently" can "weaken" meaning'}).length, 9
+  Assert !has_key(s:F({'text': '"Currently can weaken meaning'}), 'length')
 
 Execute (writegood: postprocess increments column):
-  function! F(entry)
+  function! s:F(entry)
     call neomake#makers#ft#text#PostprocessWritegood(a:entry)
     return a:entry
   endfunction
-  AssertEqual F({'col': 2, 'text': 'foo'}), {'col': 3, 'text': 'foo'}
+  AssertEqual s:F({'col': 2, 'text': 'foo'}), {'col': 3, 'text': 'foo'}
 
 Execute (proselint):
   new
@@ -47,11 +47,11 @@ Execute (proselint):
 
   norm! ggdGcc...
 
-  function! F(entry)
+  function! s:F(entry)
     call neomake#makers#ft#text#proselint().postprocess(a:entry)
     return a:entry
   endfunction
-  AssertEqual 3, F(getloclist(0)[0]).length
+  AssertEqual 3, s:F(getloclist(0)[0]).length
 
   let maker = neomake#GetMaker('proselint', 'text')
   let maker.append_file = 0
@@ -65,5 +65,27 @@ Execute (proselint):
   \  'type': 'W', 'maker_name': 'proselint', 'pattern': '', 'length': 3,
   \  'text': 'typography.symbols.ellipsis ''...'' is an approximation, use the ellipsis symbol ''…''.'},
   \ 'file']]
-
   bwipe!
+
+Execute (writegood: handles wrapped message):
+  Save &errorformat
+  let &errorformat = neomake#makers#ft#text#writegood().errorformat
+  lgetexpr [
+  \ 'README.md:1:73:"be',
+  \ 'used" may be passive voice',
+  \ 'README.md:2:1:something else']
+
+  let bufnr = bufnr('README.md')
+  AssertEqual getloclist(0), [
+  \ {'lnum': 1, 'bufnr': bufnr, 'col': 73, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': 'W', 'pattern': '', 'text': "\"be\nused\" may be passive voice"},
+  \ {'lnum': 2, 'bufnr': bufnr, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': 'W', 'pattern': '', 'text': 'something else'}]
+
+  exe 'bwipe' bufnr
+
+Execute (writegood: handles empty lines):
+  Save &errorformat
+  let &errorformat = neomake#makers#ft#text#writegood().errorformat
+  lgetexpr ['']
+  AssertEqual getloclist(0), []

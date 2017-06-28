@@ -9,6 +9,7 @@ else
 	DEFAULT_VIM:=nvim
 endif
 
+TEST_VIM:=nvim
 IS_NEOVIM=$(findstring nvim,$(TEST_VIM))$(findstring neovim,$(TEST_VIM))
 # Run testnvim and testvim by default, and only one if TEST_VIM is given.
 test: $(if $(TEST_VIM),$(if $(IS_NEOVIM),testnvim,testvim),testnvim testvim)
@@ -42,11 +43,12 @@ testwatch:
 testwatchx: override export VADER_OPTIONS+=-x
 testwatchx: testwatch
 
-testx: VADER_OPTIONS=-x
+testx: override VADER_OPTIONS+=-x
 testx: test
-
-testnvimx: VADER_OPTIONS=-x
+testnvimx: override VADER_OPTIONS+=-x
 testnvimx: testnvim
+testvimx: override VADER_OPTIONS+=-x
+testvimx: testvim
 
 # Neovim might quit after ~5s with stdin being closed.  Use --headless mode to
 # work around this.
@@ -55,7 +57,7 @@ testnvimx: testnvim
 testnvim: TEST_VIM:=nvim
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
 testnvim: build/neovim-test-home
-testnvim: TEST_VIM_PREFIX+=HOME=build/neovim-test-home
+testnvim: TEST_VIM_PREFIX+=HOME=$(CURDIR)/build/neovim-test-home
 testnvim: TEST_VIM_PREFIX+=VADER_OUTPUT_FILE=/dev/stderr
 testnvim: | build $(DEP_PLUGINS)
 	$(call func-run-vim)
@@ -70,7 +72,7 @@ testvim: | build $(DEP_PLUGINS)
 # 2. test case header in bold "(2/2)"
 # 3. Neomake's debug log messages in less intense grey
 # 4. non-Neomake log lines (e.g. from :Log) in bold/bright yellow.
-_SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log vader
+_SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log --compact vader
 # Need to close stdin to fix spurious 'sed: couldn't write X items to stdout: Resource temporarily unavailable'.
 # Redirect to stderr again for Docker (where only stderr is used from).
 _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
@@ -91,7 +93,7 @@ testvim_interactive: TEST_VIM_PREFIX+=HOME=/dev/null
 testvim_interactive: _run_interactive
 
 testnvim_interactive: TEST_VIM:=nvim
-testnvim_interactive: TEST_VIM_PREFIX+=HOME=build/neovim-test-home
+testnvim_interactive: TEST_VIM_PREFIX+=HOME=$(CURDIR)/build/neovim-test-home
 testnvim_interactive: _run_interactive
 
 
@@ -114,6 +116,7 @@ $(_TESTS_REL_AND_ABS):
 
 tags:
 	ctags -R --langmap=vim:+.vader
+.PHONY: tags
 
 # Linters, called from .travis.yml.
 LINT_ARGS:=./plugin ./autoload
@@ -130,10 +133,11 @@ build/vimlint: | build
 	git clone --depth=1 https://github.com/syngan/vim-vimlint $@
 build/vimlparser: | build
 	git clone --depth=1 https://github.com/ynkdir/vim-vimlparser $@
+VIMLINT_OPTIONS=-u -e EVL102.l:_=1
 vimlint: build/vimlint build/vimlparser
-	build/vimlint/bin/vimlint.sh -u -l build/vimlint -p build/vimlparser $(LINT_ARGS)
+	build/vimlint/bin/vimlint.sh $(VIMLINT_OPTIONS) -l build/vimlint -p build/vimlparser $(LINT_ARGS)
 vimlint-errors: build/vimlint build/vimlparser
-	build/vimlint/bin/vimlint.sh -u -E -l build/vimlint -p build/vimlparser $(LINT_ARGS)
+	build/vimlint/bin/vimlint.sh $(VIMLINT_OPTIONS) -E -l build/vimlint -p build/vimlparser $(LINT_ARGS)
 
 build build/neovim-test-home:
 	mkdir $@
@@ -149,7 +153,8 @@ vimhelplint: | build/vimhelplint
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=4
+DOCKER_TAG:=6
+NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
 DOCKER=docker run $(DOCKER_STREAMS) --rm \
@@ -186,6 +191,47 @@ docker_vimhelplint:
 GET_DOCKER_VIMS=$(shell docker run --rm $(DOCKER_IMAGE) ls /vim-build/bin | grep vim | sort | paste -s -d\ )
 docker_list_vims:
 	@echo $(GET_DOCKER_VIMS)
+
+travis_test:
+	@ret=0; \
+	  travis_run_make() { \
+	    echo "travis_fold:start:script.$$1"; \
+	    echo "== Running \"make $$2\" =="; \
+	    make $$2 || return; \
+	    echo "travis_fold:end:script.$$1"; \
+	  }; \
+	  travis_run_make neovim-v0.2.0 "docker_test DOCKER_VIM=neovim-v0.2.0" || (( ret+=1  )); \
+	  travis_run_make neovim-v0.1.7 "docker_test DOCKER_VIM=neovim-v0.1.7" || (( ret+=2  )); \
+	  travis_run_make vim-master    "docker_test DOCKER_VIM=vim-master"    || (( ret+=4  )); \
+	  travis_run_make vim8069       "docker_test DOCKER_VIM=vim8069"       || (( ret+=8  )); \
+	  travis_run_make vim73         "docker_test DOCKER_VIM=vim73"         || (( ret+=16 )); \
+	  travis_run_make vim-xenail    "docker_test DOCKER_VIM=vim74-xenial"  || (( ret+=32 )); \
+	  travis_run_make check         "check"                                || (( ret+=64 )); \
+	exit $$ret
+
+travis_lint:
+	@echo "Looking for changed files in TRAVIS_COMMIT_RANGE=$$TRAVIS_COMMIT_RANGE."; \
+	  if [ -z "$$TRAVIS_COMMIT_RANGE" ]; then \
+	    MAKE_ARGS= ; \
+	  else \
+	    CHANGED_VIM_FILES=($$(git diff --name-only --diff-filter=AM "$$TRAVIS_COMMIT_RANGE" \
+	    | grep '\.vim$$' | grep -v '^tests/fixtures')); \
+	    if [ -z "$$CHANGED_VIM_FILES" ]; then \
+	      echo 'No .vim files changed.'; \
+	      exit; \
+	    fi; \
+	    MAKE_ARGS="LINT_ARGS='$$CHANGED_VIM_FILES'"; \
+	  fi; \
+	  ret=0; \
+	  echo 'travis_fold:start:script.vimlint'; \
+	  echo "== Running \"make vimlint $$MAKE_ARGS\" =="; \
+	  make vimlint $$MAKE_ARGS || (( ret+=1 )); \
+	  echo 'travis_fold:end:script.vimlint'; \
+	  echo 'travis_fold:start:script.vint'; \
+	  echo "== Running \"make vint $$MAKE_ARGS\" =="; \
+	  make vint $$MAKE_ARGS    || (( ret+=2 )); \
+	  echo 'travis_fold:end:script.vint'; \
+	exit $$ret
 
 check:
 	@:; ret=0; \

@@ -1,38 +1,29 @@
-sudo: true
-services:
-  - docker
+dist: trusty
+sudo: false
 
-language: python
-python:
-  - "3.5"
-
+language: none
 branches:
   only:
     - master
 
 env:
   global:
-    - NEOMAKE_DOCKER_IMAGE: neomake/vims-for-tests:4@sha256:8ca565fa0c8c0c3ae40b3f705c05a084e260b07022559fc56636c3675321c38b
-  matrix:
-    - ENV=vimlint
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.2.0
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.1.7
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-xenial
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
-    # Same as neovim-v0.2.0 and the bot-ci script is broken currently, so skip it for now.
-    # - ENV=testnvim
-    - ENV=testvim
-    - ENV=check
-    - ENV=vint
+    - NEOMAKE_DOCKER_IMAGE: neomake/vims-for-tests:6@sha256:3c713ad4ac2033ebb18d9db0b818829c7cd04183c50e73c82a8d48ee52d765ff
 
 matrix:
   fast_finish: true
+  include:
+    - env: ENV=travis_test
+      services:
+        - docker
+    - env: ENV=travis_lint
+      language: python
+    - env: ENV=testnvim
+    - env: ENV=testvim
 
 install:
   - |
-    if [ "$ENV" = "check" ]; then
+    if [ "$ENV" = "travis_test" ]; then
       echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
       if ! git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
         MAKE_ARGS="$MAKE_ARGS docker_vimhelplint"
@@ -45,9 +36,6 @@ install:
       make build/vimhelplint
     fi
 
-    python3 -V
-    python2 -V
-
 script:
   - |
     if [[ "$ENV" = "testvim" ]]; then
@@ -58,5 +46,4 @@ script:
       fi
     fi
     umask 022
-    echo "===== running: make $ENV $MAKE_ARGS ====="
-    make $ENV $MAKE_ARGS
+  - make $ENV $MAKE_ARGS

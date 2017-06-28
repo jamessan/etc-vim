@@ -41,6 +41,7 @@ function! neomake#makers#ft#python#pylint() abort
             \ '%A%f:(%l): %m,' .
             \ '%-Z%p^%.%#,' .
             \ '%-G%.%#',
+        \ 'output_stream': 'stdout',
         \ 'postprocess': [
         \   function('neomake#postprocess#GenericLengthPostprocess'),
         \   function('neomake#makers#ft#python#PylintEntryProcess'),
@@ -233,11 +234,20 @@ function! neomake#makers#ft#python#PylamaEntryProcess(entry) abort
 endfunction
 
 function! neomake#makers#ft#python#pylama() abort
-    return {
+    let maker = {
         \ 'args': ['--format', 'parsable'],
         \ 'errorformat': '%f:%l:%c: [%t] %m',
         \ 'postprocess': function('neomake#makers#ft#python#PylamaEntryProcess'),
         \ }
+    " Pylama looks for the config only in the current directory.
+    " Therefore we change to where the config likely is.
+    " --options could be used to pass a config file, but we cannot be sure
+    " which one really gets used.
+    let ini_file = neomake#utils#FindGlobFile('{pylama.ini,setup.cfg,tox.ini,pytest.ini}')
+    if !empty(ini_file)
+        let maker.cwd = fnamemodify(ini_file, ':h')
+    endif
+    return maker
 endfunction
 
 function! neomake#makers#ft#python#python() abort
@@ -246,6 +256,7 @@ function! neomake#makers#ft#python#python() abort
         \ 'errorformat': '%E%f:%l:%c: %m',
         \ 'serialize': 1,
         \ 'serialize_abort_on_error': 1,
+        \ 'output_stream': 'stdout',
         \ }
 endfunction
 
@@ -271,12 +282,8 @@ endfunction
 " --fast-parser: adds experimental support for async/await syntax
 " --silent-imports: replaced by --ignore-missing-imports --follow-imports=skip
 function! neomake#makers#ft#python#mypy() abort
-    let args = ['--ignore-missing-imports', '--follow-imports=skip']
-    if !neomake#utils#IsRunningWindows()
-        let args += ['--fast-parser']
-    endif
     return {
-        \ 'args': args,
+        \ 'args': ['--ignore-missing-imports', '--follow-imports=skip'],
         \ 'errorformat':
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .

@@ -1,96 +1,112 @@
 let g:neomake#config#undefined = {}
+lockvar! g:neomake#config#undefined
 
-" Resolve a:name (split on dots) and init a:dict accordingly.
-function! s:resolve_name(dict, name) abort
+" Resolve a:name (split on dots) and (optionally) init a:dict accordingly.
+function! s:resolve_name(dict, name, init) abort
+    let parts = type(a:name) == type([]) ? a:name : split(a:name, '\.')
     let c = a:dict
-    let parts = split(a:name, '\.')
     for p in parts[0:-2]
         if !has_key(c, p)
+            if !a:init
+                return [g:neomake#config#undefined, '']
+            endif
             let c[p] = {}
+        endif
+        if type(c[p]) != type({})
+          return [g:neomake#config#undefined, '']
         endif
         let c = c[p]
     endfor
     return [c, parts[-1]]
 endfunction
 
-" Get a:name (resolved; split on dots) from a:dict, using a:context.
-function! s:get(dict, name, context) abort
-    let ft = has_key(a:context, 'ft') ? a:context.ft : &filetype
-    let parts = split(a:name, '\.')
-    let prefixes = ['']
-    if !empty(ft)
-        call insert(prefixes, 'ft.'.ft.'.', 0)
-    endif
-    for prefix in prefixes
-        let [c, k] = s:resolve_name(a:dict, prefix.join(parts[0:-1], '.'))
+" Get a:name (list of keys) from a:dict, using a:prefixes.
+function! s:get(dict, parts, prefixes) abort
+    for prefix in a:prefixes
+        let [c, k] = s:resolve_name(a:dict, prefix + a:parts[0:-1], 0)
         if has_key(c, k)
-            return c[k]
+            return [prefix, c[k]]
         endif
     endfor
-    return g:neomake#config#undefined
+    return [[], g:neomake#config#undefined]
 endfunction
 
-" Get a:name from config.
-" Optional args:
-"  - a:1: default
-"  - a:2: context
+" Get a:name (string (split on dots), or list of keys) from config.
+" See neomake#config#get_with_source for args.
 function! neomake#config#get(name, ...) abort
-    let Default = a:0 ? a:1 : g:neomake#config#undefined
-    let context = a:0 > 1 ? a:2 : {}
-    if a:name =~# '^b:'
-        if !has_key(context, 'bufnr')
-            let context.bufnr = bufnr('%')
-        endif
-        let name = a:name[2:-1]
-    else
-        let name = a:name
-    endif
-    let bufnr = has_key(context, 'bufnr') ? context.bufnr : bufnr('%')
-
-    for lookup in [
-                \ getbufvar(bufnr, 'neomake'),
-                \ get(t:, 'neomake', {}),
-                \ get(g:, 'neomake', {}),
-                \ get(context, 'maker', {})]
-        if !empty(lookup)
-            let R = s:get(lookup, name, context)
-            if R isnot# g:neomake#config#undefined
-                return R
-            endif
-            unlet R  " for Vim without patch-7.4.1546
-        endif
-        unlet lookup  " for Vim without patch-7.4.1546
-    endfor
-    return Default
+    return call('neomake#config#get_with_source', [a:name] + a:000)[0]
 endfunction
 
-" Get a:name from config with information about the setting's source.
-" This is mostly the same as neomake#config#get, but kept seperate since it
-" is not used as much (?!).
+" Get a:name (string (split on dots), or list of keys) from config, with
+" information about the setting's source.
 " Optional args:
-"  - a:1: default
-"  - a:2: context
+"  - a:1: default value
+"  - a:2: context: defaults to {'ft': &filetype}
+"    - maker: a maker dict (where maker.name is used from for prefixes, and
+"             as a lookup itself)
+"    - ft: filetype string (use an empty string to ignore it)
+"    - bufnr: buffer number
+"    - maker_only: should settings get looked up only in the maker context?
+"                  (i.e. with maker.name prefix in general and in context.maker)
 function! neomake#config#get_with_source(name, ...) abort
     let Default = a:0 ? a:1 : g:neomake#config#undefined
-    let context = a:0 > 1 ? a:2 : {}
-    if a:name =~# '^b:'
+    let context = a:0 > 1 ? a:2 : {'ft': &filetype, 'bufnr': bufnr('%')}
+    let parts = type(a:name) == type([]) ? a:name : split(a:name, '\.')
+
+    let prefixes = [[]]
+    if has_key(context, 'ft') && !empty(context.ft)
+        for ft in neomake#utils#get_config_fts(context.ft, '.')
+            call insert(prefixes, ['ft', ft], 0)
+        endfor
+    endif
+
+    let maker_name = get(get(context, 'maker', {}), 'name', '')
+    let maker_only = get(context, 'maker_only', 0)
+    if parts[0][0:1] ==# 'b:'
         if !has_key(context, 'bufnr')
             let context.bufnr = bufnr('%')
         endif
-        let name = a:name[2:-1]
+        let parts[0] = parts[0][2:-1]
+        let lookups = [['buffer', getbufvar(context.bufnr, 'neomake')],
+                    \ ['maker', get(context, 'maker', {})]]
+    elseif empty(maker_name) && maker_only
+        let lookups = [['maker', get(context, 'maker', {})]]
     else
-        let name = a:name
+        let lookups = (has_key(context, 'bufnr')
+                    \  ? [['buffer', getbufvar(context.bufnr, 'neomake')]]
+                    \  : []) + [
+                    \ ['tab', get(t:, 'neomake', {})],
+                    \ ['global', get(g:, 'neomake', {})],
+                    \ ['maker', get(context, 'maker', {})]]
+        if !empty(maker_name)
+            if maker_only
+                if parts[0] !=# maker_name
+                    call map(prefixes, 'add(v:val, maker_name)')
+                endif
+            else
+                for prefix in reverse(copy(prefixes))
+                    call insert(prefixes, prefix + [maker_name], 0)
+                endfor
+            endif
+        endif
     endif
-    let bufnr = has_key(context, 'bufnr') ? context.bufnr : bufnr('%')
 
-    for [source, lookup] in [
-                \ ['buffer', getbufvar(bufnr, 'neomake')],
-                \ ['tab', get(t:, 'neomake', {})],
-                \ ['global', get(g:, 'neomake', {})],
-                \ ['maker', get(context, 'maker', {})]]
+    for [source, lookup] in lookups
         if !empty(lookup)
-            let R = s:get(lookup, name, context)
+            if source ==# 'maker'
+                let maker_prefixes = map(copy(prefixes), '!empty(v:val) && v:val[-1] ==# maker_name ? v:val[:-2] : v:val')
+                let maker_setting_parts = parts[0] == maker_name ? parts[1:] : parts
+                let [prefix, R] = s:get(lookup, maker_setting_parts, maker_prefixes)
+            else
+                let [prefix, R] = s:get(lookup, parts, prefixes)
+            endif
             if R isnot# g:neomake#config#undefined
+                let log_name = join(map(copy(parts), "substitute(v:val, '\\.', '|', '')"), '.')
+                call neomake#utils#DebugMessage(printf(
+                            \ "Using setting %s=%s from '%s'%s.",
+                            \ log_name, string(R), source,
+                            \   empty(prefix) ? '' : ' (prefix: '.string(prefix).')'),
+                            \ context)
                 return [R, source]
             endif
             unlet R  " for Vim without patch-7.4.1546
@@ -103,27 +119,29 @@ endfunction
 
 " Set a:name in a:dict to a:value, after resolving it (split on dots).
 function! s:set(dict, name, value) abort
-    let [c, k] = s:resolve_name(a:dict, a:name)
+    let [c, k] = s:resolve_name(a:dict, a:name, 1)
     let c[k] = a:value
     return c
 endfunction
 
 " Set a:name (resolved on dots) to a:value in the config.
 function! neomake#config#set(name, value) abort
-    if a:name =~# '^b:'
-        return neomake#config#set_buffer(bufnr('%'), a:name[2:-1], a:value)
+    let parts = type(a:name) == type([]) ? a:name : split(a:name, '\.')
+    if parts[0] =~# '^b:'
+        let parts[0] = parts[0][2:-1]
+        return neomake#config#set_buffer(bufnr('%'), parts, a:value)
     endif
     if !has_key(g:, 'neomake')
         let g:neomake = {}
     endif
-    return s:set(g:neomake, a:name, a:value)
+    return s:set(g:neomake, parts, a:value)
 endfunction
 
 " Set a:name (resolved on dots) to a:value for buffer a:bufnr.
 function! neomake#config#set_buffer(bufnr, name, value) abort
     let bufnr = +a:bufnr
     let bneomake = getbufvar(bufnr, 'neomake')
-    if bneomake ==# ''
+    if bneomake is# ''
         unlet bneomake  " for Vim without patch-7.4.1546
         let bneomake = {}
         call setbufvar(bufnr, 'neomake', bneomake)
@@ -142,7 +160,7 @@ endfunction
 " This is meant for advanced usage, e.g.:
 "   unset_dict(t:, 'neomake.disabled', 1)
 function! neomake#config#unset_dict(dict, name) abort
-    let [c, k] = s:resolve_name(a:dict, a:name)
+    let [c, k] = s:resolve_name(a:dict, a:name, 0)
     if has_key(c, k)
         unlet c[k]
     endif

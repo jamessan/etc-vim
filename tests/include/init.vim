@@ -3,7 +3,6 @@
 
 function! s:wait_for_jobs(filter)
   let max = 45
-  let filter = a:filter
   while 1
     let jobs = copy(neomake#GetJobs())
     if len(a:filter)
@@ -15,7 +14,7 @@ function! s:wait_for_jobs(filter)
     let max -= 1
     if max == 0
       for j in jobs
-        Log "Remaining job: ".string(j)
+        call vader#log('Remaining job: '.string(neomake#utils#fix_self_ref(j)))
       endfor
       call neomake#CancelJobs(1)
       throw len(jobs).' jobs did not finish after 3s.'
@@ -67,6 +66,7 @@ endfunction
 command! -nargs=+ NeomakeTestsWaitForMessage call s:wait_for_message(<args>)
 
 function! s:wait_for_finished_job()
+  Assert neomake#has_async_support(), 'NeomakeTestsWaitForNextFinishedJob should only be used for async mode'
   if !exists('#neomake_tests')
     call g:NeomakeSetupAutocmdWrappers()
   endif
@@ -89,6 +89,8 @@ command! NeomakeTestsWaitForNextFinishedJob call s:wait_for_finished_job()
 command! -nargs=* RunNeomake Neomake <args>
   \ | NeomakeTestsWaitForFinishedJobs
 command! -nargs=* RunNeomakeProject NeomakeProject <args>
+  \ | NeomakeTestsWaitForFinishedJobs
+command! -nargs=* CallNeomake call neomake#Make(<args>)
   \ | NeomakeTestsWaitForFinishedJobs
 
 " NOTE: NeomakeSh does not use '-bar'.
@@ -170,8 +172,8 @@ function! s:AssertNeomakeMessage(msg, ...)
       for [k, v] in items(info)
         let expected = get(context, k, l:UNDEF)
         if expected is l:UNDEF
-          call add(context_diff, printf('[%s] Missing value for context.%s: '
-              \  ."expected nothing, but got '%s'.", a:msg, k, string(v)))
+          call add(context_diff, printf('Missing value for context.%s: '
+              \  ."expected nothing, but got '%s'.", k, string(v)))
           continue
         endif
         try
@@ -190,8 +192,8 @@ function! s:AssertNeomakeMessage(msg, ...)
       endfor
       let missing = filter(copy(context), 'index(keys(info), v:key) == -1')
       for [k, expected] in items(missing)
-        call add(context_diff, printf('[%s] Missing entry for context.%s: '
-          \  ."expected '%s', but got nothing.", a:msg, k, string(expected)))
+        call add(context_diff, printf('Missing entry for context.%s: '
+          \  ."expected '%s', but got nothing.", k, string(expected)))
       endfor
       let found_but_context_diff = context_diff
       if len(context_diff)
@@ -206,11 +208,16 @@ function! s:AssertNeomakeMessage(msg, ...)
     Assert 1
     return 1
   endfor
-  if found_but_other_level != -1
-    throw "Message '".a:msg."' found, but for level ".found_but_other_level
-  endif
-  if found_but_before
-    throw "Message '".a:msg."' was found _before_ last asserted one."
+  if found_but_before || found_but_other_level != -1
+    let msg = []
+    if found_but_other_level != -1
+      let msg += ['for level '.found_but_other_level]
+    endif
+    if found_but_before
+      let msg += ['_before_ last asserted one']
+    endif
+    let msg = "Message '".a:msg."' was found, but ".join(msg, ' and ')
+    throw msg
   endif
   if !empty(found_but_context_diff)
     throw join(found_but_context_diff, "\n")
@@ -280,7 +287,10 @@ endfunction
 
 function! NeomakeTestsFakeJobinfo() abort
   let make_info = neomake#GetStatus().make_info
-  let make_info[-42] = {'verbosity': get(g:, 'neomake_verbose', 1)}
+  let make_info[-42] = {
+        \ 'verbosity': get(g:, 'neomake_verbose', 1),
+        \ 'active_jobs': [],
+        \ 'queued_jobs': []}
   return {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': '', 'make_id': -42}
 endfunction
 
@@ -289,7 +299,7 @@ function! s:monkeypatch_highlights() abort
   runtime autoload/neomake/highlights.vim
   Save g:neomake_tests_highlight_lengths
   let g:neomake_tests_highlight_lengths = []
-  function! neomake#highlights#AddHighlight(entry, type) abort
+  function! neomake#highlights#AddHighlight(entry, ...) abort
     call add(g:neomake_tests_highlight_lengths,
     \ [get(a:entry, 'lnum', -1), get(a:entry, 'length', -1)])
   endfunction
@@ -306,9 +316,14 @@ let g:sleep_efm_maker = {
     \ 'errorformat': '%f:%l:%t:%m',
     \ 'append_file': 0,
     \ }
-let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .01; echo slept')
+let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05; echo slept')
 let g:error_maker = NeomakeTestsCommandMaker('error-maker', 'echo error; false')
+let g:error_maker.errorformat = '%E%m'
+function! g:error_maker.postprocess(entry) abort
+  let a:entry.bufnr = bufnr('')
+endfunction
 let g:success_maker = NeomakeTestsCommandMaker('success-maker', 'echo success')
+let g:true_maker = NeomakeTestsCommandMaker('true-maker', 'true')
 let g:doesnotexist_maker = {'exe': 'doesnotexist'}
 
 " A maker that generates incrementing errors.
@@ -395,14 +410,36 @@ function! s:After()
       let val = gettabwinvar(t, w, 'neomake_make_ids')
       if !empty(val)  " '' (default) or [] (used and emptied).
         call add(errors, 'neomake_make_ids left for tab '.t.', win '.w.': '.string(val))
+        call settabwinvar(t, w, 'neomake_make_ids', [])
       endif
       unlet val  " for Vim without patch-7.4.1546
     endfor
   endfor
 
+  let new_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val) && index(g:neomake_test_buffers_before, v:val) == -1')
+  if !empty(new_buffers)
+    call add(errors, 'Unexpected/not wiped buffers: '.join(new_buffers, ', '))
+    Log neomake#utils#redir('ls!')
+    for b in new_buffers
+      exe 'bwipe!' b
+    endfor
+  endif
+
   for k in keys(make_info)
     unlet make_info[k]
   endfor
+
+  " Check that no new global functions are defined.
+  redir => output_func
+    silent function /\C^[A-Z]
+  redir END
+  let funcs = map(split(output_func, '\n'),
+        \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
+  let new_funcs = filter(copy(funcs), 'index(g:neomake_test_funcs_before, v:val) == -1')
+  if !empty(new_funcs)
+    call add(errors, 'New global functions (use script-local ones, or :delfunction to clean them): '.string(new_funcs))
+    call extend(g:neomake_test_funcs_before, new_funcs)
+  endif
 
   if !empty(errors)
     throw len(errors).' error(s) in teardown: '.join(errors, "\n")
