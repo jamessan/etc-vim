@@ -1,4 +1,4 @@
-*sneak.txt*  motion improved - Version 1.8
+*sneak.txt*  motion improved
 
                     Sneak - the missing motion for Vim
 
@@ -44,7 +44,7 @@ Default mappings                                              *sneak-mappings*
 
 Note: See |sneak-custom-mappings| to change these defaults.
 
-NORMAL-mode~
+NORMAL-MODE~
     Key Sequence             | Description
     -------------------------|----------------------------------------------
     s{char}{char}            | Go to the next occurrence of {char}{char}
@@ -67,7 +67,7 @@ NORMAL-mode~
     NOTE: s and S go to the next/previous match immediately after invoking
     Sneak, if |sneak-clever-s| is enabled.
 
-VISUAL-mode~
+VISUAL-MODE~
     Key Sequence             | Description
     -------------------------|----------------------------------------------
     s{char}{char}            | Go to the next occurrence of {char}{char}
@@ -81,11 +81,12 @@ VISUAL-mode~
     s                        | Go to the [count]th next match (NOTE above)
     S                        | Go to the [count]th previous match (NOTE above)
 
-LABEL-mode~
+LABEL-MODE~
     Key Sequence             | Description
     -------------------------|----------------------------------------------
-    <space>                  | Exit |sneak-label-mode| at the current cursor
-                             | position.
+    <Space> or <Esc>         | Exit |sneak-label-mode| where the cursor is.
+    <Tab>                    | Label the next set of matches.
+    <BS> or <S-Tab>          | Label the previous set of matches.
 
 ------------------------------------------------------------------------------
 Custom Mappings                                        *sneak-custom-mappings*
@@ -185,14 +186,12 @@ use `Z` (because `S` is taken by the |surround| plugin). `;` and `,` also
 work in visual mode as they do in normal mode.
 
 ------------------------------------------------------------------------------
-Text Object (for use with an |operator|)
+Operations
 
-Use `z` for operations; for example, `dzab` deletes from the cursor to the next
-instance of "ab". `dZab` deletes backwards to the previous instance.
-`czab` `cZab` `yzab` and `yZab` also work as expected.
-
-You can easily map to something other than the default "z" for
-operator-pending behavior. |sneak-mappings|
+Use `z` for operations (or map to something else: |sneak-custom-mappings|).
+For example, `dzab` deletes from the cursor to the next instance of "ab".
+`dZab` deletes backwards to the previous instance. `czab` `cZab` `yzab` and
+`yZab` also work as expected.
 
 Repeat the operation with dot: |.|
 Note: Requires repeat.vim https://github.com/tpope/vim-repeat
@@ -204,7 +203,7 @@ Sneak has a unique feature called "vertical scope" search. This is invoked by
 prefixing `s` or `S` with a [count]. Then the search is limited to a column of
 width of 2×[count]. Vertical-scope never invokes |sneak-label-mode|.
 
-Use cases:
+Use-cases:
     - CSV file
     - man page (example: search for "-e" in `man bash`)
     - hex editing :%!xxd
@@ -214,37 +213,46 @@ Use cases:
 Label-mode                              *sneak-label-mode* *sneak-streak-mode*
 
 Label-mode minimizes the steps to jump to a location, using a clever interface
-similar to vim-easymotion[2]. (Sneak label-mode is faster, simpler, and more
-predictable than vim-easymotion, see "Label-mode features" below.)
+similar to vim-easymotion (but Sneak is faster and more predictable than
+vim-easymotion).
 
 To enable label-mode:                                         *g:sneak#label*
 >
     let g:sneak#label = 1
->
+
 Sneak enters label-mode if there are ≥2 visible (on-screen) matches. To force
 label-mode always (instead of passively letting Sneak decide), set a mapping
 to <Plug>SneakLabel_s. Example: >
     nmap s <Plug>SneakLabel_s
     nmap S <Plug>SneakLabel_S
 <
-Label-mode features ~
-    - Automatically jumps to the first match
-        - Type <Space> or <Esc> to escape label-mode
-        - Type <Tab> to skip to the next 56 matches
-        - Type any key that is NOT a target label to exit label-mode and
-          immediately perform that key's normal-mode function
-    - Works with all operators, including |surround|
-    - Operations can be repeated with |.| (dot)
-    - s<Enter> repeats the last search (S<Enter> to change direction)
-    - Text in |folds| is ignored (not labeled)
-        - You can reach folded/off-screen matches with |;| and |,|
+LABEL-MODE FEATURES ~
 
-    As always, you can:
-    - Skip to the next or previous match with |;| or |,|
-    - Return to your original location via |CTRL-O| or |``|
+<Tab> skips to the next set of matches (<BS> or <S-Tab> go the other way).
+These actions are preserved when repeating!
 
-    Note: If `s` is prefixed with a [count] then |sneak-vertical-scope| is
-    invoked and label-mode will _not_ be invoked.
+<Space> or <Esc> exits label-mode. |g:sneak#label_esc|
+
+|folds| are skipped (not labeled). (Use |;| and |,| to reach folded or
+off-screen matches.)
+
+Compared to vim-easymotion:
+- Never modifies your data. vim-easymotion uses edit-and-undo hacks.
+- Never adds extra "stages" or "groups", so it is predictable. The _common_
+  case is the highest priority.
+- Target labels are always visually separated.
+                                                           *sneak-fallthrough*
+- Non-label keys "fall through" to normal-mode, so you don't need to
+  explicitly exit label-mode if the first match is correct.
+
+As always, you can:
+- Skip to the next or previous match with |;| or |,|
+- Return to your original location via |CTRL-O| or |``|
+- Use any |operator|, including |surround|.
+- Repeat operations with |.| (dot).
+
+Note: If `s` is prefixed with a [count] then |sneak-vertical-scope| is
+invoked.
 
 ==============================================================================
 Configuration                                            *sneak-configuration*
@@ -258,7 +266,7 @@ Options                                                        *sneak-options*
 To change an option, add a |let| statement in your |vimrc|. Example: >
     let g:sneak#use_ic_scs = 0
 <
-Sneak options and defaults ~
+OPTIONS AND DEFAULTS ~
 
 g:sneak#f_reset = 1
 g:sneak#t_reset = 1
@@ -318,23 +326,28 @@ g:sneak#label = 0
 
     1 : Enable |sneak-label-mode| if the Vim |+conceal| feature is available.
 
+                                                           *g:sneak#label_esc*
 g:sneak#label_esc = "\<Space>"
 
     Exit |sneak-label-mode| as if <Esc> were pressed.
         https://github.com/justinmk/vim-sneak/issues/122
 
-g:sneak#target_labels = "asdfghjkl;qwertyuiopzxcvbnm/ASDFGHJKL:QWERTYUIOPZXCVBNM?"
+g:sneak#target_labels = ";sftunq/SFGHLTUNRMQZ?0"
 
-    List of characters used by label-mode to label the target locations.
+    List of characters used to label the target locations. |sneak-label-mode|
 
-    Note: If ; (or any key mapped to <Plug>Sneak_;) is in the list, Sneak
-    automatically moves it to the first position (because it's semantically
-    equivalent and it saves a target label).
+    Labels should be keys that you never use after searching. E.g. it is
+    unlikely that you will use "F" immediately after a Sneak, so "F" is in the
+    label list. This removes a step if the first match is correct: instead,
+    just type your next command. |sneak-fallthrough|
 
-    Note: Invalid target labels are automatically removed:
+    Note: Any key mapped to <Plug>Sneak_; is moved to the first position
+    (because it's semantically equivalent).
+
+    Note: Invalid target labels are removed:
         - Any key mapped to <Plug>Sneak_,
-        - <Esc>, <Tab>, <BS>, because they are special
-        - <Space>, <Enter>, because they are invisible
+        - Special keys: <Esc> <Tab> <BS>
+        - Invisible keys: <Space> <Enter>
 
 g:sneak#prompt = '>'
 
