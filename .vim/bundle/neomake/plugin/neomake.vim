@@ -21,11 +21,48 @@ command! -bang NeomakeCancelJobs call neomake#CancelJobs(<bang>0)
 
 command! -bar NeomakeInfo call neomake#DisplayInfo()
 
+" Enable/disable/toggle commands.  {{{
+function! s:toggle(scope) abort
+    let new = !get(get(a:scope, 'neomake', {}), 'disabled', 0)
+    if new
+        call neomake#config#set_dict(a:scope, 'neomake.disabled', new)
+    else
+        call neomake#config#unset_dict(a:scope, 'neomake.disabled')
+    endif
+    call s:display_status()
+endfunction
+function! s:disable(scope, disabled) abort
+    call neomake#config#set_dict(a:scope, 'neomake.disabled', a:disabled)
+    if &verbose
+        call s:display_status()
+    endif
+endfunction
+function! s:display_status() abort
+    let [disabled, source] = neomake#config#get_with_source('disabled', 0)
+    let msg = 'Neomake is ' . (disabled ? 'disabled' : 'enabled')
+    if source !=# 'default'
+        let msg .= ' ('.source.')'
+    endif
+    echom msg.'.'
+endfunction
+command! -bar NeomakeToggle call s:toggle(g:)
+command! -bar NeomakeToggleBuffer call s:toggle(b:)
+command! -bar NeomakeToggleTab call s:toggle(t:)
+command! -bar NeomakeDisable call s:disable(g:, 1)
+command! -bar NeomakeDisableBuffer call s:disable(b:, 1)
+command! -bar NeomakeDisableTab call s:disable(t:, 1)
+command! -bar NeomakeEnable call s:disable(g:, 0)
+command! -bar NeomakeEnableBuffer call s:disable(b:, 0)
+command! -bar NeomakeEnableTab call s:disable(t:, 0)
+
+command! NeomakeStatus call s:display_status()
+" }}}
+
 augroup neomake
   au!
-  au WinEnter * call neomake#ProcessCurrentWindow()
-  au CursorHold * call neomake#ProcessPendingOutput()
-  au BufEnter * call neomake#highlights#ShowHighlights()
+  if !exists('*nvim_buf_add_highlight')
+    au BufEnter * call neomake#highlights#ShowHighlights()
+  endif
   if has('timers')
     au CursorMoved * call neomake#CursorMovedDelayed()
     " Force-redraw display of current error after resizing Vim, which appears
@@ -34,6 +71,7 @@ augroup neomake
   else
     au CursorMoved * call neomake#CursorMoved()
   endif
+  au VimLeave * call neomake#VimLeave()
 augroup END
 
 if has('signs')

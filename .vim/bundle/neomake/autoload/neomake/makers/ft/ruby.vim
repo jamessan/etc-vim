@@ -12,20 +12,26 @@ function! neomake#makers#ft#ruby#rubocop() abort
         \ }
 endfunction
 
+function! neomake#makers#ft#ruby#RubocopEntryProcess(entry) abort
+    if a:entry.type ==# 'F'  " Fatal error which prevented further processing
+        let a:entry.type = 'E'
+    elseif a:entry.type ==# 'E'  " Error for important programming issues
+        let a:entry.type = 'E'
+    elseif a:entry.type ==# 'W'  " Warning for stylistic or minor programming issues
+        let a:entry.type = 'W'
+    elseif a:entry.type ==# 'R'  " Refactor suggestion
+        let a:entry.type = 'W'
+    elseif a:entry.type ==# 'C'  " Convention violation
+        let a:entry.type = 'I'
+    endif
+endfunction
+
 function! neomake#makers#ft#ruby#rubylint() abort
     return {
         \ 'exe': 'ruby-lint',
         \ 'args': ['--presenter', 'syntastic'],
         \ 'errorformat': '%f:%t:%l:%c: %m',
         \ }
-endfunction
-
-function! neomake#makers#ft#ruby#RubocopEntryProcess(entry) abort
-    if a:entry.type ==# 'F'
-        let a:entry.type = 'E'
-    elseif a:entry.type !=# 'W' && a:entry.type !=# 'E'
-        let a:entry.type = 'W'
-    endif
 endfunction
 
 function! neomake#makers#ft#ruby#mri() abort
@@ -43,7 +49,8 @@ function! neomake#makers#ft#ruby#mri() abort
     return {
         \ 'exe': 'ruby',
         \ 'args': ['-c', '-T1', '-w'],
-        \ 'errorformat': errorformat
+        \ 'errorformat': errorformat,
+        \ 'output_stream': 'both',
         \ }
 endfunction
 

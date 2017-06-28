@@ -34,12 +34,12 @@ status_file=$(mktemp)
 handle_cmd_result() {
   if [ "$1" = 0 ]; then
     title "✔ $2"
-    if [ "$last_changed_testsfile" = "$alltestsfile" ]; then
+    if [ "${2#*${alltestsfile}*}" != "$2" ]; then
       alltests_succeeded=1
     fi
   else
     title "✘ $2"
-    if [ "$last_changed_testsfile" = "$alltestsfile" ]; then
+    if [ "${2#*${alltestsfile}*}" != "$2" ]; then
       alltests_succeeded=0
     fi
   fi
@@ -69,9 +69,9 @@ while true; do
   if [ -n "$output" ]; then
     # There was a previous run
     echo "================================================================="
-    echo "$output"
+    echo "changed file: $output"
 
-    read -r alltests_succeeded < $status_file
+    read -r alltests_succeeded < "$status_file" || alltests_succeeded=0
 
     if [ "${output#tests/}" != "$output" ]; then
       last_changed_testsfile="$output"
@@ -84,9 +84,7 @@ while true; do
       fi
     else
       alltests_succeeded=0
-      if [ "$testfiles" != "$alltestsfile" ]; then
-        testfiles="$testfiles $alltestsfile"
-      fi
+      testfiles="$alltestsfile"
     fi
 
     if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
@@ -106,6 +104,6 @@ while true; do
   sleep 1
   # shellcheck disable=SC2086
   output="$(inotifywait -r -e close_write \
-    --exclude '/(__pycache__/|\.)|.*\.neomaketmp_.*' \
+    --exclude '/(__pycache__/|\.)|.*\@neomake_.*' \
     --format '%w%f' $watch)"
 done

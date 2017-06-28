@@ -7,7 +7,14 @@ let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 " Use 'append' with writefile, but only if it is available.  Otherwise, just
 " overwrite the file.  'S' is used to disable fsync in Neovim
 " (https://github.com/neovim/neovim/pull/6427).
-let s:logfile_writefile_opts = has('patch-7.4.503') ? 'aS' : ''
+let can_append_to_logfile = v:version > 704 || (v:version == 704 && has('patch503'))
+if !can_append_to_logfile
+    redraw
+    echohl WarningMsg
+    echom 'Neomake: appending to the logfile is not supported in your Vim version.'
+    echohl NONE
+endif
+let s:logfile_writefile_opts = can_append_to_logfile ? 'aS' : ''
 
 function! s:reltime_lastmsg() abort
     if exists('s:last_msg_ts')
@@ -69,7 +76,7 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
 
     " Use Vader's log for messages during tests.
     " @vimlint(EVL104, 1, l:timediff)
-    if is_testing && get(g:, 'neomake_test_log_all_messages', (verbosity >= a:level))
+    if is_testing && (verbosity >= a:level || get(g:, 'neomake_test_log_all_messages', 0))
         let timediff = s:reltime_lastmsg()
         if timediff !=# '     '
             let test_msg = '['.s:short_level_to_name[a:level].' '.timediff.']: '.msg
@@ -83,7 +90,7 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
                     \ ? filter(copy(context), "index(['id', 'make_id', 'bufnr'], v:key) != -1")
                     \ : {}
         call add(g:neomake_test_messages, [a:level, a:msg, context])
-        if index(['.', '!', ')'], a:msg[-1:-1]) == -1
+        if index(['.', '!', ')', ']'], a:msg[-1:-1]) == -1
             Assert 0, 'Log msg does not end with punctuation: "'.a:msg.'".'
         endif
     elseif verbosity >= a:level
@@ -168,9 +175,9 @@ function! neomake#utils#WideMessage(msg) abort " {{{2
     let old_ruler = &ruler
     let old_showcmd = &showcmd
 
-    "This is here because it is possible for some error messages to
-    "begin with \n which will cause a "press enter" prompt.
-    let msg = substitute(a:msg, "\n", '', 'g')
+    " Replace newlines (typically in the msg) with a single space.  This
+    " might happen with writegood.
+    let msg = substitute(a:msg, '\r\?\n', ' ', 'g')
 
     "convert tabs to spaces so that the tabs count towards the window
     "width as the proper amount of characters
@@ -201,10 +208,10 @@ function! neomake#utils#DevNull() abort
     return '/dev/null'
 endfunction
 
-" Get directory separator
-function! neomake#utils#Slash() abort " {{{2
+" Get directory/path separator.
+function! neomake#utils#Slash() abort
     return (!exists('+shellslash') || &shellslash) ? '/' : '\'
-endfunction " }}}2
+endfunction
 
 function! neomake#utils#Exists(exe) abort
     " DEPRECATED: just use executable() directly.
@@ -233,7 +240,7 @@ function! s:command_maker.fn(jobinfo) dict abort
     let command = self.__command
     let argv = split(&shell) + split(&shellcmdflag)
 
-    if a:jobinfo.file_mode && get(self, 'append_file', 1)
+    if get(self, 'append_file', a:jobinfo.file_mode)
         let fname = self._get_fname_for_buffer(a:jobinfo)
         let command .= ' '.fnamemodify(fname, ':p')
         let self.append_file = 0
@@ -279,13 +286,13 @@ function! neomake#utils#load_ft_maker(ft) abort
     endif
 endfunction
 
-function! neomake#utils#get_ft_confname(ft) abort
-    return substitute(a:ft, '\W', '_', 'g')
+function! neomake#utils#get_ft_confname(ft, ...) abort
+    return substitute(a:ft, '\W', a:0 ? a:1 : '_', 'g')
 endfunction
 
 " Resolve filetype a:ft into a list of filetypes suitable for config vars
 " (i.e. 'foo.bar' => ['foo_bar', 'foo', 'bar']).
-function! neomake#utils#get_config_fts(ft) abort
+function! neomake#utils#get_config_fts(ft, ...) abort
     let r = []
     let fts = split(a:ft, '\.')
     for ft in fts
@@ -304,26 +311,34 @@ function! neomake#utils#get_config_fts(ft) abort
     if len(fts) > 1
         call insert(r, a:ft, 0)
     endif
-    return map(r, 'neomake#utils#get_ft_confname(v:val)')
+    let delim = a:0 ? a:1 : '_'
+    return map(r, 'neomake#utils#get_ft_confname(v:val, delim)')
 endfunction
 
 let s:unset = {}  " Sentinel.
 
 " Get a setting by key, based on filetypes, from the buffer or global
 " namespace, defaulting to default.
-function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
+function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
+    let maker_only = a:0 ? a:1 : 0
+
     " Check new-style config.
-    " Add maker and bufnr to context only if g:neomake or b:neomake exist.
-    let context = {'ft': a:ft}
     if exists('g:neomake') || !empty(getbufvar(a:bufnr, 'neomake'))
-        call extend(context, {'maker': a:maker, 'bufnr': a:bufnr})
-    endif
-    let Ret = neomake#config#get(a:key, g:neomake#config#undefined, context)
-    if Ret isnot g:neomake#config#undefined
-        return Ret
+        let context = {'ft': a:ft, 'maker': a:maker, 'bufnr': a:bufnr, 'maker_only': maker_only}
+        let Ret = neomake#config#get(a:key, g:neomake#config#undefined, context)
+        if Ret isnot g:neomake#config#undefined
+            return Ret
+        endif
     endif
 
     let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
+    if maker_only && empty(maker_name)
+        if has_key(a:maker, a:key)
+            return a:maker[a:key]
+        endif
+        return a:default
+    endif
+
     if !empty(a:ft)
         let fts = neomake#utils#get_config_fts(a:ft) + ['']
     else
@@ -351,13 +366,15 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
     if has_key(a:maker, a:key)
         return a:maker[a:key]
     endif
+
+    let key = maker_only ? maker_name.'_'.a:key : a:key
     " Look for 'neomake_'.key in the buffer and global namespace.
-    let bufvar = neomake#compat#getbufvar(a:bufnr, 'neomake_'.a:key, s:unset)
+    let bufvar = neomake#compat#getbufvar(a:bufnr, 'neomake_'.key, s:unset)
     if bufvar isnot s:unset
         return bufvar
     endif
-    if a:key !=# 'enabled_makers' && has_key(g:, 'neomake_'.a:key)
-        return get(g:, 'neomake_'.a:key)
+    if a:key !=# 'enabled_makers' && has_key(g:, 'neomake_'.key)
+        return get(g:, 'neomake_'.key)
     endif
     return a:default
 endfunction
@@ -513,16 +530,19 @@ endfunction
 " i.e. the directory of the current buffer's file).)
 function! neomake#utils#FindGlobFile(glob, ...) abort
     let curDir = a:0 ? a:1 : expand('%:p:h')
-    let fileFound = ''
-    while empty(fileFound)
-        let fileFound = globpath(curDir, a:glob, 1)
+    let fileFound = []
+    while 1
+        let fileFound = neomake#compat#globpath_list(curDir, a:glob, 1)
+        if !empty(fileFound)
+            return fileFound[0]
+        endif
         let lastFolder = curDir
         let curDir = fnamemodify(curDir, ':h')
         if curDir ==# lastFolder
             break
         endif
     endwhile
-    return fileFound
+    return ''
 endfunction
 
 function! neomake#utils#JSONdecode(json) abort
@@ -556,17 +576,6 @@ function! neomake#utils#write_tempfile(bufnr, temp_file) abort
     call writefile(buflines, a:temp_file, 'b')
 endfunction
 
-function! neomake#utils#get_or_create_buffer(filename) abort
-    " TODO: Remove usage of this once not supplying a bufnr to process_output
-    " works if the filename is not opened in a buffer yet.
-    let nr = bufnr(a:filename)
-    if nr == -1
-        execute 'badd ' . substitute(a:filename, ' ', '\\ ', 'g')
-        let nr = bufnr(a:filename)
-    endif
-    return nr
-endfunction
-
 " Wrapper around fnamemodify that handles special buffers (e.g. fugitive).
 function! neomake#utils#fnamemodify(bufnr, modifier) abort
     let bufnr = +a:bufnr
@@ -577,4 +586,24 @@ function! neomake#utils#fnamemodify(bufnr, modifier) abort
         let path = bufname(bufnr)
     endif
     return empty(path) ? '' : fnamemodify(path, a:modifier)
+endfunction
+
+function! neomake#utils#fix_self_ref(obj, ...) abort
+    if type(a:obj) != type({})
+        return a:obj
+    endif
+    let obj = copy(a:obj)
+    for k in keys(obj)
+        if a:0
+            let self_ref = filter(copy(a:1), 'v:val[1][0] is obj[k]')
+            if !empty(self_ref)
+                let obj[k] = printf('<self-ref-%d: %s>', self_ref[0][0], self_ref[0][1][1])
+                continue
+            endif
+        endif
+        if type(obj[k]) == type({})
+            let obj[k] = neomake#utils#fix_self_ref(obj[k], a:0 ? a:1 + [[len(a:1)+1, [a:obj, k]]] : [[1, [a:obj, k]]])
+        endif
+    endfor
+    return obj
 endfunction
