@@ -11,6 +11,11 @@ set nomodeline " Let securemodelines plugin handle this
 
 call pathogen#infect()
 
+" Need this to be before last-position-jump autocmd so the filetype
+" is defined by the time last-position-jump runs.
+filetype plugin indent on
+syntax enable
+
 " Autocommands
 if has('autocmd')
     augroup jamessan
@@ -25,7 +30,8 @@ if has('autocmd')
         endif
 
         autocmd BufReadPost *
-                \ if line("'\"") > 1 && line("'\"") <= line("$") && &ft !~# 'commit'
+                \ if line("'\"") > 1 && line("'\"") <= line("$") &&
+                \   &ft !~# '\%(^git\%(config\)\@!\|commit\)'
                 \ | exe "normal! g`\""
                 \ | endif
 
@@ -166,9 +172,6 @@ set noshiftround
 set cpoptions+=n " When 'wrap' is enabled, the 'number' column is used to
                  " display wrapped text
 set autoindent
-
-filetype plugin indent on
-syntax enable
 
 " Python
 let python_highlight_builtins = 1
