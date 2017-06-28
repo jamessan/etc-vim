@@ -89,16 +89,19 @@
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/lua.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/mail.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/markdown.vim
+!/.vim/bundle/neomake/autoload/neomake/makers/ft/mlint.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/moon.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/neomake_tests.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/nim.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/nix.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/node.vim
+!/.vim/bundle/neomake/autoload/neomake/makers/ft/objc.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/pandoc.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/perl.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/php.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/pug.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/puppet.vim
+!/.vim/bundle/neomake/autoload/neomake/makers/ft/purescript.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/python
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/python/compile.py
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/python.vim
@@ -108,6 +111,7 @@
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/rust.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/scala.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/scss.vim
+!/.vim/bundle/neomake/autoload/neomake/makers/ft/serpent.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/sh.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/slim.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/sml.vim
@@ -180,6 +184,7 @@
 !/.vim/bundle/neomake/tests/ft_cs.vader
 !/.vim/bundle/neomake/tests/ft_elixir.vader
 !/.vim/bundle/neomake/tests/ft_elm.vader
+!/.vim/bundle/neomake/tests/ft_go.vader
 !/.vim/bundle/neomake/tests/ft_haskell.vader
 !/.vim/bundle/neomake/tests/ft_help.vader
 !/.vim/bundle/neomake/tests/ft_idris.vader
@@ -188,6 +193,7 @@
 !/.vim/bundle/neomake/tests/ft_pandoc.vader
 !/.vim/bundle/neomake/tests/ft_perl.vader
 !/.vim/bundle/neomake/tests/ft_php.vader
+!/.vim/bundle/neomake/tests/ft_purescript.vader
 !/.vim/bundle/neomake/tests/ft_python.vader
 !/.vim/bundle/neomake/tests/ft_rust.vader
 !/.vim/bundle/neomake/tests/ft_sh.vader
@@ -203,8 +209,10 @@
 !/.vim/bundle/neomake/tests/include/init.vim
 !/.vim/bundle/neomake/tests/include/setup.vader
 !/.vim/bundle/neomake/tests/integration.vader
+!/.vim/bundle/neomake/tests/jobinfo.vader
 !/.vim/bundle/neomake/tests/json.vader
 !/.vim/bundle/neomake/tests/lists.vader
+!/.vim/bundle/neomake/tests/maker_errors.vader
 !/.vim/bundle/neomake/tests/makers.vader
 !/.vim/bundle/neomake/tests/mapexpr.vader
 !/.vim/bundle/neomake/tests/neomake.vader
@@ -214,6 +222,7 @@
 !/.vim/bundle/neomake/tests/signs.vader
 !/.vim/bundle/neomake/tests/statusline.vader
 !/.vim/bundle/neomake/tests/tempfiles.vader
+!/.vim/bundle/neomake/tests/toggle.vader
 !/.vim/bundle/neomake/tests/utils.vader
 !/.vim/bundle/neomake/tests/verbosity.vader
 !/.vim/bundle/neomake/tests/vim
@@ -236,6 +245,8 @@
 !/.vim/bundle/repeat/autoload/repeat.vim
 !/.vim/bundle/repeat/README.markdown
 !/.vim/bundle/scriptease
+!/.vim/bundle/scriptease/autoload
+!/.vim/bundle/scriptease/autoload/scriptease.vim
 !/.vim/bundle/scriptease/doc
 !/.vim/bundle/scriptease/doc/scriptease.txt
 !/.vim/bundle/scriptease/.gitignore
