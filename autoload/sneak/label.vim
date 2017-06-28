@@ -3,49 +3,31 @@
 "   strategy: make fg/bg the same color, then conceal the other char.
 " 
 "   problem:  keyword highlighting always takes priority over conceal.
-"   strategy: syntax clear | [do the conceal] | let &syntax=s:syntax_orig
-"
-" PROFILING:
-"   - the search should be 'warm' before profiling
-"   - searchpos() appears to be about 30% faster than 'norm! n'
-"
-" FEATURES:
-"   - skips folds
-"   - if no visible matches, does not invoke label-mode
-"   - there is no 'grouping'
-"     - this minimizes the steps for the common case
-"     - If your search has >56 matches, press <tab> to jump to the 57th match
-"       and label the next 56 matches.
-" 
-" cf. EASYMOTION:
-"   - EasyMotion's 'single line' feature is superfluous because label-mode
-"     isn't activated unless there are >=2 on-screen matches, and any key that
-"     isn't a target falls through to Vim.
-"   - because sneak targets 2 chars, there is never a problem discerning
-"     target labels. https://github.com/Lokaltog/vim-easymotion/pull/47#issuecomment-10919205
-"   - https://github.com/Lokaltog/vim-easymotion/issues/59#issuecomment-23226131
-"     - easymotion edits the buffer, plans to create a new buffer
-"     - 'the current way of highligthing is insanely slow'
-"   - sneak handles long lines https://github.com/Lokaltog/vim-easymotion/issues/82
-"   - sneak can find and highlight concealed characters
+"   strategy: syntax clear | [do the conceal] | let &syntax=s:o_syntax
 
-let g:sneak#target_labels = get(g:, 'sneak#target_labels', "asdfghjkl;qwertyuiopzxcvbnm/ASDFGHJKL:QWERTYUIOPZXCVBNM?")
+let g:sneak#target_labels = get(g:, 'sneak#target_labels', ";sftunq/SFGHLTUNRMQZ?0")
 
-func! s:placematch(c, pos)
+func! s:placematch(c, pos) abort
   let s:matchmap[a:c] = a:pos
   exec "syntax match SneakLabel '\\%".a:pos[0]."l\\%".a:pos[1]."c.' conceal cchar=".a:c
 endf
 
-func! sneak#label#to(s, v, reverse)
+func! sneak#label#to(s, v) abort
   let seq = ""
   while 1
-    let choice = s:do_label(a:s, a:v, a:reverse)
+    let choice = s:do_label(a:s, a:v, a:s._reverse)
     let seq .= choice
-    if choice != "\<Tab>" | return seq | endif
+    if choice =~# "^\<S-Tab>\\|\<BS>$"
+      call a:s.init(a:s._input, a:s._repeatmotion, 1)
+    elseif choice ==# "\<Tab>"
+      call a:s.init(a:s._input, a:s._repeatmotion, 0)
+    else
+      return seq
+    endif
   endwhile
 endf
 
-func! s:do_label(s, v, reverse) "{{{
+func! s:do_label(s, v, reverse) abort "{{{
   let w = winsaveview()
   call s:before()
   let search_pattern = (a:s.prefix).(a:s.search).(a:s.get_onscreen_searchpattern(w))
@@ -84,8 +66,10 @@ func! s:do_label(s, v, reverse) "{{{
         \ ? mappedto =~# '<Plug>Sneak\(_,\|Previous\)'
         \ : mappedto =~# '<Plug>Sneak\(_;\|Next\)'
 
-  if choice == "\<Tab>" && overflow[0] > 0 "overflow => decorate next N matches
-    call cursor(overflow[0], overflow[1])
+  if choice =~# "\\v^\<Tab>|\<S-Tab>|\<BS>$"  " Decorate next N matches.
+    if (!a:reverse && choice ==# "\<Tab>") || (a:reverse && choice =~# "^\<S-Tab>\\|\<BS>$")
+      call cursor(overflow[0], overflow[1])
+    endif  " ...else we just switched directions, do not overflow.
   elseif (strlen(g:sneak#opt.label_esc) && choice ==# g:sneak#opt.label_esc)
         \ || -1 != index(["\<Esc>", "\<C-c>"], choice)
     return "\<Esc>" "exit label-mode.
@@ -100,21 +84,24 @@ func! s:do_label(s, v, reverse) "{{{
   return choice
 endf "}}}
 
-func! s:after()
+func! s:after() abort
   autocmd! sneak_label_cleanup
   silent! call matchdelete(w:sneak_cursor_hl)
   "remove temporary highlight links
   exec 'hi! link Conceal '.s:orig_hl_conceal
   exec 'hi! link Sneak '.s:orig_hl_sneak
-  let &l:synmaxcol=s:synmaxcol_orig
-  silent! let &l:foldmethod=s:fdm_orig
-  silent! let &l:syntax=s:syntax_orig
-  let &l:concealcursor=s:cc_orig
-  let &l:conceallevel=s:cl_orig
+  let &l:synmaxcol=s:o_synmaxcol
+  " Always clear before restore, in case user has `:syntax off`. #200
+  syntax clear
+  silent! let &l:foldmethod=s:o_fdm
+  silent! let &l:syntax=s:o_syntax
+  " Force Vim to reapply 'spell' (must set 'spelllang'). #110
+  let [&l:spell,&l:spelllang]=[s:o_spell,s:o_spelllang]
+  let [&l:concealcursor,&l:conceallevel]=[s:o_cocu,s:o_cole]
   call s:restore_conceal_in_other_windows()
 endf
 
-func! s:disable_conceal_in_other_windows()
+func! s:disable_conceal_in_other_windows() abort
   for w in range(1, winnr('$'))
     if 'help' !=# getwinvar(w, '&buftype') && w != winnr()
         \ && empty(getbufvar(winbufnr(w), 'dirvish'))
@@ -123,7 +110,7 @@ func! s:disable_conceal_in_other_windows()
     endif
   endfor
 endf
-func! s:restore_conceal_in_other_windows()
+func! s:restore_conceal_in_other_windows() abort
   for w in range(1, winnr('$'))
     if 'help' !=# getwinvar(w, '&buftype') && w != winnr()
         \ && empty(getbufvar(winbufnr(w), 'dirvish'))
@@ -132,26 +119,24 @@ func! s:restore_conceal_in_other_windows()
   endfor
 endf
 
-func! s:before()
+func! s:before() abort
   let s:matchmap = {}
+  for o in ['spell', 'spelllang', 'cocu', 'cole', 'fdm', 'synmaxcol', 'syntax']
+    exe 'let s:o_'.o.'=&l:'.o
+  endfor
 
+  setlocal nospell concealcursor=ncv conceallevel=2
   " prevent highlighting in other windows showing the same buffer
   ownsyntax sneak_label
-
   " highlight the cursor location (else the cursor is not visible during getchar())
   let w:sneak_cursor_hl = matchadd("Cursor", '\%#', 11, -1)
-
-  let s:cc_orig=&l:concealcursor | setlocal concealcursor=ncv
-  let s:cl_orig=&l:conceallevel  | setlocal conceallevel=2
-
   if &l:foldmethod ==# 'syntax' " Avoid broken folds when we clear syntax below.
-    let s:fdm_orig=&l:foldmethod | setlocal foldmethod=manual
+    setlocal foldmethod=manual
   endif
 
-  let s:syntax_orig=&syntax
   syntax clear
   " this is fast since we cleared syntax, and it allows sneak to work on very long wrapped lines.
-  let s:synmaxcol_orig=&l:synmaxcol | setlocal synmaxcol=0
+  setlocal synmaxcol=0
 
   let s:orig_hl_conceal = sneak#hl#links_to('Conceal')
   let s:orig_hl_sneak   = sneak#hl#links_to('Sneak')
@@ -169,7 +154,7 @@ func! s:before()
 endf
 
 "returns 1 if a:key is invisible or special.
-func! s:is_special_key(key)
+func! s:is_special_key(key) abort
   return -1 != index(["\<Esc>", "\<C-c>", "\<Space>", "\<CR>", "\<Tab>"], a:key)
     \ || maparg(a:key, 'n') =~# '<Plug>Sneak\(_;\|_,\|Next\|Previous\)'
     \ || (g:sneak#opt.s_next && maparg(a:key, 'n') =~# '<Plug>Sneak\(_s\|Forward\)')
@@ -178,7 +163,7 @@ endf
 "we must do this because:
 "  - we don't know which keys the user assigned to Sneak_;/Sneak_,
 "  - we need to reserve special keys like <Esc> and <Tab>
-func! sneak#label#sanitize_target_labels()
+func! sneak#label#sanitize_target_labels() abort
   let nrkeys = sneak#util#strlen(g:sneak#target_labels)
   let i = 0
   while i < nrkeys
