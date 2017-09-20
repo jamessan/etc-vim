@@ -40,6 +40,7 @@
 !/.vim/bundle/neomake/autoload
 !/.vim/bundle/neomake/autoload/neomake
 !/.vim/bundle/neomake/autoload/neomake/compat.vim
+!/.vim/bundle/neomake/autoload/neomake/configure.vim
 !/.vim/bundle/neomake/autoload/neomake/config.vim
 !/.vim/bundle/neomake/autoload/neomake/debug.vim
 !/.vim/bundle/neomake/autoload/neomake/highlights.vim
@@ -115,6 +116,7 @@
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/sh.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/slim.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/sml.vim
+!/.vim/bundle/neomake/autoload/neomake/makers/ft/solidity.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/spec.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/sql.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/stylus.vim
@@ -133,6 +135,7 @@
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/zsh.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/gradle.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/mvn.vim
+!/.vim/bundle/neomake/autoload/neomake/makers/sbt.vim
 !/.vim/bundle/neomake/autoload/neomake/postprocess.vim
 !/.vim/bundle/neomake/autoload/neomake/signs.vim
 !/.vim/bundle/neomake/autoload/neomake/statusline.vim
@@ -152,13 +155,14 @@
 !/.vim/bundle/neomake/.gitignore
 !/.vim/bundle/neomake/LICENSE
 !/.vim/bundle/neomake/Makefile
-!/.vim/bundle/neomake/.mention-bot
 !/.vim/bundle/neomake/plugin
 !/.vim/bundle/neomake/plugin/neomake.vim
 !/.vim/bundle/neomake/README.md
 !/.vim/bundle/neomake/tests
 !/.vim/bundle/neomake/tests/args.vader
+!/.vim/bundle/neomake/tests/automake.vader
 !/.vim/bundle/neomake/tests/cancellation.vader
+!/.vim/bundle/neomake/tests/cmd_neomakeinfo.vader
 !/.vim/bundle/neomake/tests/compat.vader
 !/.vim/bundle/neomake/tests/completion.vader
 !/.vim/bundle/neomake/tests/config.vader
@@ -195,6 +199,7 @@
 !/.vim/bundle/neomake/tests/ft_php.vader
 !/.vim/bundle/neomake/tests/ft_purescript.vader
 !/.vim/bundle/neomake/tests/ft_python.vader
+!/.vim/bundle/neomake/tests/ft_rst.vader
 !/.vim/bundle/neomake/tests/ft_rust.vader
 !/.vim/bundle/neomake/tests/ft_sh.vader
 !/.vim/bundle/neomake/tests/ft_sql.vader
