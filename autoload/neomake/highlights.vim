@@ -57,6 +57,12 @@ else
 endif
 
 function! neomake#highlights#AddHighlight(entry, type) abort
+    " Some makers use line 0 for file warnings (which cannot be highlighted,
+    " e.g. cpplint with "no copyright" warnings).
+    if a:entry.lnum == 0
+        return
+    endif
+
     if !has_key(s:highlights[a:type], a:entry.bufnr)
         call s:InitBufHighlights(a:type, a:entry.bufnr)
     endif
@@ -122,13 +128,12 @@ function! neomake#highlights#DefineHighlights() abort
         let ctermfg = neomake#utils#GetHighlight(fg_group, fg_attr)
         let guisp = neomake#utils#GetHighlight(fg_group, fg_attr.'#')
         exe 'hi '.group.'Default ctermfg='.ctermfg.' guisp='.guisp.' cterm=underline gui=undercurl'
-        if neomake#signs#HlexistsAndIsNotCleared(group)
+        if neomake#utils#highlight_is_defined(group)
             continue
         endif
         exe 'hi link '.group.' '.group.'Default'
     endfor
 endfunction
-call neomake#highlights#DefineHighlights()
 
 function! s:wipe_highlights(bufnr) abort
     for type in ['file', 'project']
@@ -138,5 +143,8 @@ function! s:wipe_highlights(bufnr) abort
     endfor
 endfunction
 augroup neomake_highlights
-    autocmd! BufWipeout * call s:wipe_highlights(expand('<abuf>'))
+    au!
+    autocmd BufWipeout * call s:wipe_highlights(expand('<abuf>'))
 augroup END
+
+call neomake#highlights#DefineHighlights()

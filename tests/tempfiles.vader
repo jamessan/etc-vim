@@ -66,6 +66,8 @@ Execute (Uses temporary file for unreadable buffer):
   let bufnr = bufnr('%')
   AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)"', 3
   let tempfile_name = g:neomake_test_matchlist[1]
+  AssertEqual fnamemodify(tempfile_name, ':t'), printf(
+  \ '.doesnotexist@neomake_%d_%d', getpid(), neomake#GetStatus().last_make_id)
   let cwd = getcwd()
   AssertEqual tempfile_name[0:len(cwd)-1], cwd
   bwipe
@@ -74,7 +76,7 @@ Execute (2nd maker uses temporary file):
   call g:NeomakeSetupAutocmdWrappers()
 
   new
-  file doesnotexist
+  file doesnotexist.ext.ext2
 
   let maker1 = {
       \ 'exe': 'true',
@@ -92,7 +94,10 @@ Execute (2nd maker uses temporary file):
   let make_id = neomake#GetStatus().last_make_id
 
   let bufnr = bufnr('%')
-  AssertNeomakeMessage '\m^Using tempfile for unreadable buffer:'
+  AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)"', 3
+  let tempfile_name = g:neomake_test_matchlist[1]
+  AssertEqual fnamemodify(tempfile_name, ':t'), printf(
+  \ '.doesnotexist.ext.ext2@neomake_%d_%d.ext2', getpid(), neomake#GetStatus().last_make_id)
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_jobfinished), 3
@@ -267,6 +272,7 @@ Execute (same tempfile contents is used for all jobs):
   if NeomakeAsyncTestsSetup()
     new
     let b:neomake_serialize = 1
+    let b:neomake_tempfile_enabled = 1
     let maker1 = {'name': 'maker1', 'exe': 'cat', 'append_file': 1}
     let maker2 = {'name': 'maker2', 'exe': 'cat', 'append_file': 1}
 
@@ -291,8 +297,6 @@ Execute (same tempfile contents is used for all jobs):
 
     normal! iline1
 
-    let b:neomake_tempfile_enabled = 1
-    let b:neomake_serialize = 1
     call neomake#Make(1, [maker1, maker2])
     let make_info = values(neomake#GetStatus().make_info)[0]
 
@@ -314,6 +318,61 @@ Execute (same tempfile contents is used for all jobs):
     AssertEqual make_info.tempfiles, [jobinfo1.tempfile, jobinfo2.tempfile]
 
     AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line1']
+
+    bwipe!
+    au! neomake_test_finished
+    augroup neomake_test_finished
+  endif
+
+Execute (First maker uses actual file, 2nd modified tempfile):
+  if NeomakeAsyncTestsSetup()
+    new
+    edit tests/fixtures/a\ filename\ with\ spaces
+
+    let b:neomake_serialize = 1
+    let maker1 = {'name': 'maker1', 'exe': 'cat', 'append_file': 1}
+    let maker2 = {'name': 'maker2', 'exe': 'cat', 'append_file': 1}
+
+    let maker2.tempfile_name = tempname()
+
+    Save g:maker2_tempfile_contents, g:global_tempfile_contents
+    augroup neomake_test_finished
+      au!
+      autocmd User NeomakeJobFinished
+      \ let m = g:neomake_hook_context.jobinfo.maker
+      \ | if m.name == 'maker2'
+      \ |  let g:maker2_tempfile_contents = readfile(m.tempfile_name)
+      \ | endif
+      autocmd User NeomakeFinished
+      \ let make_info = values(neomake#GetStatus().make_info)[0]
+      \ | let g:global_tempfile_contents = readfile(make_info.tempfiles[0])
+    augroup END
+
+    let b:neomake_tempfile_enabled = 1
+    let b:neomake_serialize = 1
+    call neomake#Make(1, [maker1, maker2])
+
+    normal! oline2
+    let make_info = values(neomake#GetStatus().make_info)[0]
+
+    let g:neomake_test_messages = []
+    NeomakeTestsWaitForFinishedJobs
+    let jobinfo1 = g:neomake_test_jobfinished[0].jobinfo
+    let jobinfo2 = g:neomake_test_jobfinished[1].jobinfo
+    Assert !has_key(jobinfo1, 'tempfile'), 'Job 1 has no tempfile'
+
+    AssertEqual len(g:neomake_test_jobfinished), 2
+    AssertNeomakeMessage 'Using tempfile for modified buffer: "'.maker2.tempfile_name.'".'
+
+    let bound_maker2 = g:neomake_test_jobfinished[1].jobinfo.maker
+    AssertEqual bound_maker2.tempfile_name, maker2.tempfile_name
+    AssertEqual make_info.tempfiles, [bound_maker2.tempfile_name]
+    AssertEqual g:global_tempfile_contents, g:maker2_tempfile_contents
+
+    AssertEqual make_info.tempfiles, [jobinfo2.filename]
+    AssertEqual make_info.tempfiles, [jobinfo2.tempfile]
+
+    AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line1', 'line2']
 
     bwipe!
     au! neomake_test_finished
@@ -342,12 +401,16 @@ Execute (Existing bufnr is kept with tempfiles):
   bwipe
 
 Execute (Temporary buffer is not wiped if opened):
+  Save g:neomake_verbose
+  let g:neomake_verbose = 3
+
   let maker = NeomakeTestsCommandMaker('echo-error', 'printf ''%s:1:error\nanother_file:2:another_error''')
   let maker.errorformat = '%f:%l:%m'
   let maker.append_file = 1
 
   new
   let bufnr = bufnr('%')
+  let tempfile_bufnr = bufnr + 1
   let b:neomake_tempfile_enabled = 1
   call neomake#Make(1, [maker])
 
@@ -373,6 +436,10 @@ Execute (Temporary buffer is not wiped if opened):
   bwipe
   exe 'bwipe' tempfile_name
   exe 'bwipe' unlisted_bufnr
+
+  AssertNeomakeMessage '\v^Setting bufnr according to tempfile for entry: .* ''bufnr'': '.tempfile_bufnr
+  AssertNeomakeMessage 'Modified list entry (postprocess): bufnr: '.tempfile_bufnr.' => '.bufnr.'.'
+  AssertNeomakeMessage 'WARN: seen entries with bufnr different from jobinfo.bufnr ('.bufnr.'): {'''.unlisted_bufnr.''': 1}, current bufnr: '.bufnr.'.'
 
 Execute (unlisted buffers created for tempfiles get wiped):
   if NeomakeAsyncTestsSetup()
