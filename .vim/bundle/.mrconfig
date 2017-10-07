@@ -41,3 +41,6 @@ update = git_subtree_update --squash --prefix=.vim/bundle/nofrils https://github
 
 [neomake]
 update = git_subtree_update --squash --prefix=.vim/bundle/neomake https://github.com/neomake/neomake.git master
+
+[ledger]
+update = git_subtree_update --squash --prefix=.vim/bundle/ledger https://github.com/ledger/vim-ledger.git master

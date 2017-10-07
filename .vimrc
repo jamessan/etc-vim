@@ -21,6 +21,7 @@ if has('autocmd')
     augroup jamessan
         autocmd!
         autocmd FileType help nnoremap <buffer> <Enter> <C-]>
+        autocmd BufEnter * if get(w:, 'quickfix_title', '') =~# '^Reconcile' | call jamessan#ledger#reconcile_setup() | endif
 
         autocmd ColorScheme * hi link NeomakeError ErrorMsg | hi link NeomakeWarning WarningMsg
         autocmd ColorScheme * hi link NeomakeErrorSign ErrorMsg | hi link NeomakeWarningSign WarningMsg
@@ -239,6 +240,8 @@ let g:neomake_make_maker = {
             \ 'postprocess': function('jamessan#neomake#make_post'),
             \}
 let g:neomake_enabled_makers = ['make']
+
+let g:ledger_extra_options = '--aux-date'
 
 " Is this a Debian system?
 if executable('dpkg-architecture')
