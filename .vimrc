@@ -134,6 +134,8 @@ if has('multi_byte') || has('gui_running')
         set listchars+=nbsp:‗
     endif
     digraph ?! 8253  " Interrobang
+    digraph xx 10060
+    digraph \/ 10003
 else
     set listchars=eol:$,tab:>-,trail:.,extends:>,precedes:<
 endif
