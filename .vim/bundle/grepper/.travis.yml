@@ -1,0 +1,10 @@
+sudo: false
+dist: trusty
+
+addons:
+  apt:
+    packages:
+      - vim-gtk
+      - silversearcher-ag
+
+script: test/run
