@@ -13,6 +13,10 @@ function! neomake#makers#ft#neomake_tests#maker_without_exe() abort
     return {}
 endfunction
 
+function! neomake#makers#ft#neomake_tests#maker_with_nonstring_exe() abort
+    return {'exe': function('tr')}
+endfunction
+
 function! neomake#makers#ft#neomake_tests#echo_maker() abort
     return {
         \ 'exe': 'printf',
@@ -31,6 +35,16 @@ endfunction
 
 function! neomake#makers#ft#neomake_tests#true() abort
     return {}
+endfunction
+
+function! neomake#makers#ft#neomake_tests#error_maker() abort
+    return {
+        \ 'exe': 'printf',
+        \ 'args': ['%s:1:error_msg_1'],
+        \ 'errorformat': '%E%f:%l:%m',
+        \ 'append_file': 1,
+        \ 'short_name': 'errmkr',
+        \ }
 endfunction
 
 function! neomake#makers#ft#neomake_tests#process_output_error() abort

@@ -96,6 +96,7 @@ Execute (tempfile with pwd):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
+  AssertNeomakeMessage 'pwd: processing 2 lines of output.', 3
   AssertNeomakeMessage '\v^Removing temporary file: "(.*)".$'
   let tempfile_name = g:neomake_test_matchlist[1]
 
@@ -103,7 +104,7 @@ Execute (tempfile with pwd):
   bwipe
 
 Execute (cwd handles fugitive buffer):
-  NeomakeTestsLoadPlugin 'fugitive'
+  NeomakeTestsLoadPlugin 'vim-fugitive'
   let maker = NeomakeTestsCommandMaker('pwd', 'pwd; printf')
   let maker.cwd = '%:p:h'
   let maker.errorformat = '%m'

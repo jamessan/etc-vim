@@ -3,14 +3,26 @@ scriptencoding utf-8
 let s:qflist_counts = {}
 let s:loclist_counts = {}
 
+" Key: bufnr, Value: dict with cache keys.
+let s:cache = {}
+
+" For debugging.
+function! neomake#statusline#get_s() abort
+    return s:
+endfunction
+
+function! s:clear_cache(bufnr) abort
+    if has_key(s:cache, a:bufnr)
+        unlet s:cache[a:bufnr]
+    endif
+endfunction
+
 function! s:incCount(counts, item, buf) abort
-    let type = toupper(a:item.type)
-    if !empty(type) && (!a:buf || a:item.bufnr ==# a:buf)
+    if !empty(a:item.type) && (!a:buf || a:item.bufnr ==# a:buf)
+        let type = toupper(a:item.type)
         let a:counts[type] = get(a:counts, type, 0) + 1
         if a:buf
-            if has_key(s:cache, a:buf)
-                unlet s:cache[a:buf]
-            endif
+            call s:clear_cache(a:buf)
         else
             let s:cache = {}
         endif
@@ -19,13 +31,16 @@ function! s:incCount(counts, item, buf) abort
     return 0
 endfunction
 
-function! neomake#statusline#buffer_finished(bufnr) abort
-    if !has_key(s:loclist_counts, a:bufnr)
-        let s:loclist_counts[a:bufnr] = {}
-        if has_key(s:cache, a:bufnr)
-            unlet s:cache[a:bufnr]
-        endif
+function! neomake#statusline#make_finished(make_info) abort
+    let bufnr = a:make_info.options.bufnr
+    if !has_key(s:loclist_counts, bufnr)
+        let s:loclist_counts[bufnr] = {}
     endif
+    call s:clear_cache(bufnr)
+
+    " Trigger redraw of all statuslines.
+    " TODO: only do this if some relevant formats are used?!
+    redrawstatus!
 endfunction
 
 function! neomake#statusline#ResetCountsForBuf(...) abort
@@ -37,9 +52,7 @@ function! neomake#statusline#ResetCountsForBuf(...) abort
           call neomake#utils#hook('NeomakeCountsChanged', {
                 \ 'reset': 1, 'file_mode': 1, 'bufnr': bufnr})
       endif
-      if has_key(s:cache, bufnr)
-          unlet s:cache[bufnr]
-      endif
+      call s:clear_cache(bufnr)
       return r
     endif
     return 0
@@ -118,32 +131,6 @@ function! neomake#statusline#get_counts(bufnr) abort
     return [get(s:loclist_counts, a:bufnr, s:no_loclist_counts), s:qflist_counts]
 endfunction
 
-function! neomake#statusline#get_filtered_counts(bufnr, ...) abort
-    let include = a:0 ? a:1 : []
-    let exclude = a:0 > 1 ? a:2 : []
-    let empty = a:0 > 2 ? a:3 : ''
-
-    let [loclist_counts, qf_errors] = neomake#statusline#get_counts(a:bufnr)
-
-    let errors = []
-    for [type, c] in items(loclist_counts)
-        if len(include) && index(include, type) == -1 | continue | endif
-        if len(exclude) && index(exclude, type) != -1 | continue | endif
-        let errors += [type . ':' .c]
-    endfor
-    if ! empty(qf_errors)
-        for [type, c] in items(qf_errors)
-            if len(include) && index(include, type) == -1 | continue | endif
-            if len(exclude) && index(exclude, type) != -1 | continue | endif
-            let errors += [type . ':' .c]
-        endfor
-    endif
-    if len(errors)
-        return ' '.join(errors)
-    endif
-    return empty
-endfunction
-
 
 let s:formatter = {
             \ 'args': {},
@@ -197,31 +184,31 @@ function! neomake#statusline#get_status(bufnr, options) abort
     let [loclist_counts, qflist_counts] = neomake#statusline#get_counts(a:bufnr)
     if empty(loclist_counts)
         if loclist_counts is s:no_loclist_counts
-            let format_unknown = get(a:options, 'format_unknown', '?')
+            let format_unknown = get(a:options, 'format_loclist_unknown', '?')
             let r .= s:formatter.format(format_unknown, {'bufnr': a:bufnr})
         else
-            let format_ok = get(a:options, 'format_ok', '%#NeomakeStatusGood#✓')
+            let format_ok = get(a:options, 'format_loclist_ok', '%#NeomakeStatusGood#✓')
             let r .= s:formatter.format(format_ok, {'bufnr': a:bufnr})
         endif
     else
         let format_loclist = get(a:options, 'format_loclist_issues', '%s')
         if !empty(format_loclist)
-        let loclist = ''
-        for [type, c] in items(loclist_counts)
-            if has_key(a:options, 'format_loclist_type_'.type)
-                let format = a:options['format_loclist_type_'.type]
-            elseif hlexists('NeomakeStatColorType'.type)
-                let format = '%#NeomakeStatColorType{{type}}# {{type}}:{{count}} '
-            else
-                let format = ' {{type}}:{{count}} '
-            endif
-            " let format = get(a:options, 'format_type_'.type, '%#NeomakeStatColorType{{type}}# {{type}}:{{count}} ')
-            let loclist .= s:formatter.format(format, {
-                        \ 'bufnr': a:bufnr,
-                        \ 'count': c,
-                        \ 'type': type})
-        endfor
-        let r = printf(format_loclist, loclist)
+            let loclist = ''
+            for [type, c] in items(loclist_counts)
+                if has_key(a:options, 'format_loclist_type_'.type)
+                    let format = a:options['format_loclist_type_'.type]
+                elseif hlexists('NeomakeStatColorType'.type)
+                    let format = '%#NeomakeStatColorType{{type}}# {{type}}:{{count}} '
+                else
+                    let format = ' {{type}}:{{count}} '
+                endif
+                " let format = get(a:options, 'format_type_'.type, '%#NeomakeStatColorType{{type}}# {{type}}:{{count}} ')
+                let loclist .= s:formatter.format(format, {
+                            \ 'bufnr': a:bufnr,
+                            \ 'count': c,
+                            \ 'type': type})
+            endfor
+            let r = printf(format_loclist, loclist)
         endif
     endif
 
@@ -234,43 +221,26 @@ function! neomake#statusline#get_status(bufnr, options) abort
     else
         let format_quickfix = get(a:options, 'format_quickfix_issues', '%s')
         if !empty(format_quickfix)
-        let quickfix = ''
-        for [type, c] in items(qflist_counts)
-            if has_key(a:options, 'format_quickfix_type_'.type)
-                let format = a:options['format_quickfix_type_'.type]
-            elseif hlexists('NeomakeStatColorQuickfixType'.type)
-                let format = '%#NeomakeStatColorQuickfixType{{type}}# Q{{type}}:{{count}} '
-            else
-                let format = ' Q{{type}}:{{count}} '
-            endif
-            if !empty(format)
-                let quickfix .= s:formatter.format(format, {
-                            \ 'bufnr': a:bufnr,
-                            \ 'count': c,
-                            \ 'type': type})
-            endif
-        endfor
-        let r = printf(format_quickfix, quickfix)
+            let quickfix = ''
+            for [type, c] in items(qflist_counts)
+                if has_key(a:options, 'format_quickfix_type_'.type)
+                    let format = a:options['format_quickfix_type_'.type]
+                elseif hlexists('NeomakeStatColorQuickfixType'.type)
+                    let format = '%#NeomakeStatColorQuickfixType{{type}}# Q{{type}}:{{count}} '
+                else
+                    let format = ' Q{{type}}:{{count}} '
+                endif
+                if !empty(format)
+                    let quickfix .= s:formatter.format(format, {
+                                \ 'bufnr': a:bufnr,
+                                \ 'count': c,
+                                \ 'type': type})
+                endif
+            endfor
+            let r = printf(format_quickfix, quickfix)
         endif
     endif
     return r
-endfunction
-
-function! neomake#statusline#clear_cache(bufnr) abort
-    call s:clear_cache(a:bufnr)
-endfunction
-
-" Key: bufnr, Value: dict with cache keys.
-let s:cache = {}
-" For debugging.
-function! neomake#statusline#get_s() abort
-    return s:
-endfunction
-
-function! s:clear_cache(bufnr) abort
-    if has_key(s:cache, a:bufnr)
-        unlet s:cache[a:bufnr]
-    endif
 endfunction
 
 function! neomake#statusline#get(bufnr, options) abort
@@ -282,6 +252,7 @@ function! neomake#statusline#get(bufnr, options) abort
         return s:cache[a:bufnr][cache_key]
     endif
     let bufnr = +a:bufnr
+    call s:setup_statusline_augroup_for_use()
 
     " TODO: needs to go into cache key then!
     if getbufvar(bufnr, '&filetype') ==# 'qf'
@@ -311,14 +282,21 @@ endfunction
 
 " XXX: TODO: cleanup/doc?!
 function! neomake#statusline#DefineHighlights() abort
-    if exists('g:neomake_statusline_bg')
-        let stlbg = g:neomake_statusline_bg
-    else
-        let stlbg = neomake#utils#GetHighlight('StatusLine', 'bg')
-    endif
-
-    " Highlights.
-    exe 'hi default NeomakeStatusGood ctermfg=green ctermbg=' . stlbg
+    for suffix in ['', 'NC']
+      let hl = 'StatusLine'.suffix
+      " Uses "green" for NeomakeStatusGood, but the default with
+      " NeomakeStatusGoodNC (since it might be underlined there, and should
+      " not stand out in general there).
+      exe 'hi default NeomakeStatusGood'.suffix
+            \ . ' ctermfg=' . (suffix ? neomake#utils#GetHighlight(hl, 'fg') : 'green')
+            \ . ' guifg=' . (suffix ? neomake#utils#GetHighlight(hl, 'fg#') : 'green')
+            \ . ' ctermbg='.neomake#utils#GetHighlight(hl, 'bg')
+            \ . ' guifg='.neomake#utils#GetHighlight(hl, 'bg#')
+            \ . (neomake#utils#GetHighlight(hl, 'underline') ? ' cterm=underline' : '')
+            \ . (neomake#utils#GetHighlight(hl, 'underline#') ? ' gui=underline' : '')
+            \ . (neomake#utils#GetHighlight(hl, 'reverse') ? ' cterm=reverse' : '')
+            \ . (neomake#utils#GetHighlight(hl, 'reverse#') ? ' gui=reverse' : '')
+    endfor
 
     " Base highlight for type counts.
     exe 'hi NeomakeStatColorTypes cterm=NONE ctermfg=white ctermbg=blue'
@@ -332,13 +310,20 @@ function! neomake#statusline#DefineHighlights() abort
     hi link NeomakeStatColorTypeI NeomakeStatColorTypes
 endfunction
 
+let s:did_setup_statusline_augroup_for_use = 0
+function! s:setup_statusline_augroup_for_use() abort
+    if s:did_setup_statusline_augroup_for_use
+        return
+    endif
+    augroup neomake_statusline
+        autocmd ColorScheme * call neomake#statusline#DefineHighlights()
+    augroup END
+    let s:did_setup_statusline_augroup_for_use = 1
+endfunction
+
+" Global augroup, gets configured always currently when autoloaded.
 augroup neomake_statusline
     autocmd!
-    autocmd User NeomakeJobStarted,NeomakeJobFinished call s:clear_cache(g:neomake_hook_context.jobinfo.bufnr)
-    " Trigger redraw of all statuslines.
-    " TODO: only do this if some relevant formats are used?!
-    autocmd User NeomakeJobFinished let &stl = &stl
     autocmd BufWipeout * call s:clear_cache(expand('<abuf>'))
-    autocmd ColorScheme * call neomake#statusline#DefineHighlights()
 augroup END
 call neomake#statusline#DefineHighlights()
