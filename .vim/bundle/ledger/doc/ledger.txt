@@ -30,6 +30,10 @@ TIPS                                                             *ledger-tips*
 
 Tips and useful commands
 
+* vim-ledger can do syntax-sensitive folding when you set `foldmethod=syntax`
+  in the |modeline| of your ledger file. This way transactions can shrink down
+  to just one line.
+
 * Try account-completion (as explained below). If you use YouCompleteMe, you
   should disable it for Ledger files. Put this in your .vimrc:
 
@@ -48,6 +52,18 @@ Tips and useful commands
         let g:ledger_extra_options = '--pedantic --explicit --check-payees'
 
   to catch most potential problems in your source file.
+
+* Remap vim paragraph motion to move by transaction.
+
+  In vim, the "{" and "}" keystrokes move the cursor up and down by whole
+  paragraphs. They can be redefined in ledger files to move by transaction
+  instead. Add these lines to .vimrc:
+
+        au FileType ledger noremap { ?^\d<CR>
+        au FileType ledger noremap } /^\d<CR>
+
+  The default definitions already work in ledger files that separate
+  transactions with blank lines.
 
 * `:call ledger#transaction_date_set('.'), "auxiliary")`
 
@@ -261,7 +277,7 @@ behaviour of the ledger filetype.
 
   A value of 0 will disable folding of blank lines, 1 will allow folding of a
   single blank line between transactions; any larger value will enable folding
-  undconditionally.
+  unconditionally.
 
   Note that only lines containing no trailing spaces are considered for
   folding. You can take advantage of this to disable this feature on a
