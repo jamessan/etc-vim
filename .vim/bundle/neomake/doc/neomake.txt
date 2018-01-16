@@ -310,7 +310,7 @@ Example: make all entries a warning where `nr` is in the range of 100-199: >
         \ 'exe': 'lint',
         \ 'args': ['--option', 'x'],
         \ 'errorformat': '%f:%l:%c:%n: %m',
-        \ 'postprocess': function('PostprocessLintMaker)
+        \ 'postprocess': function('PostprocessLintMaker')
         \ }
 <
 Example: remove some entry for a specific maker (using |expr-lambda|): >
@@ -396,6 +396,17 @@ The `output_stream` setting specifies what stream gets used for output from
 the maker.
 Any output on a stream not configured here gets reported as unexpected output.
 
+                                               *neomake-makers-supports_stdin*
+Default: 0
+With `supports_stdin = 1` a maker indicates that it can use stdin instead of a
+temporary file.  By default "-" is then used for the filename.
+
+`supports_stdin` can be a dict function on the maker, which will get the
+current jobinfo as its argument, and should return 1 or 0.
+This function can change `self.args`, which is useful to append options like
+e.g. "['--stdin-display-name', '%:p']".
+You can also change `self.tempfile_name` therein.
+
 Global Options                                               *neomake-options*
 
 *g:neomake_<name>_maker*
@@ -451,6 +462,7 @@ Please refer to |autocmd-patterns| for help on defining the pattern
 (`custom.py`) in this case.
 
 *g:neomake_enabled_makers*
+*b:neomake_enabled_makers*
 This setting will tell Neomake which makers to use by default when not
 operating on a single file, or when no makers are defined for the filetype of
 the current buffer. This effectively defaults to: >
@@ -463,7 +475,8 @@ preserve the cursor position when the |location-list| or |quickfix| window is
 opened. Defaults to 0.
 
 *g:neomake_list_height*
-The height of the |location-list| or |quickfix| list opened by Neomake.
+The maximum height of the |location-list| or |quickfix| list window opened by
+Neomake.  If there are fewer entries it will use that instead.
 Defaults to 10.
 
 *g:neomake_echo_current_error*
@@ -658,10 +671,12 @@ which caches the information retrieved from `neomake#statusline#get_status()`.
 The function requires the buffer number as first argument, and an optional
 dictionary.
 
-The following example can be used in a custom 'statusline' function: >
+The following example creates a custom 'statusline' function, where `a:active`
+may reflect if the window is the current one (implementation not provided): >
     let neomake_status_str = neomake#statusline#get(bufnr, {
           \ 'format_running': '… ({{running_job_names}})',
-          \ 'format_ok': (a:active ? '%#NeomakeStatusGood#' : '%*').'✓',
+          \ 'format_loclist_ok':
+          \   (a:active ? '%#NeomakeStatusGood#' : '%*').'✓',
           \ 'format_quickfix_ok': '',
           \ 'format_quickfix_issues': (a:active ? '%s' : ''),
           \ 'format_status': '%%(%s'
@@ -669,10 +684,45 @@ The following example can be used in a custom 'statusline' function: >
           \   .'%%)',
           \ })
 <
+A simpler example: >
+    let neomake_status_str = neomake#statusline#get(bufnr, {
+          \ 'format_running': '… ({{running_job_names}})',
+          \ 'format_loclist_ok': '✓',
+          \ 'format_quickfix_ok': '',
+          \ 'format_quickfix_issues': '%s',
+          \ })
+<
 You can use the following options:
   - format_running: used in case there are jobs running.  Use 0 (as a number)
     to disable this, but fall through to the last known status.
     Default: `… ({{running_job_names}})`
+
+  - format_loclist_unknown: format for when the status for location list
+    issues is unknown, i.e. Neomake was not run on the current buffer.
+    Default: `'?'`
+  - format_loclist_ok: format for when there are no location list issues.
+    Default: `'%#NeomakeStatusGood#✓'` (a checkmark using the
+    NeomakeStatusGood highlight group).
+  - format_loclist_type_X: format for location list issues of type X
+    (E, W, I, …).
+    Default: `' {{type}}:{{count}} '`
+  - format_loclist_issues: format for wrapping all location list issues.
+    Default: `'%s'` (used with |printf()|).
+
+  - format_quickfix_ok: format for no quickfix issues.
+    Default: `''`
+  - format_quickfix_type_X: format for quickfix list issues of type X
+    (E, W, I, …).
+    Default: `' {{type}}:{{count}} '`
+  - format_quickfix_issues: format for wrapping all quickfix list issues.
+    You can use an empty string to skip displaying quickfix issues, which can
+    be useful for non-current windows.
+    Default: `'%s'` (used with |printf()|).
+
+  - format_status: used to wrap the whole status (if Neomake is not enabled).
+    This is a |printf()| format string, where `%s` gets replaced with the
+    whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
+    Default: not used / `'%s'`
 
 You can use the following format placeholders:
   - `{{running_job_names}}}`: comma-separated list of running jobs (typically
@@ -709,7 +759,7 @@ With all these events a dictionary `g:neomake_hook_context` is available,
 with key/value pairs depending on the autocommand/hook.
 
 Example: display a message for every maker that exits non-zero: >
-    function! OnNeomakeJobFinished() abort
+    function! MyOnNeomakeJobFinished() abort
       let context = g:neomake_hook_context
       if context.jobinfo.exit_code != 0
         echom printf('The job for maker %s exited non-zero: %s',
