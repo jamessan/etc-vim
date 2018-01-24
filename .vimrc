@@ -315,38 +315,6 @@ function! s:SynInfo()
     return info
 endfunction
 
-function! s:GenDaqTags(workspace, etags) abort
-    let cwd = getcwd()
-    let chdir = haslocaldir() ? 'lcd' : 'cd'
-    let workspace = fnamemodify(expand(a:workspace), ':p')
-    if a:etags
-        let outname = 'TAGS'
-        let etags = '-e'
-    else
-        let outname = 'tags'
-        let etags = ''
-    endif
-    " Remove the trailing slash, since that causes problems with
-    " --tag-relative
-    let workspace = workspace[:-2]
-    let opts = etags .' -I CSX_CLASS_EXPORT,FBE_API_CALL --extra=+fq --fields=+Sia --languages=C,C++ --c-kinds=+p --c++-kinds=+p -R --tag-relative=yes'
-    exe chdir .' '. fnameescape(workspace.'/safe/catmerge')
-    if has('win32') || has('win64')
-        exe '!start /b ctags '. opts .' -f '. workspace .'\'.outname.'.product --exclude=mgmt . ../Targets/armada64_checked ../../sys-common'
-    else
-        exe '!ctags '. opts .' -f '. workspace .'/'.outname.'.product --exclude=mgmt . ../Targets/armada64_checked ../../sys-common &'
-    endif
-    exe chdir .' mgmt'
-    if has('win32') || has('win64')
-        exe '!start /b ctags '. opts . ' -f '. workspace .'\'.outname.'.daq .'
-    else
-        exe '!ctags '. opts .' -f '. workspace .'/'.outname.'.daq . &'
-    endif
-    exe chdir .' '. fnameescape(cwd)
-endfunction
-
-command! -nargs=1 -complete=dir -bang GenDaqTags call <SID>GenDaqTags(<f-args>, <bang>0)
-
 " Make Y act like D, C, S, etc.
 nnoremap Y y$
 
