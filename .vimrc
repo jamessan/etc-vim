@@ -217,11 +217,6 @@ let g:secure_modelines_allowed_items = [
             \ ]
 
 " Neomake
-let g:neomake_buildall_maker = {
-            \ 'exe': 'build_all',
-            \ 'mapexpr': 'jamessan#neomake#build_all_adjust(v:val)',
-            \ 'postprocess': function('jamessan#neomake#make_post'),
-            \ }
 let g:neomake_c_lint_maker = {
             \ 'exe': 'make',
             \ 'args': ['clint', 'LINT_FILE=%'],
