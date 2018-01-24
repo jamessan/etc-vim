@@ -238,6 +238,13 @@ let g:neomake_enabled_makers = ['make']
 
 let g:ledger_extra_options = '--aux-date'
 
+nmap gs <plug>(GrepperOperator)
+xmap gs <plug>(GrepperOperator)
+nnoremap <silent> <Leader>g :Grepper<CR>
+nnoremap <silent> <Leader>lg :Grepper -noquickfix<CR>
+let g:grepper = {}
+let g:grepper.tools = ['ag', 'ack', 'ack-grep', 'rg', 'git', 'grep', 'findstr']
+
 " Is this a Debian system?
 if executable('dpkg-architecture')
     " Check whether multi-arch is actually supported
