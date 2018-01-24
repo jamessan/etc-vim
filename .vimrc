@@ -253,6 +253,8 @@ if executable('dpkg-architecture')
             let ma_path=split(system('dpkg-architecture -a'.arch.' -qDEB_HOST_MULTIARCH'))[0]
             let &path .= ',/usr/include/'.ma_path
         endfor
+        unlet arch
+        unlet ma_path
     endif
 endif
 
