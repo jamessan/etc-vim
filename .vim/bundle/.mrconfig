@@ -6,6 +6,9 @@ checkout = true
 [grepper]
 update = git_subtree_update --squash --prefix=.vim/bundle/grepper https://github.com/mhinz/vim-grepper.git master
 
+[gutentags]
+update = git_subtree_update --squash --prefix=.vim/bundle/gutentags https://github.com/ludovicchabant/vim-gutentags.git master
+
 [janah]
 update = git_subtree_update --squash --prefix=.vim/bundle/janah https://github.com/mhinz/vim-janah.git master
 
