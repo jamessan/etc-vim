@@ -22,6 +22,16 @@
 !/.vim/autoload/pathogen.vim
 !/.vim/autoload/repeat.vim
 !/.vim/bundle
+!/.vim/bundle/characterize
+!/.vim/bundle/characterize/autoload
+!/.vim/bundle/characterize/autoload/characterize.vim
+!/.vim/bundle/characterize/autoload/unicode.awk
+!/.vim/bundle/characterize/doc
+!/.vim/bundle/characterize/doc/characterize.txt
+!/.vim/bundle/characterize/.gitignore
+!/.vim/bundle/characterize/plugin
+!/.vim/bundle/characterize/plugin/characterize.vim
+!/.vim/bundle/characterize/README.markdown
 !/.vim/bundle/grepper
 !/.vim/bundle/grepper/CHANGELOG.md
 !/.vim/bundle/grepper/CONTRIBUTING.md
@@ -447,5 +457,4 @@
 !/.vim/plugin
 !/.vim/plugin/BufGrep.vim
 !/.vim/plugin/endofsearch.vim
-!/.vim/plugin/unicodename.vim
 !/.vimrc
