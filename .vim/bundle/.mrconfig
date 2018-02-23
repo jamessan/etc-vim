@@ -3,6 +3,9 @@ include = cat /usr/share/mr/git-subtree
 git_subtree_test = true
 checkout = true
 
+[characterize]
+update = git_subtree_update --squash --prefix=.vim/bundle/characterize https://github.com/tpope/vim-characterize.git master
+
 [grepper]
 update = git_subtree_update --squash --prefix=.vim/bundle/grepper https://github.com/mhinz/vim-grepper.git master
 
