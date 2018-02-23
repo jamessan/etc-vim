@@ -282,8 +282,6 @@
 !/.vim/bundle/neomake/tests/ft_haskell.vader
 !/.vim/bundle/neomake/tests/ft_idris.vader
 !/.vim/bundle/neomake/tests/ft_javascript.vader
-!/.vim/bundle/neomake/tests/ft_markdown.vader
-!/.vim/bundle/neomake/tests/ft_pandoc.vader
 !/.vim/bundle/neomake/tests/ft_perl.vader
 !/.vim/bundle/neomake/tests/ft_php.vader
 !/.vim/bundle/neomake/tests/ft_purescript.vader
@@ -324,6 +322,7 @@
 !/.vim/bundle/neomake/tests/serialize.vader
 !/.vim/bundle/neomake/tests/signs.vader
 !/.vim/bundle/neomake/tests/statusline.vader
+!/.vim/bundle/neomake/tests/stdin.vader
 !/.vim/bundle/neomake/tests/tempfiles.vader
 !/.vim/bundle/neomake/tests/toggle.vader
 !/.vim/bundle/neomake/tests/utils_projectroot.vader
