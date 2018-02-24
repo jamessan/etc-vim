@@ -323,9 +323,6 @@ endif
 " Make Y act like D, C, S, etc.
 nnoremap Y y$
 
-" Print out the english description of the unicode character under the cursor
-nnoremap <Leader>un :UnicodeName<CR>
-
 " Clear the active 'hlsearch' highlighting and refresh the screen
 nnoremap <C-l> :nohlsearch<CR><C-l>
 
