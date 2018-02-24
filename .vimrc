@@ -110,7 +110,9 @@ set lazyredraw " do not redraw while running macros (much faster)
 set hidden " you can change buffer without saving
 set backspace=2 " make backspace work normal
 set whichwrap+=<,>  " cursor keys wrap to
-set mouse=a " use mouse everywhere
+if exists('+mouse')
+    set mouse=a " use mouse everywhere
+endif
 set ignorecase " easier to ignore case for searching
 set smartcase " match case if upper case characters are used in the search
 set shortmess=atI " shortens messages to avoid 'press a key' prompt
@@ -273,49 +275,50 @@ endif
 runtime macros/matchit.vim
 
 " Custom Functions
+if 1
+    function! <SID>DiffPreview()
+        vert new
+        set buftype=nofile
+        read #
+        0d_
+        diffthis
+        wincmd p
+        diffthis
+    endfunction
 
-function! <SID>DiffPreview()
-    vert new
-    set buftype=nofile
-    read #
-    0d_
-    diffthis
-    wincmd p
-    diffthis
-endfunction
+    function! s:SynNames()
+        let syn = {}
+        let lnum = line('.')
+        let cnum = col('.')
+        let [effective, visual] = [synID(lnum, cnum, 0), synID(lnum, cnum, 1)]
+        let syn.effective = synIDattr(effective, 'name')
+        let syn.effective_link = synIDattr(synIDtrans(effective), 'name')
+        let syn.visual = synIDattr(visual, 'name')
+        let syn.visual_link = synIDattr(synIDtrans(visual), 'name')
+        return syn
+    endfunction
 
-function! s:SynNames()
-    let syn = {}
-    let lnum = line('.')
-    let cnum = col('.')
-    let [effective, visual] = [synID(lnum, cnum, 0), synID(lnum, cnum, 1)]
-    let syn.effective = synIDattr(effective, 'name')
-    let syn.effective_link = synIDattr(synIDtrans(effective), 'name')
-    let syn.visual = synIDattr(visual, 'name')
-    let syn.visual_link = synIDattr(synIDtrans(visual), 'name')
-    return syn
-endfunction
-
-function! s:SynInfo()
-    let syn = s:SynNames()
-    let info = ''
-    if syn.visual != ''
-        let info .= printf('visual: %s', syn.visual)
-        if syn.visual != syn.visual_link
-            let info .= printf(' (as %s)', syn.visual_link)
-        endif
-    endif
-    if syn.effective != syn.visual
+    function! s:SynInfo()
+        let syn = s:SynNames()
+        let info = ''
         if syn.visual != ''
-            let info .= ', '
+            let info .= printf('visual: %s', syn.visual)
+            if syn.visual != syn.visual_link
+                let info .= printf(' (as %s)', syn.visual_link)
+            endif
         endif
-        let info .= printf('effective: %s', syn.effective)
-        if syn.effective != syn.effective_link
-            let info .= printf(' (as %s)', syn.effective_link)
+        if syn.effective != syn.visual
+            if syn.visual != ''
+                let info .= ', '
+            endif
+            let info .= printf('effective: %s', syn.effective)
+            if syn.effective != syn.effective_link
+                let info .= printf(' (as %s)', syn.effective_link)
+            endif
         endif
-    endif
-    return info
-endfunction
+        return info
+    endfunction
+endif
 
 " Make Y act like D, C, S, etc.
 nnoremap Y y$
