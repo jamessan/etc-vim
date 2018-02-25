@@ -247,6 +247,9 @@ nnoremap <silent> <Leader>lg :Grepper -noquickfix<CR>
 let g:grepper = {}
 let g:grepper.tools = ['ag', 'ack', 'ack-grep', 'rg', 'git', 'grep', 'findstr']
 
+" Cache tags in a common directory
+let g:gutentags_cache_dir = split(&directory, ',')[0]
+
 " Is this a Debian system?
 if executable('dpkg-architecture')
     " Check whether multi-arch is actually supported
