@@ -65,6 +65,7 @@
 !/.vim/bundle/gutentags/CONTRIBUTING.md
 !/.vim/bundle/gutentags/doc
 !/.vim/bundle/gutentags/doc/gutentags.txt
+!/.vim/bundle/gutentags/.gitignore
 !/.vim/bundle/gutentags/.hgignore
 !/.vim/bundle/gutentags/LICENSE
 !/.vim/bundle/gutentags/plat
@@ -256,6 +257,7 @@
 !/.vim/bundle/neomake/tests/config.vader
 !/.vim/bundle/neomake/tests/customqf.vader
 !/.vim/bundle/neomake/tests/cwd.vader
+!/.vim/bundle/neomake/tests/debug.vader
 !/.vim/bundle/neomake/tests/env.vader
 !/.vim/bundle/neomake/tests/errors.vader
 !/.vim/bundle/neomake/tests/filetypes.vader
@@ -304,6 +306,7 @@
 !/.vim/bundle/neomake/tests/integration.vader
 !/.vim/bundle/neomake/tests/isolated
 !/.vim/bundle/neomake/tests/isolated/compat-get_argv-on-emulated-windows.vader
+!/.vim/bundle/neomake/tests/isolated/configure.vader
 !/.vim/bundle/neomake/tests/isolated/ft_help.vader
 !/.vim/bundle/neomake/tests/isolated/highlights.vader
 !/.vim/bundle/neomake/tests/isolated/modes.vader
