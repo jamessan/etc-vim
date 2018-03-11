@@ -3,6 +3,8 @@
 " Escaping test line:
 " ..ad\\f40+$':-# @=,!;%^&&*()_{}/ /4304\'""?`9$343%$ ^adfadf[ad)[(
 
+highlight default link GrepperPrompt Question
+
 "
 " Default values that get used for missing values in g:grepper.
 "
@@ -136,7 +138,6 @@ endif
 
 let s:cmdline = ''
 let s:slash   = exists('+shellslash') && !&shellslash ? '\' : '/'
-let s:magic   = { 'next': '$$$next###', 'cr': '$$$cr###' }
 
 " Job handlers {{{1
 " s:on_stdout_nvim() {{{2
@@ -449,6 +450,12 @@ function! s:get_config() abort
   endif
   return flags
 endfunction
+
+" s:set_prompt_op() {{{2
+function! s:set_prompt_op(op) abort
+  let s:prompt_op = a:op
+  return getcmdline()
+endfunction
 " }}}1
 
 " s:parse_flags() {{{1
@@ -543,9 +550,7 @@ function! s:process_flags(flags)
   endif
 
   if a:flags.buffer
-    let [shellslash, &shellslash] = [&shellslash, 1]
     let a:flags.buflist = [fnamemodify(bufname(''), ':p')]
-    let &shellslash = shellslash
     if !filereadable(a:flags.buflist[0])
       call s:error('This buffer is not backed by a file!')
       return 1
@@ -553,10 +558,8 @@ function! s:process_flags(flags)
   endif
 
   if a:flags.buffers
-    let [shellslash, &shellslash] = [&shellslash, 1]
     let a:flags.buflist = filter(map(filter(range(1, bufnr('$')),
           \ 'bufloaded(v:val)'), 'fnamemodify(bufname(v:val), ":p")'), 'filereadable(v:val)')
-    let &shellslash = shellslash
     if empty(a:flags.buflist)
       call s:error('No buffer is backed by a file!')
       return 1
@@ -569,12 +572,9 @@ function! s:process_flags(flags)
 
   if a:flags.prompt
     call s:prompt(a:flags)
-    " Empty query string indicates that prompt was canceled
-    if empty(a:flags.query)
+    if s:prompt_op == 'cancelled'
       return
     endif
-    " Remove marker indicating that prompt was accepted
-    let a:flags.query = substitute(a:flags.query, '\V\C'.s:magic.cr .'\$', '', '')
     if empty(a:flags.query)
       let a:flags.query = s:escape_cword(a:flags, expand('<cword>'))
     elseif a:flags.prompt_quote == 1
@@ -590,8 +590,6 @@ function! s:process_flags(flags)
   if a:flags.highlight
     call s:highlight_query(a:flags)
   endif
-
-  call histadd('input', a:flags.query)
 
   return 0
 endfunction
@@ -622,8 +620,8 @@ function! s:prompt(flags)
         \ : s:get_grepprg(a:flags)
 
   let mapping = maparg(g:grepper.next_tool, 'c', '', 1)
-  execute 'cnoremap' g:grepper.next_tool s:magic.next .'<cr>'
-  execute 'cnoremap <cr> <end>'. s:magic.cr .'<cr>'
+  execute 'cnoremap' g:grepper.next_tool "\<c-\>e\<sid>set_prompt_op('next_tool')<cr><cr>"
+  cnoremap <cr> <end><c-\>e<sid>set_prompt_op('cr')<cr><cr>
 
   " Set low timeout for key codes, so <esc> would cancel prompt faster
   let ttimeoutsave = &ttimeout
@@ -639,7 +637,16 @@ function! s:prompt(flags)
     let a:flags.query = a:flags.query
   endif
 
-  echohl Question
+  " s:prompt_op indicates which key ended the prompt's input() and is needed to
+  " distinguish different actions. The next_tool mapping sets it to 'next_tool',
+  " and <cr> to 'cr'. It defaults to 'cancelled', which means that the prompt
+  " was cancelled by either <esc> or <c-c>.
+  "   'cancelled':  don't start searching
+  "   'next_tool':  don't start searching, use query as input for the next tool
+  "   'cr':         start searching
+  let s:prompt_op = 'cancelled'
+
+  echohl GrepperPrompt
   call inputsave()
 
   try
@@ -659,13 +666,7 @@ function! s:prompt(flags)
     call inputrestore()
   endtry
 
-  if !empty(a:flags.query)
-    " Always delete entered line from the history because it contains magic
-    " sequence. Real query will be added to the history later.
-    call histdel('input', -1)
-  endif
-
-  if a:flags.query =~# s:magic.next
+  if s:prompt_op == 'next_tool'
     call s:next_tool(a:flags)
     if a:flags.cword
       let a:flags.query = s:escape_cword(a:flags, a:flags.query_orig)
@@ -675,9 +676,9 @@ function! s:prompt(flags)
         let a:flags.query = (is_findstr ? '' : '-- '). s:escape_query(a:flags, a:flags.query_orig)
       else
         if a:flags.prompt_quote >= 2
-          let a:flags.query = a:flags.query[1:-len(s:magic.next)-2]
+          let a:flags.query = a:flags.query[1:-2]
         else
-          let a:flags.query = a:flags.query[:-len(s:magic.next)-1]
+          let a:flags.query = a:flags.query[:-1]
         endif
       endif
     endif
@@ -690,9 +691,17 @@ function! s:build_cmdline(flags) abort
   let grepprg = s:get_grepprg(a:flags)
 
   if has_key(a:flags, 'buflist')
-    let [shellslash, &shellslash] = [&shellslash, 1]
-    call map(a:flags.buflist, 'shellescape(fnamemodify(v:val, ":."))')
-    let &shellslash = shellslash
+    if has('win32')
+      " cmd.exe does not use single quotes for quoting. Using 'noshellslash'
+      " forces path separators to be backslashes and makes shellescape() using
+      " double quotes. Beforehand escape all backslashes, otherwise \t in
+      " 'dir\test' would be considered a tab etc.
+      let [shellslash, &shellslash] = [&shellslash, 0]
+      call map(a:flags.buflist, 'shellescape(escape(fnamemodify(v:val, ":."), "\\"))')
+      let &shellslash = shellslash
+    else
+      call map(a:flags.buflist, 'shellescape(fnamemodify(v:val, ":."))')
+    endif
   endif
 
   if stridx(grepprg, '$.') >= 0
@@ -723,14 +732,8 @@ function! s:run(flags)
   let s:cmdline = s:build_cmdline(a:flags)
 
   " 'cmd' and 'options' are only used for async execution.
-  if has('win32') && &shell =~# 'powershell'
-    " Windows powershell has better quote handling.
-    let cmd = s:cmdline
-  elseif has('win32') && &shell =~# 'cmd'
-    " cmd.exe handles single quotes as part of the query. To avoid this
-    " behaviour, we run the query via powershell.exe from within cmd.exe:
-    " https://stackoverflow.com/questions/94382/vim-with-powershell
-    let cmd = 'powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned '. s:cmdline
+  if has('win32')
+    let cmd = 'cmd.exe /c '. s:cmdline
   else
     let cmd = ['sh', '-c', s:cmdline]
   endif
