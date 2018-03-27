@@ -35,9 +35,6 @@ if has('autocmd')
                 \   &ft !~# '\%(^git\%(config\)\@!\|commit\)'
                 \ | exe "normal! g`\""
                 \ | endif
-
-        autocmd BufRead,BufNewFile */safe/catmerge/mgmt/{RemoteAgent,daq,MP_Engine}/* setlocal noexpandtab tabstop=4 shiftwidth=4
-        autocmd BufRead,BufNewFile */views/*/{safe,sys-common}/* setlocal tags=./tags.daq;,./tags.product;
     augroup END
 endif
 
