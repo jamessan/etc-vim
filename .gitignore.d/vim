@@ -14,6 +14,7 @@
 !/.vim/after/indent/c.vim
 !/.vim/autoload
 !/.vim/autoload/jamessan
+!/.vim/autoload/jamessan/gutentags.vim
 !/.vim/autoload/jamessan/ledger.vim
 !/.vim/autoload/jamessan/neomake.vim
 !/.vim/autoload/jamessan/stl.vim

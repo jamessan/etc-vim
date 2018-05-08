@@ -246,6 +246,9 @@ let g:grepper.tools = ['ag', 'ack', 'ack-grep', 'rg', 'git', 'grep', 'findstr']
 
 " Cache tags in a common directory
 let g:gutentags_cache_dir = split(&directory, ',')[0]
+let g:gutentags_add_default_project_roots = 0
+let g:gutentags_project_root = ['.git', '.hg', '.svn', '.bzr']
+let g:gutentags_init_user_func = 'jamessan#gutentags#init'
 
 " Is this a Debian system?
 if executable('dpkg-architecture')
