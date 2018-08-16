@@ -242,7 +242,7 @@ xmap gs <plug>(GrepperOperator)
 nnoremap <silent> <Leader>g :Grepper<CR>
 nnoremap <silent> <Leader>lg :Grepper -noquickfix<CR>
 let g:grepper = {}
-let g:grepper.tools = ['ag', 'ack', 'ack-grep', 'rg', 'git', 'grep', 'findstr']
+let g:grepper.tools = ['rg', 'git', 'ag', 'ack', 'ack-grep', 'grep', 'findstr']
 
 " Cache tags in a common directory
 let g:gutentags_cache_dir = split(&directory, ',')[0]
