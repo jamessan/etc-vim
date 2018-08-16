@@ -126,6 +126,9 @@ set showcmd
 set matchtime=5 " how many tenths of a second to blink matching brackets for
 set hlsearch " highlight searched for phrases
 set incsearch " BUT do highlight as you type you search phrase
+if exists('+inccommand')
+    set inccommand=nosplit
+endif
 set list " show chars on end of line, whitespace, etc.
 " gui_running implies multi_byte since GTK requires it
 if has('multi_byte') || has('gui_running')
