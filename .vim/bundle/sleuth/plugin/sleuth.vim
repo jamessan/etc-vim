@@ -80,7 +80,8 @@ function! s:guess(lines) abort
       let heuristics.spaces += 1
     endif
     let indent = len(matchstr(substitute(line, '\t', softtab, 'g'), '^ *'))
-    if indent > 1 && get(options, 'shiftwidth', 99) > indent
+    if indent > 1 && (indent < 4 || indent % 2 == 0) &&
+          \ get(options, 'shiftwidth', 99) > indent
       let options.shiftwidth = indent
     endif
   endfor
@@ -109,6 +110,7 @@ function! s:patterns_for(type) abort
           \ 'c': ['*.c'],
           \ 'html': ['*.html'],
           \ 'sh': ['*.sh'],
+          \ 'vim': ['vimrc', '.vimrc', '_vimrc'],
           \ }
     let setfpattern = '\s\+\%(setf\%[iletype]\s\+\|set\%[local]\s\+\%(ft\|filetype\)=\|call SetFileTypeSH(["'']\%(ba\|k\)\=\%(sh\)\@=\)'
     for line in split(capture, "\n")
@@ -144,20 +146,28 @@ function! s:detect() abort
   if s:apply_if_ready(options)
     return
   endif
-  let patterns = s:patterns_for(&filetype)
+  let c = get(b:, 'sleuth_neighbor_limit', get(g:, 'sleuth_neighbor_limit', 20))
+  let patterns = c > 0 ? s:patterns_for(&filetype) : []
   call filter(patterns, 'v:val !~# "/"')
   let dir = expand('%:p:h')
-  while isdirectory(dir) && dir !=# fnamemodify(dir, ':h')
+  while isdirectory(dir) && dir !=# fnamemodify(dir, ':h') && c > 0
     for pattern in patterns
       for neighbor in split(glob(dir.'/'.pattern), "\n")[0:7]
         if neighbor !=# expand('%:p') && filereadable(neighbor)
           call extend(options, s:guess(readfile(neighbor, '', 256)), 'keep')
+          let c -= 1
         endif
         if s:apply_if_ready(options)
           let b:sleuth_culprit = neighbor
           return
         endif
+        if c <= 0
+          break
+        endif
       endfor
+      if c <= 0
+        break
+      endif
     endfor
     let dir = fnamemodify(dir, ':h')
   endwhile
@@ -167,6 +177,10 @@ function! s:detect() abort
 endfunction
 
 setglobal smarttab
+
+if !exists('g:did_indent_on')
+  filetype indent on
+endif
 
 function! SleuthIndicator() abort
   let sw = &shiftwidth ? &shiftwidth : &tabstop
@@ -181,15 +195,12 @@ endfunction
 
 augroup sleuth
   autocmd!
-  autocmd FileType * if get(g:, 'sleuth_automatic', 1) | call s:detect() | endif
+  autocmd FileType *
+        \ if get(b:, 'sleuth_automatic', get(g:, 'sleuth_automatic', 1))
+        \ | call s:detect() | endif
   autocmd User Flags call Hoist('buffer', 5, 'SleuthIndicator')
 augroup END
 
 command! -bar -bang Sleuth call s:detect()
-
-if exists('g:did_indent_on')
-  filetype indent off
-endif
-filetype indent on
 
 " vim:set et sw=2:
