@@ -2,7 +2,7 @@ version: 2
 
 common: &common
   docker:
-    - image: neomake/vims-for-tests:22@sha256:b2e0d39d9068c109ee99efdce2eba382e09f01442beab6e034290260a9b4b213
+    - image: neomake/vims-for-tests:30@sha256:6d33736debcb26f0e212ffad5be3199da453be8157a05b872cefc5123fd70f95
   working_directory: ~/repo
   steps:
     - checkout
@@ -13,38 +13,27 @@ common: &common
           set -x
           coverage report -m --skip-covered
           coverage xml
-          codecov -X search gcov pycov -f coverage.xml --required \
-            --name "$CIRCLE_JOB" --flags ${CIRCLE_JOB%%-*} ${CIRCLE_JOB//[-.]/}
+          # -Z: exit with 1 in case of failures.
+          codecov -Z -X search -X gcov -X pycov -f coverage.xml \
+            -n "$CIRCLE_JOB" -F ${CIRCLE_JOB%%-*},${CIRCLE_JOB//[-.]/}
           set +x
 jobs:
-  nvim-master:
+  nvim-031:
     <<: *common
     environment:
-      TEST_VIM=/vim-build/bin/neovim-master
+      TEST_VIM=/vim-build/bin/neovim-v0.3.1
   nvim-017:
     <<: *common
     environment:
       TEST_VIM=/vim-build/bin/neovim-v0.1.7
-  nvim-020:
+  vim-81:
     <<: *common
     environment:
-      TEST_VIM=/vim-build/bin/neovim-v0.2.0
-  nvim-021:
+      TEST_VIM=/vim-build/bin/vim81
+  vim-80:
     <<: *common
     environment:
-      TEST_VIM=/vim-build/bin/neovim-v0.2.1
-  nvim-022:
-    <<: *common
-    environment:
-      TEST_VIM=/vim-build/bin/neovim-v0.2.2
-  vim-master:
-    <<: *common
-    environment:
-      TEST_VIM=/vim-build/bin/vim-master
-  vim-8.0.586:
-    <<: *common
-    environment:
-      TEST_VIM=/vim-build/bin/vim-8.0.586
+      TEST_VIM=/vim-build/bin/vim80
   vim-74-xenial:
     <<: *common
     environment:
@@ -60,6 +49,8 @@ jobs:
 
   checkqa:
     <<: *common
+    environment:
+      VIMHELPLINT_VIM=/vim-build/bin/vim81
     steps:
       - checkout
       - run: make --keep-going check check_docker check_lint_diff
@@ -68,13 +59,10 @@ workflows:
   version: 2
   test:
     jobs:
-      - nvim-022
-      - nvim-master
-      - nvim-021
-      - nvim-020
+      - nvim-031
       - nvim-017
-      - vim-8.0.586
-      - vim-master
+      - vim-81
+      - vim-80
       - vim-74-xenial
       - vim-74-trusty
       - vim-73
