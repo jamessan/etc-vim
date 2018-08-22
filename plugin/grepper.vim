@@ -1,5 +1,10 @@
 " Initialization {{{1
 
+if exists('g:loaded_grepper')
+  finish
+endif
+let g:loaded_grepper = 1
+
 " Escaping test line:
 " ..ad\\f40+$':-# @=,!;%^&&*()_{}/ /4304\'""?`9$343%$ ^adfadf[ad)[(
 
@@ -116,15 +121,6 @@ for s:tool in g:grepper.tools
     call remove(g:grepper.tools, index(g:grepper.tools, s:tool))
   endif
 endfor
-
-"
-" Special case: ag (-vimgrep isn't available in versions < 0.25)
-"
-if index(g:grepper.tools, 'ag') >= 0
-      \ && !exists('g:grepper.ag.grepprg')
-      \ && split(system('ag --version'))[2] =~ '^\v\d+\.%([01]|2[0-4])'
-  let g:grepper.ag.grepprg = 'ag --column --nogroup'
-endif
 
 "
 " Special case: ack (different distros use different names for ack)
@@ -580,6 +576,8 @@ function! s:process_flags(flags)
     elseif a:flags.prompt_quote == 1
       let a:flags.query = shellescape(a:flags.query)
     endif
+  else
+    call histadd('input', a:flags.query)
   endif
 
   if a:flags.side
@@ -806,11 +804,14 @@ function! s:finish_up(flags)
   call s:restore_errorformat()
 
   try
-    let title = has('nvim') ? cmdline : {'title': cmdline}
+    " TODO: Remove condition if nvim 0.2.0+ enters Debian stable.
+    let attrs = has('nvim') && !has('nvim-0.2.0')
+          \ ? cmdline
+          \ : {'title': cmdline, 'context': {'query': @/}}
     if qf
-      call setqflist(list, a:flags.append ? 'a' : 'r', title)
+      call setqflist(list, a:flags.append ? 'a' : 'r', attrs)
     else
-      call setloclist(0, list, a:flags.append ? 'a' : 'r', title)
+      call setloclist(0, list, a:flags.append ? 'a' : 'r', attrs)
     endif
   catch /E118/
   endtry
@@ -854,7 +855,13 @@ endfunction
 " -highlight {{{1
 " s:highlight_query() {{{2
 function! s:highlight_query(flags)
-  let query = has_key(a:flags, 'query_orig') ? a:flags.query_orig : a:flags.query
+  if has_key(a:flags, 'query_orig')
+    let query = a:flags.query_orig
+  else
+    " Remove any flags at the beginning, e.g. when using '-uu' with rg, but
+    " keep plain '-'.
+    let query = substitute(a:flags.query, '\v-\w+\s+', '', 'g')
+  endif
 
   " Change Vim's '\'' to ' so it can be understood by /.
   let vim_query = substitute(query, "'\\\\''", "'", 'g')
