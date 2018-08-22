@@ -1,4 +1,10 @@
-" Function to wrap Compatibility across different (Neo)Vim versions.
+" Compatibility wrappers for different (Neo)Vim versions and platforms.
+
+if neomake#utils#IsRunningWindows()
+    let g:neomake#compat#dev_null = 'NUL'
+else
+    let g:neomake#compat#dev_null = '/dev/null'
+endif
 
 if v:version >= 704
     function! neomake#compat#getbufvar(buf, key, def) abort
@@ -59,19 +65,21 @@ else
         " The following is inspired by https://github.com/MarcWeber/vim-addon-manager and
         " http://stackoverflow.com/questions/17751186/iterating-over-a-string-in-vimscript-or-parse-a-json-file/19105763#19105763
         " A hat tip to Marc Weber for this trick
-        if substitute(a:json, '\v\"%(\\.|[^"\\])*\"|true|false|null|[+-]?\d+%(\.\d+%([Ee][+-]?\d+)?)?', '', 'g') !~# "[^,:{}[\\] \t]"
+        " Replace newlines, which eval() does not like.
+        let json = substitute(a:json, "\n", '', 'g')
+        if substitute(json, '\v\"%(\\.|[^"\\])*\"|true|false|null|[+-]?\d+%(\.\d+%([Ee][+-]?\d+)?)?', '', 'g') !~# "[^,:{}[\\] \t]"
             " JSON artifacts
             let true = g:neomake#compat#json_true
             let false = g:neomake#compat#json_false
             let null = g:neomake#compat#json_null
 
             try
-                let object = eval(a:json)
+                let object = eval(json)
             catch
-                throw 'Neomake: Failed to parse JSON input'
+                throw 'Neomake: Failed to parse JSON input: '.v:exception
             endtry
         else
-            throw 'Neomake: Failed to parse JSON input'
+            throw 'Neomake: Failed to parse JSON input: invalid input'
         endif
 
         return object
@@ -90,21 +98,23 @@ if exists('*uniq')
         return uniq(a:l)
     endfunction
 else
-    " From ingo#collections#UniqueSorted.
     function! neomake#compat#uniq(l) abort
-        if len(a:l) < 2
+        let n = len(a:l)
+        if n < 2
             return a:l
         endif
-
-        let l:previousItem = a:l[0]
-        let l:result = [a:l[0]]
-        for l:item in a:l[1:]
-            if l:item !=# l:previousItem
-                call add(l:result, l:item)
-                let l:previousItem = l:item
+        let prev = a:l[0]
+        let idx = 1
+        while idx < n
+            if a:l[idx] ==# prev && type(a:l[idx]) == type(prev)
+                call remove(a:l, idx)
+                let n -= 1
+            else
+                let prev = a:l[idx]
+                let idx += 1
             endif
-        endfor
-        return l:result
+        endwhile
+        return a:l
     endfunction
 endif
 
@@ -158,63 +168,53 @@ function! neomake#compat#globpath_list(path, pattern, suf) abort
     return split(globpath(a:path, a:pattern, a:suf), '\n')
 endfunction
 
-if has('nvim')
-    if neomake#utils#IsRunningWindows()
-        function! neomake#compat#get_argv(exe, args, args_is_list) abort
-            if a:args_is_list
-                let args = neomake#utils#ExpandArgs(a:args)
-                " Convert it to a string to handle PATHEXT (e.g. .cmd files).
-                " This might be skipped when `exepath(a:exe)[-4:] == '.exe'`,
-                " but not worth it probably (and more fragile in the end?!).
-                return join(map(copy([a:exe] + args), 'neomake#utils#shellescape(v:val)'))
-            endif
-            return a:exe . (empty(a:args) ? '' : ' '.a:args)
-        endfunction
-    else
-        function! neomake#compat#get_argv(exe, args, args_is_list) abort
-            if a:args_is_list
-                return [a:exe] + neomake#utils#ExpandArgs(a:args)
-            endif
-            return a:exe . (empty(a:args) ? '' : ' '.a:args)
-        endfunction
+function! neomake#compat#glob_list(pattern) abort
+    if v:version <= 703
+        return split(glob(a:pattern, 1), '\n')
     endif
-elseif neomake#has_async_support()  " Vim-async.
-    if neomake#utils#IsRunningWindows()
-        " Windows needs a shell to handle PATH/%PATHEXT% etc.
-        function! neomake#compat#get_argv(exe, args, args_is_list) abort
-            let prefix = &shell.' '.&shellcmdflag.' '
-            if a:args_is_list
-                let args = neomake#utils#ExpandArgs(a:args)
-                if a:exe ==# &shell && get(args, 0) ==# &shellcmdflag
-                    " Remove already existing &shell/&shellcmdflag from e.g. NeomakeSh.
-                    let argv = join(map(copy(args[1:]), 'neomake#utils#shellescape(v:val)'))
-                else
-                    let argv = join(map(copy([a:exe] + args), 'neomake#utils#shellescape(v:val)'))
-                endif
+    return glob(a:pattern, 1, 1)
+endfunction
+
+if neomake#utils#IsRunningWindows()
+    " Windows needs a shell to handle PATH/%PATHEXT% etc.
+    function! neomake#compat#get_argv(exe, args, args_is_list) abort
+        let prefix = &shell.' '.&shellcmdflag.' '
+        if a:args_is_list
+            if a:exe ==# &shell && get(a:args, 0) ==# &shellcmdflag
+                " Remove already existing &shell/&shellcmdflag from e.g. NeomakeSh.
+                let argv = join(a:args[1:])
             else
-                let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
-                if argv[0:len(prefix)-1] ==# prefix
-                    return argv
-                endif
+                let argv = join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
             endif
-            return prefix.argv
-        endfunction
-    else
-        function! neomake#compat#get_argv(exe, args, args_is_list) abort
-            if a:args_is_list
-                return [a:exe] + neomake#utils#ExpandArgs(a:args)
-            endif
-            " Use a shell to handle argv properly (Vim splits at spaces).
+        else
             let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
-            return [&shell, &shellcmdflag, argv]
-        endfunction
-    endif
+            if argv[0:len(prefix)-1] ==# prefix
+                return argv
+            endif
+        endif
+        return prefix.argv
+    endfunction
+elseif has('nvim')
+    function! neomake#compat#get_argv(exe, args, args_is_list) abort
+        if a:args_is_list
+            return [a:exe] + a:args
+        endif
+        return a:exe . (empty(a:args) ? '' : ' '.a:args)
+    endfunction
+elseif neomake#has_async_support()  " Vim-async.
+    function! neomake#compat#get_argv(exe, args, args_is_list) abort
+        if a:args_is_list
+            return [a:exe] + a:args
+        endif
+        " Use a shell to handle argv properly (Vim splits at spaces).
+        let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
+        return [&shell, &shellcmdflag, argv]
+    endfunction
 else
     " Vim (synchronously), via system().
     function! neomake#compat#get_argv(exe, args, args_is_list) abort
         if a:args_is_list
-            let args = neomake#utils#ExpandArgs(a:args)
-            return join(map(copy([a:exe] + args), 'neomake#utils#shellescape(v:val)'))
+            return join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
         endif
         return a:exe . (empty(a:args) ? '' : ' '.a:args)
     endfunction
@@ -271,7 +271,11 @@ if exists('*win_getid')
         " Go back, maintaining the '#' window (CTRL-W_p).
         let [aw_id, pw_id] = remove(s:prev_windows, 0)
         let pw = win_id2win(pw_id)
-        if pw && winnr() != pw
+        if !pw
+            call neomake#log#debug(printf(
+                  \ 'Cannot restore previous windows (previous window with ID %d not found).',
+                  \ pw_id))
+        elseif winnr() != pw
             let aw = win_id2win(aw_id)
             if aw
                 exec aw . 'wincmd w'
@@ -287,7 +291,11 @@ else
     function! neomake#compat#restore_prev_windows() abort
         " Go back, maintaining the '#' window (CTRL-W_p).
         let [aw, pw] = remove(s:prev_windows, 0)
-        if winnr() != pw
+        if pw > winnr('$')
+            call neomake#log#debug(printf(
+                  \ 'Cannot restore previous windows (%d > %d).',
+                  \ pw, winnr('$')))
+        elseif winnr() != pw
             if aw
                 exec aw . 'wincmd w'
             endif

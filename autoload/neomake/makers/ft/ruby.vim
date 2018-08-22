@@ -1,14 +1,15 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#ruby#EnabledMakers() abort
-    return ['mri', 'rubocop', 'rubocop_rails', 'reek', 'rubylint']
+    return ['flog', 'mri', 'rubocop', 'rubocop_rails', 'reek', 'rubylint']
 endfunction
 
 function! neomake#makers#ft#ruby#rubocop() abort
     return {
         \ 'args': ['--format', 'emacs', '--force-exclusion', '--display-cop-names'],
         \ 'errorformat': '%f:%l:%c: %t: %m,%E%f:%l: %m',
-        \ 'postprocess': function('neomake#makers#ft#ruby#RubocopEntryProcess')
+        \ 'postprocess': function('neomake#makers#ft#ruby#RubocopEntryProcess'),
+        \ 'output_stream': 'stdout',
         \ }
 endfunction
 
@@ -17,7 +18,8 @@ function! neomake#makers#ft#ruby#rubocop_rails() abort
         \ 'args': ['--format', 'emacs', '--force-exclusion', '--display-cop-names', '--rails'],
         \ 'exe': 'rubocop',
         \ 'errorformat': '%f:%l:%c: %t: %m,%E%f:%l: %m',
-        \ 'postprocess': function('neomake#makers#ft#ruby#RubocopEntryProcess')
+        \ 'postprocess': function('neomake#makers#ft#ruby#RubocopEntryProcess'),
+        \ 'output_stream': 'stdout',
         \ }
 endfunction
 
@@ -84,5 +86,15 @@ function! neomake#makers#ft#ruby#reek() abort
     return {
         \ 'args': ['--format', 'text', '--single-line'],
         \ 'errorformat': '%W%f:%l: %m',
+        \ }
+endfunction
+
+function! neomake#makers#ft#ruby#flog() abort
+    return {
+        \ 'errorformat':
+        \   '%W%m %f:%l-%c,' .
+        \   '%-G\s%#,' .
+        \   '%-G%.%#: flog total,' .
+        \   '%-G%.%#: flog/method average,'
         \ }
 endfunction
