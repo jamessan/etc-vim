@@ -56,7 +56,7 @@ command! -bar -count=0 Scriptnames
 
 command! -bar -bang Messages :execute scriptease#messages_command(<bang>0)
 
-command! -bang -bar -nargs=* -complete=customlist,scriptease#complete Runtime
+command! -bang -bar -range=-1 -nargs=* -complete=customlist,scriptease#complete Runtime
       \ :exe scriptease#runtime_command('<bang>', <f-args>)
 
 command! -bang -bar -nargs=* -complete=customlist,scriptease#complete Disarm
@@ -83,11 +83,19 @@ command! -bar -bang -range=1 -nargs=1 -complete=customlist,scriptease#complete V
 
 " Section: Maps
 
-nnoremap <silent> <Plug>ScripteaseFilter :<C-U>set opfunc=scriptease#filterop<CR>g@
-xnoremap <silent> <Plug>ScripteaseFilter :<C-U>call scriptease#filterop(visualmode())<CR>
+nnoremap <expr> <Plug>ScripteaseFilter scriptease#filterop()
+xnoremap <expr> <Plug>ScripteaseFilter scriptease#filterop()
+onoremap <SID>_ _
+if empty(mapcheck('g=', 'n'))
+  nmap g= <Plug>ScripteaseFilter
+  nmap g== <Plug>ScripteaseFilter<SID>_
+endif
+if empty(mapcheck('g=', 'x'))
+  xmap g= <Plug>ScripteaseFilter
+endif
 if empty(mapcheck('g!', 'n'))
   nmap g! <Plug>ScripteaseFilter
-  nmap g!! <Plug>ScripteaseFilter_
+  nmap g!! <Plug>ScripteaseFilter<SID>_
 endif
 if empty(mapcheck('g!', 'x'))
   xmap g! <Plug>ScripteaseFilter
@@ -106,8 +114,14 @@ augroup scriptease
   autocmd FileType vim call scriptease#setup_vim()
   " Recent versions of vim.vim set iskeyword to include ":", which breaks among
   " other things tags. :(
-  autocmd FileType vim setlocal iskeyword-=:
-  autocmd Syntax vim setlocal iskeyword-=:
+  autocmd FileType vim
+        \ if get(g:, 'scriptease_iskeyword', 1) |
+        \   setlocal iskeyword-=: |
+        \ endif
+  autocmd Syntax vim
+        \ if get(g:, 'scriptease_iskeyword', 1) |
+        \   setlocal iskeyword-=: |
+        \ endif
 augroup END
 
 " Section: Projectionist
