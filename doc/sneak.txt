@@ -81,6 +81,9 @@ VISUAL-MODE~
     s                        | Go to the [count]th next match (NOTE above)
     S                        | Go to the [count]th previous match (NOTE above)
 
+    NOTE: Z goes backwards in visual-mode, because S is taken by the
+    |surround| plugin).
+
 LABEL-MODE~
     Key Sequence             | Description
     -------------------------|----------------------------------------------
@@ -131,7 +134,7 @@ Available <Plug> keys: >
     omap ? <Plug>Sneak_t
     omap ? <Plug>Sneak_T
 
-    " force label-mode
+    " label-mode
     nmap ? <Plug>SneakLabel_s
     nmap ? <Plug>SneakLabel_S
 <
@@ -179,13 +182,6 @@ and |,| were reset by |f| or |t|. This is especially useful for re-invoking
 |sneak-label-mode| (because |;| and |,| never invoke label-mode).
 
 ------------------------------------------------------------------------------
-VISUAL-MODE
-
-`s` works in visual mode the same as normal mode, however to search backwards
-use `Z` (because `S` is taken by the |surround| plugin). `;` and `,` also
-work in visual mode as they do in normal mode.
-
-------------------------------------------------------------------------------
 OPERATIONS
 
 Use `z` for operations (or map to something else: |sneak-custom-mappings|).
@@ -193,8 +189,12 @@ For example, `dzab` deletes from the cursor to the next instance of "ab".
 `dZab` deletes backwards to the previous instance. `czab` `cZab` `yzab` and
 `yZab` also work as expected.
 
-Repeat the operation with dot: |.|
-Note: Requires repeat.vim https://github.com/tpope/vim-repeat
+Repeat the operation with dot |.| (requires repeat.vim
+https://github.com/tpope/vim-repeat).
+
+Note: |.| repeat works correctly with vim-surround (requires Vim 7.4.786), but
+if you undo followed by dot-repeat again, it waits for input.  This bug is not
+related to Sneak, it happens with builtin motions also.
 
 ------------------------------------------------------------------------------
 VERTICAL SCOPE                                          *sneak-vertical-scope*
@@ -219,12 +219,6 @@ vim-easymotion).
 To enable label-mode:                                         *g:sneak#label*
 >
     let g:sneak#label = 1
-
-Sneak enters label-mode if there are ≥2 visible (on-screen) matches. To force
-label-mode always (instead of passively letting Sneak decide), set a mapping
-to <Plug>SneakLabel_s. Example: >
-    nmap s <Plug>SneakLabel_s
-    nmap S <Plug>SneakLabel_S
 <
 <Tab> skips to the next set of matches (<BS> or <S-Tab> go the other way).
 These actions are preserved when repeating!
@@ -473,9 +467,6 @@ CONTRIBUTING                                              *sneak-contributing*
 
 Bug reports, feature requests, and patches are welcome:
     https://github.com/justinmk/vim-sneak
-
-In your bug report, it is helpful to include the output of this command: >
-    :call sneak#debug#report()
 
 To narrow down the issue, run Vim with a minimal configuration: >
     vim -u NORC -N +"let g:sneak#label=1" +":set runtimepath+=~/.vim/bundle/vim-sneak/" +":runtime plugin/sneak.vim"
