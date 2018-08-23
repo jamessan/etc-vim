@@ -49,7 +49,7 @@ elseif &term =~ 'xterm\|screen\|tmux'
     set t_EI=[2\ q
 endif
 
-if exists('+termguicolors')
+if exists('+termguicolors') && hostname() !~ 'cec\.lab\.emc\.com'
     if !has('nvim')
         if empty(&t_8f)
             let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
