@@ -177,6 +177,8 @@ set noshiftround
 set cpoptions+=n " When 'wrap' is enabled, the 'number' column is used to
                  " display wrapped text
 set autoindent
+" Prompt for the tag if it's ambiguous
+set cscopetag
 
 " Python
 let python_highlight_builtins = 1
