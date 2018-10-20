@@ -18,7 +18,7 @@ let s:st = { 'rst':1, 'input':'', 'inputlen':0, 'reverse':0, 'bounds':[0,0],
       \'inclusive':0, 'label':'', 'opfunc':'', 'opfunc_st':{} }
 
 if exists('##OptionSet')
-  augroup SneakPluginOpfunc
+  augroup sneak_optionset
     autocmd!
     autocmd OptionSet operatorfunc let s:st.opfunc = &operatorfunc | let s:st.opfunc_st = {}
   augroup END
@@ -53,12 +53,12 @@ func! sneak#state() abort
 endf
 
 func! sneak#is_sneaking() abort
-  return exists("#SneakPlugin#CursorMoved")
+  return exists("#sneak#CursorMoved")
 endf
 
 func! sneak#cancel() abort
-  call sneak#hl#removehl()
-  augroup SneakPlugin
+  call sneak#util#removehl()
+  augroup sneak
     autocmd!
   augroup END
   if maparg('<esc>', 'n') =~# 'sneak#cancel' "teardown temporary <esc> mapping
@@ -79,8 +79,15 @@ func! sneak#wrap(op, inputlen, reverse, inclusive, label) abort
     " Replay state from the last 'operatorfunc'.
     call sneak#to(a:op, s:st.opfunc_st.input, s:st.opfunc_st.inputlen, cnt, 1, s:st.opfunc_st.reverse, s:st.opfunc_st.inclusive, s:st.opfunc_st.label)
   else
+    if exists('#User#SneakEnter')
+      doautocmd <nomodeline> User SneakEnter
+      redraw
+    endif
     " Prompt for input.
     call sneak#to(a:op, s:getnchars(a:inputlen, a:op), a:inputlen, cnt, 0, a:reverse, a:inclusive, a:label)
+    if exists('#User#SneakLeave')
+      doautocmd <nomodeline> User SneakLeave
+    endif
   endif
 endf
 
@@ -183,7 +190,7 @@ func! sneak#to(op, input, inputlen, count, repeatmotion, reverse, inclusive, lab
   endif
   "search succeeded
 
-  call sneak#hl#removehl()
+  call sneak#util#removehl()
 
   if (!is_op || a:op ==# 'y') "position _after_ search
     let curlin = string(line('.'))
@@ -227,7 +234,7 @@ func! sneak#to(op, input, inputlen, count, repeatmotion, reverse, inclusive, lab
   endif
 
   if is_op || '' != target
-    call sneak#hl#removehl()
+    call sneak#util#removehl()
   endif
 
   if is_op && a:op !=# 'y'
@@ -242,12 +249,12 @@ func! sneak#to(op, input, inputlen, count, repeatmotion, reverse, inclusive, lab
 endf "}}}
 
 func! s:attach_autocmds() abort
-  augroup SneakPlugin
+  augroup sneak
     autocmd!
     autocmd InsertEnter,WinLeave,BufLeave * call sneak#cancel()
     "_nested_ autocmd to skip the _first_ CursorMoved event.
     "NOTE: CursorMoved is _not_ triggered if there is typeahead during a macro/script...
-    autocmd CursorMoved * autocmd SneakPlugin CursorMoved * call sneak#cancel()
+    autocmd CursorMoved * autocmd sneak CursorMoved * call sneak#cancel()
   augroup END
 endf
 
@@ -425,10 +432,10 @@ if g:sneak#opt.map_netrw && -1 != stridx(maparg("s", "n"), "Sneak")
     endif
   endf
 
-  augroup SneakPluginNetrw
+  augroup sneak_netrw
     autocmd!
-    autocmd FileType netrw,filebeagle autocmd SneakPluginNetrw CursorMoved <buffer>
-          \ call <sid>map_netrw_key('s') | call <sid>map_netrw_key('S') | autocmd! SneakPluginNetrw * <buffer>
+    autocmd FileType netrw,filebeagle autocmd sneak_netrw CursorMoved <buffer>
+          \ call <sid>map_netrw_key('s') | call <sid>map_netrw_key('S') | autocmd! sneak_netrw * <buffer>
   augroup END
 endif
 
