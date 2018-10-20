@@ -83,7 +83,7 @@ let s:maker_from_command = extend(copy(g:neomake#core#command_maker_base), {
             \ })
 function! s:maker_from_command._get_argv(jobinfo) abort dict
     let fname = self._get_fname_for_args(a:jobinfo)
-    let args = neomake#utils#ExpandArgs(self.args)
+    let args = neomake#utils#ExpandArgs(self.args, a:jobinfo)
     if !empty(fname)
         if self.__command_is_string
             let fname = neomake#utils#shellescape(fname)
@@ -156,24 +156,29 @@ endfunction
 " Resolve filetype a:ft into a list of filetypes suitable for config vars
 " (i.e. 'foo.bar' => ['foo_bar', 'foo', 'bar']).
 function! neomake#utils#get_config_fts(ft, ...) abort
-    let r = []
-    let fts = split(a:ft, '\.')
-    for ft in fts
-        call add(r, ft)
-        let super_ft = neomake#utils#GetSupersetOf(ft)
-        while !empty(super_ft)
-            if index(fts, super_ft) == -1
-                call add(r, super_ft)
-            endif
-            let super_ft = neomake#utils#GetSupersetOf(super_ft)
-        endwhile
-    endfor
-    if len(fts) > 1
-        call insert(r, a:ft, 0)
-    endif
     let delim = a:0 ? a:1 : '_'
-    return map(r, 'neomake#utils#get_ft_confname(v:val, delim)')
+    let cache_key = a:ft . delim
+    if !has_key(s:cache_config_fts, cache_key)
+        let r = []
+        let fts = split(a:ft, '\.')
+        for ft in fts
+            call add(r, ft)
+            let super_ft = neomake#utils#GetSupersetOf(ft)
+            while !empty(super_ft)
+                if index(fts, super_ft) == -1
+                    call add(r, super_ft)
+                endif
+                let super_ft = neomake#utils#GetSupersetOf(super_ft)
+            endwhile
+        endfor
+        if len(fts) > 1
+            call insert(r, a:ft, 0)
+        endif
+        let s:cache_config_fts[cache_key] = map(r, 'neomake#utils#get_ft_confname(v:val, delim)')
+    endif
+    return s:cache_config_fts[cache_key]
 endfunction
+let s:cache_config_fts = {}
 
 let s:unset = {}  " Sentinel.
 
@@ -186,7 +191,18 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
     " Check new-style config.
     if exists('g:neomake') || !empty(getbufvar(a:bufnr, 'neomake'))
         let context = {'ft': a:ft, 'maker': a:maker, 'bufnr': a:bufnr, 'maker_only': maker_only}
-        let Ret = neomake#config#get(a:key, g:neomake#config#undefined, context)
+        let [Ret, source] = neomake#config#get_with_source(a:key, g:neomake#config#undefined, context)
+        " Check old-style setting when source is the maker.
+        if source ==# 'maker' && !maker_only
+            let tmpmaker = {}
+            if has_key(a:maker, 'name')
+                let tmpmaker.name = a:maker.name
+            endif
+            let RetOld = s:get_oldstyle_setting(a:key, tmpmaker, s:unset, a:ft, a:bufnr, maker_only)
+            if RetOld isnot# s:unset
+                return RetOld
+            endif
+        endif
         if Ret isnot g:neomake#config#undefined
             return Ret
         endif
@@ -196,7 +212,7 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
 endfunction
 
 function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abort
-    let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
+    let maker_name = get(a:maker, 'name', '')
     if a:maker_only && empty(maker_name)
         if has_key(a:maker, a:key)
             return get(a:maker, a:key)
@@ -234,6 +250,10 @@ function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abo
         return get(a:maker, a:key)
     endif
 
+    let key = a:key
+    if a:maker_only
+        let key = maker_name.'_'.key
+    endif
     let key = a:maker_only ? maker_name.'_'.a:key : a:key
     " Look for 'neomake_'.key in the buffer and global namespace.
     let bufvar = neomake#compat#getbufvar(a:bufnr, 'neomake_'.key, s:unset)
@@ -311,59 +331,90 @@ function! neomake#utils#redir(cmd) abort
     return neomake_redir
 endfunction
 
-function! neomake#utils#ExpandArgs(args) abort
-    " Expand % in args like when using :!
+function! neomake#utils#ExpandArgs(args, jobinfo) abort
+    if has_key(a:jobinfo, 'tempfile')
+        let fname = a:jobinfo.tempfile
+    else
+        let fname = bufname('%')
+        if !empty(fname)
+            let fname = fnamemodify(fname, ':p')
+        endif
+    endif
+    let ret = map(copy(a:args), "substitute(v:val, '%t', fname, 'g')")
+
+    " Expand % in args similar to when using :!
     " \% is ignored
     " \\% is expanded to \\file.ext
     " %% becomes %
     " % must be followed with an expansion keyword
-    let ret = map(copy(a:args),
+    let ret = map(ret,
                 \ 'substitute(v:val, '
-                \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtre.]\+\)*\)\ze\)\w\@!'', '
+                \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtreS8.~]\)\+\|\ze\w\@!\)\)'', '
                 \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
                 \ . '''g'')')
     let ret = map(ret, 'substitute(v:val, ''\v^\~\ze%(/|$)'', expand(''~''), ''g'')')
     return ret
 endfunction
 
+if has('patch-7.3.1058')
+    function! s:function(name) abort
+        return function(a:name)
+    endfunction
+else
+    " Older Vim does not handle s: function references across files.
+    function! s:function(name) abort
+      return function(substitute(a:name,'^s:',matchstr(expand('<sfile>'), '.*\zs<SNR>\d\+_'),''))
+    endfunction
+endif
+
+function! s:handle_hook(jobinfo, event, context) abort
+    let context_str = string(map(copy(a:context),
+                \ "v:key ==# 'jobinfo' ? v:val.as_string()"
+                \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
+
+    if exists('g:neomake_hook_context')
+        call neomake#log#debug(printf('Queueing User autocmd %s for nested invocation (%s).', a:event, context_str),
+                    \ a:jobinfo)
+        return neomake#action_queue#add(
+                    \ ['Timer', 'BufEnter', 'WinEnter', 'InsertLeave', 'CursorHold', 'CursorHoldI'],
+                    \ [s:function('s:handle_hook'), [a:jobinfo, a:event, a:context]])
+    endif
+
+    let log_args = [printf('Calling User autocmd %s with context: %s.',
+                \ a:event, context_str)]
+    if !empty(a:jobinfo)
+        let log_args += [a:jobinfo]
+    endif
+    call call('neomake#log#info', log_args)
+
+    unlockvar g:neomake_hook_context
+    let g:neomake_hook_context = a:context
+    lockvar 1 g:neomake_hook_context
+    try
+        if v:version >= 704 || (v:version == 703 && has('patch442'))
+            exec 'doautocmd <nomodeline> User ' . a:event
+        else
+            exec 'doautocmd User ' . a:event
+        endif
+    catch
+        let error = v:exception
+        if error[-1:] !=# '.'
+            let error .= '.'
+        endif
+        call neomake#log#exception(printf(
+                    \ 'Error during User autocmd for %s: %s',
+                    \ a:event, error), a:jobinfo)
+    finally
+        unlet g:neomake_hook_context
+    endtry
+    return g:neomake#action_queue#processed
+endfunction
+
 function! neomake#utils#hook(event, context, ...) abort
     if exists('#User#'.a:event)
         let jobinfo = a:0 ? a:1 : (
                     \ has_key(a:context, 'jobinfo') ? a:context.jobinfo : {})
-
-        let context_str = string(map(copy(a:context),
-                    \ "v:key ==# 'jobinfo' ? '…'"
-                    \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
-        let args = [printf('Calling User autocmd %s with context: %s.',
-                    \ a:event, context_str)]
-        if !empty(jobinfo)
-            let args += [jobinfo]
-        endif
-        call call('neomake#log#info', args)
-
-        if exists('g:neomake_hook_context')
-            throw printf('Neomake internal error: hook invocation must not be nested: %s.', a:event)
-        endif
-        unlockvar g:neomake_hook_context
-        let g:neomake_hook_context = a:context
-        lockvar 1 g:neomake_hook_context
-        try
-            if v:version >= 704 || (v:version == 703 && has('patch442'))
-                exec 'doautocmd <nomodeline> User ' . a:event
-            else
-                exec 'doautocmd User ' . a:event
-            endif
-        catch
-            let error = v:exception
-            if error[-1:] !=# '.'
-                let error .= '.'
-            endif
-            call neomake#log#exception(printf(
-                        \ 'Error during User autocmd for %s: %s',
-                        \ a:event, error), jobinfo)
-        finally
-            unlet g:neomake_hook_context
-        endtry
+        return s:handle_hook(jobinfo, a:event, a:context)
     endif
 endfunction
 
@@ -558,3 +609,28 @@ else
         return len(getbufline(a:bufnr, 1, '$'))
     endfunction
 endif
+
+" Returns: [error, cd_back_cmd]
+function! neomake#utils#temp_cd(dir, ...) abort
+    if a:dir ==# '.'
+        return ['', '']
+    endif
+    if a:0
+        let cur_wd = a:1
+    else
+        let cur_wd = getcwd()
+        if cur_wd ==# a:dir
+            " No need to change directory.
+            return ['', '']
+        endif
+    endif
+    let cd = haslocaldir() ? 'lcd' : (exists(':tcd') == 2 && haslocaldir(-1, 0)) ? 'tcd' : 'cd'
+    try
+        exe cd.' '.fnameescape(a:dir)
+    catch
+        " Tests fail with E344, but in reality it is E472?!
+        " If uncaught, both are shown - let's just catch everything.
+        return [v:exception, '']
+    endtry
+    return ['', cd.' '.fnameescape(cur_wd)]
+endfunction
