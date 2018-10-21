@@ -238,7 +238,6 @@ let g:neomake_cpp_lint_maker = g:neomake_c_lint_maker
 let g:neomake_make_maker = {
             \ 'postprocess': function('jamessan#neomake#make_post'),
             \}
-let g:neomake_enabled_makers = ['make']
 
 let g:ledger_extra_options = '--aux-date'
 
