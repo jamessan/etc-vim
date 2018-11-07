@@ -23,3 +23,12 @@ function! jamessan#stl#encoding()
   endif
   return enc
 endfunction
+
+function! jamessan#stl#neomake()
+  let status = ''
+  try
+    let status = neomake#statusline#get(g:actual_curbuf)
+  catch
+  endtry
+  return status
+endfunction

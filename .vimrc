@@ -157,6 +157,7 @@ set statusline+=%#WarningMsg#%{jamessan#stl#fileformat()}%*
 set statusline+=%#WarningMsg#%{jamessan#stl#encoding()}%*
 set statusline+=%y                           " filetype
 set statusline+=%=                           " right align
+set statusline+=%{jamessan#stl#neomake()}
 set statusline+=[0x%04.4B]                   " current char
 set statusline+=[%c%V]
 set statusline+=[%p%%\ line\ %l\ of\ %L]     " position in buffer
