@@ -7,11 +7,14 @@
 ~ Features
 Include (:NeomakeInfo): cmd_neomakeinfo.vader
 Include (Automaking): automake.vader
+Include (Action queue): action_queue.vader
 Include (Cancellation): cancellation.vader
 Include (Compat): compat.vader
 Include (Completion): completion.vader
 Include (Config): config.vader
+Include (Clean command): clean.vader
 Include (Current working dir): cwd.vader
+Include (Current error): current_error.vader
 Include (Custom Quickfix): customqf.vader
 Include (Debug/Checks/Feedback): debug.vader
 Include (Environment variables): env.vader
@@ -24,6 +27,7 @@ Include (Hooks get queued): hooks-queue.vader
 Include (Integration tests): integration.vader
 Include (Jobinfo): jobinfo.vader
 Include (JSON): json.vader
+Include (List): list.vader
 Include (Lists): lists.vader
 Include (List entries): list-entries.vader
 Include (Logging): log.vader

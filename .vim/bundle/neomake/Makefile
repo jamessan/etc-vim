@@ -74,7 +74,11 @@ testvim: | build/vim-test-home $(DEP_PLUGINS)
 # 4. non-Neomake log lines (e.g. from :Log) in bold/bright yellow.
 _SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log --compact vader
 # Need to close stdin to fix spurious 'sed: couldn't write X items to stdout: Resource temporarily unavailable'.
-_REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS)
+# NOTE: uses </dev/null instead of <&-, because Vim behaves different then:
+#  - test "Automake restarts if popup menu is visible" hangs (https://github.com/vim/vim/issues/1320)
+#  - running the command from "make testvim" directly (i.e. without "make")
+#    triggers half the screen to be cleared in the end
+_REDIR_STDOUT:=2>&1 >/dev/null </dev/null $(_SED_HIGHLIGHT_ERRORS)
 
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
 # Vim hangs with /dev/null on Windows (native Vim via MSYS2).
@@ -178,15 +182,16 @@ vimhelplint: | $(if $(VIMHELPLINT_DIR),,build/vimhelplint)
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=31
+DOCKER_TAG:=39
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
+DOCKER_ARGS:=
 DOCKER=docker run $(DOCKER_STREAMS) --rm \
     -v $(PWD):/testplugin \
     -w /testplugin \
     -e NEOMAKE_TEST_NO_COLORSCHEME \
-    $(DOCKER_IMAGE)
+    $(DOCKER_ARGS) $(DOCKER_IMAGE)
 docker_image:
 	docker build -f Dockerfile.tests -t $(DOCKER_REPO):$(DOCKER_TAG) .
 docker_push:
@@ -211,7 +216,7 @@ docker_update_image:
 	@echo "Done.  Use 'make docker_push' to push it, and then update .circleci/config.yml."
 
 DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim80 vim81 \
-  neovim-v0.1.7 neovim-v0.3.1
+  neovim-v0.1.7 neovim-v0.3.1 neovim-master
 _DOCKER_VIM_TARGETS:=$(addprefix docker_test-,$(DOCKER_VIMS))
 
 docker_test_all: $(_DOCKER_VIM_TARGETS)
@@ -242,19 +247,20 @@ docker_testcoverage: _docker_test
 	sed -i 's~/testplugin/~$(CURDIR)/~g' $(COVERAGE_FILE)
 	coverage report -m
 
+docker_run: DOCKER_ARGS:=-e PATH=/vim-build/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 docker_run: $(DEP_PLUGINS)
 docker_run:
 	$(DOCKER) $(if $(DOCKER_RUN),$(DOCKER_RUN),bash)
 
-docker_make: DOCKER_RUN=make $(DOCKER_MAKE_TARGET)
+# Pass down/through MAKEFLAGS explicitly (not available in Docker env).
+docker_make: DOCKER_RUN=$(MAKE) -$(MAKEFLAGS) $(DOCKER_MAKE_TARGET)
 docker_make: docker_run
 
 docker_check: DOCKER_MAKE_TARGET=check_docker
 docker_check: docker_make
 
 docker_vimhelplint:
-	$(MAKE) docker_make "DOCKER_MAKE_TARGET=vimhelplint \
-	  VIMHELPLINT_VIM=/vim-build/bin/vim81"
+	$(MAKE) docker_make DOCKER_MAKE_TARGET=vimhelplint
 
 _ECHO_DOCKER_VIMS:=ls /vim-build/bin | grep vim | sort
 docker_list_vims:
@@ -297,6 +303,14 @@ check_docker:
 	fi; \
 	exit $$ret
 
+# Like CircleCI runs them.
+check_in_docker: DOCKER_MAKE_TARGET=checkqa
+check_in_docker: docker_make
+
+# Run in CircleCI.
+checkqa:
+	$(MAKE) -k check check_docker check_lint_diff
+
 check:
 	@:; set -e; ret=0; \
 	[ $$TERM = dumb ] && export TERM=xterm; \
@@ -318,13 +332,14 @@ check:
 	  (( ret+=2 )); \
 	fi; \
 	echo '== Checking for absent :Log calls'; \
-	if git --no-pager grep --line-number --color '^(\s*au.*\b)?\s*Log\b' \
+	if git --no-pager grep --line-number --color --perl-regexp '^(\s*au.*\b)?\s*Log\b' \
 	    -- :^tests/include/init.vim :^tests/include/setup.vader; then \
 	  echo_bold "Found Log commands."; \
 	  (( ret+=4 )); \
 	fi; \
 	echo '== Checking tests'; \
-	output="$$(grep --line-number --color AssertThrows -A1 tests/*.vader \
+	output="$$(grep --line-number --color AssertThrows -A1 tests/*.vader)"; \
+	output="$(echo "$$output" \
 		| grep -E '^[^[:space:]]+- ' \
 		| grep -v g:vader_exception | sed -e s/-/:/ -e s/-// || true)"; \
 	if [[ -n "$$output" ]]; then \

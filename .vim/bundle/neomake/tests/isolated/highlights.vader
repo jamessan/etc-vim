@@ -75,7 +75,6 @@ Execute (vint: highlights syntax error for command):
   \ 'type': 'e',
   \ 'pattern': '',
   \ 'text': ':endfor without :for (SyntaxError)'}]
-
   bwipe!
   AssertEqual {string(bufnr): [[2, 6]]}, g:neomake_tests_highlight_lengths
 
@@ -126,6 +125,10 @@ Execute (get_list_entries: based on example from doc):
   " Check that existing buffer was used for filename.
   AssertEqual llist[4].bufnr, buf1, 'get_list_entries_buf1 was picked up'
 
+  AssertNeomakeMessage "Entry 2 differs after adding: {'changed': {'valid': [1, 0]}}.", 3
+  AssertNeomakeMessage "Entry 4 differs after adding: {'changed': {'bufnr': [0, ".unlisted_bufnr."]}, 'removed': {'filename': '/path/to/file'}}.", 3
+  AssertNeomakeMessage "Entry 5 differs after adding: {'changed': {'bufnr': [0, ".buf1."]}, 'removed': {'filename': 'get_list_entries_buf1'}}.", 3
+
   AssertEqualQf llist, [
   \ {'lnum': 1, 'bufnr': buf1, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
   \  'type': 'E', 'pattern': '', 'text': 'Some error'},
@@ -141,7 +144,6 @@ Execute (get_list_entries: based on example from doc):
   bwipe
   bwipe
   exe 'bwipe '.unlisted_bufnr
-
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
@@ -150,7 +152,7 @@ Execute (cargo error message):
   let g:neomake_tests_highlight_lengths = {}
   new
   file build/lib.rs
-  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+  let cargo = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rust#cargo(),
     \ '../tests/fixtures/rust/cargo_error.json')
 
   call neomake#Make(1, [cargo])
@@ -191,14 +193,13 @@ Execute (cargo error message):
 
   " TODO: should not call it for the same highlight twice?!
   AssertEqual {string(bufnr): [[19, 2], [25, 40], [25, 40]]}, g:neomake_tests_highlight_lengths
-
   bwipe
 
 Execute (cargo warning message):
   let g:neomake_tests_highlight_lengths = {}
   new
   file build/add_assign_like.rs
-  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+  let cargo = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rust#cargo(),
     \ '../tests/fixtures/rust/cargo_warning.json')
 
   call neomake#Make(1, [cargo])
@@ -215,7 +216,6 @@ Execute (cargo warning message):
     \ 'vcol': 0,
     \ 'pattern': '',
     \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}]
-
   AssertEqual {string(bufnr): [[2, 7]]}, g:neomake_tests_highlight_lengths
   bwipe
 
@@ -225,7 +225,7 @@ Execute (cargo warning for file that is not open):
   file build/some_other_file.rs
 
   " Uses build/add_assign_like.rs.
-  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+  let cargo = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rust#cargo(),
     \ '../tests/fixtures/rust/cargo_warning.json')
 
   call neomake#Make(1, [cargo])
@@ -244,7 +244,6 @@ Execute (cargo warning for file that is not open):
     \ 'vcol': 0,
     \ 'pattern': '',
     \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}]
-
   AssertEqual {string(unlisted_bufnr): [[2, 7]]}, g:neomake_tests_highlight_lengths
   bwipe
   exe 'bwipe' unlisted_bufnr
@@ -253,7 +252,7 @@ Execute (cargo error message children):
   let g:neomake_tests_highlight_lengths = {}
   new
   file tests/from.rs
-  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+  let cargo = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rust#cargo(),
     \ '../tests/fixtures/rust/cargo_error_children.json')
 
   call neomake#Make(1, [cargo])
@@ -270,7 +269,6 @@ Execute (cargo error message children):
     \ 'vcol': 0,
     \ 'pattern': '',
     \ 'text': 'custom derive attribute panicked. message: Only structs and enums can derive From'}]
-
   AssertEqual {string(bufnr): [[11, 4]]}, g:neomake_tests_highlight_lengths
   bwipe
 

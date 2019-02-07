@@ -29,8 +29,10 @@ Execute (neomake#signs#RedefineErrorSign):
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_warn, lnum=2.'
-  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {}.'
+  " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_warn, lnum=2.'
+  AssertNeomakeMessage 'Reused 1 signs.', 3, {'bufnr': bufnr}
+  AssertNeomakeMessage 'Cleaning 0 old signs.', 3, {'bufnr': bufnr}
+  AssertEqual neomake#signs#by_lnum(bufnr('%')), {'2': [5000, 'neomake_file_warn']}
 
   call neomake#signs#Reset(bufnr, 'file')
   call neomake#signs#CleanAllOldSigns('file')
@@ -54,8 +56,7 @@ Execute (Placing signs in project mode):
 
   call neomake#signs#Reset(bufnr, 'project')
   call neomake#signs#CleanAllOldSigns('project')
-  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {5000: neomake_project_warn}.', 3, {}
-  AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer='.bufnr.'.'
+  AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': bufnr}
   exe 'bwipe' bufnr
 
 Execute (Signs are not re-used / wiped across modes):
@@ -69,8 +70,9 @@ Execute (Signs are not re-used / wiped across modes):
   AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.bufnr.'.'
   AssertNeomakeMessage 'Placing sign: sign place 5001 line=1 name=neomake_project_warn buffer='.bufnr.'.'
   call neomake#signs#ResetProject()
+  AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': bufnr}
   call neomake#signs#CleanAllOldSigns('project')
-  AssertNeomakeMessage 'Removing signs: {file: {}, project: {'.bufnr.': {5001: neomake_project_warn}}}.'
+  AssertNeomakeMessage 'Removing signs: {file: {}, project: {}}.'
 
   AssertEqual neomake#signs#by_lnum(bufnr), {'1': [5000, 'neomake_file_err']}
   call neomake#signs#RedefineSign('neomake_file_warn', {})
@@ -95,7 +97,6 @@ Execute (Signs are not wiped when buffer gets wiped with removed augroup):
 
   AssertEqual neomake#signs#by_lnum(buf), {}
   call neomake#signs#ResetFile(buf)
-  call neomake#signs#CleanOldSigns(buf, 'file')
   AssertNeomakeMessage 'Skipped cleaning of old signs in non-existing buffer '.buf.': {5000: neomake_file_err}.', 3
 
 Execute (neomake#signs#by_lnum):
@@ -232,8 +233,7 @@ Execute (Signs get handled across multiple get_list_entries jobs):
   \ '2': [5001, 'neomake_file_warn']}
 
   call neomake#Make(1, [maker1])
-  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {5001: neomake_file_warn}.'
-  AssertNeomakeMessage 'Unplacing sign: sign unplace 5001 buffer='.bufnr.'.'
+  AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': bufnr}
   AssertEqual neomake#signs#by_lnum(bufnr), {
   \ '1': [5000, 'neomake_file_err']}
 
@@ -318,8 +318,10 @@ Execute (project mode signs get placed when job finishes):
     endfunction
     CallNeomake {'file_mode': 1, 'enabled_makers': [maker]}
     AssertNeomakeMessage 'Placing sign: sign place 5001 line=1 name=neomake_file_err buffer='.bufnr1.'.'
-    AssertEqual neomake#signs#by_lnum(bufnr1), {
-    \ '1': [5001, 'neomake_file_err']}
+    if has('patch-8.1.0384') || has('netbeans_intg')
+      AssertEqual neomake#signs#by_lnum(bufnr1), {
+      \ '1': [5001, 'neomake_file_err']}
+    endif
     call neomake#signs#ResetFile(bufnr1)
     call neomake#signs#CleanAllOldSigns('file')
     AssertEqual neomake#signs#by_lnum(bufnr1), {
@@ -363,15 +365,16 @@ Execute (neomake#signs#PlaceSigns keeps sign moved by lnum):
 
   call neomake#signs#Reset(bufnr, 'file')
   call s:place_sign(2)
-  AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=2.'
+  " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=2.'
+  AssertNeomakeMessage 'Reused 1 signs.', 3, {'bufnr': bufnr}
   call neomake#signs#CleanOldSigns(bufnr, 'file')
-  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {}.'
+  AssertNeomakeMessage 'Cleaning 0 old signs.', 3, {'bufnr': bufnr}
 
   call neomake#signs#Reset(bufnr, 'file')
   AssertEqual neomake#signs#by_lnum(bufnr), {'2': [5000, 'neomake_file_err']}
   call neomake#signs#CleanOldSigns(bufnr, 'file')
-  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {5000: neomake_file_err}.'
-  AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer='.bufnr.'.'
+  AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': bufnr}
+  AssertEqual neomake#signs#by_lnum(bufnr), {}
   bwipe!
 
 Execute (CleanOldSigns removes unplaced sign from s:placed_signs):
@@ -406,15 +409,15 @@ Execute (CleanOldSigns removes unplaced sign from s:placed_signs):
   AssertEqual neomake#signs#by_lnum(bufnr), {
   \ '1': [5000, 'neomake_file_err'],
   \ }
-  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {5001: neomake_file_err}.', 3
-  AssertNeomakeMessage 'Unplacing sign: sign unplace 5001 buffer='.bufnr.'.', 3
+  AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': bufnr}
 
   CallNeomake 1, [maker]
   AssertEqual neomake#signs#by_lnum(bufnr), {
   \ '1': [5000, 'neomake_file_err'],
   \ '2': [5001, 'neomake_file_err'],
   \ }
-  AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3
+  " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3
+  AssertNeomakeMessage 'Reused 1 signs.', 3
   AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.bufnr.'.'
   bwipe!
 
@@ -441,4 +444,73 @@ Execute (neomake#signs#PlaceSigns handles lowercase and fallback entry type):
   \ '4': [5003, 'neomake_file_err'],
   \ '5': [5004, 'neomake_file_err'],
   \ }
+  bwipe
+
+Execute (Signs should be placed with QuickfixCmdPost already (loclist)):
+  new
+
+  let s:calls = []
+  function OnQuickfixCmdPost()
+    call add(s:calls, neomake#signs#by_lnum(bufnr('%')))
+  endfunction
+
+  augroup neomake_tests
+    autocmd QuickfixCmdPost laddexpr call OnQuickfixCmdPost()
+  augroup END
+
+  CallNeomake 1, [g:error_maker]
+
+  let signs = neomake#signs#by_lnum(bufnr('%'))
+  AssertEqual signs, {'1': [5000, 'neomake_file_err']}
+
+  if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
+    AssertEqual s:calls, []
+  else
+    AssertEqual s:calls, [signs]
+  endif
+  bwipe
+  delfunction OnQuickfixCmdPost
+
+Execute (Signs should be placed with QuickfixCmdPost already (qflist)):
+  new
+
+  let s:calls = []
+  function OnQuickfixCmdPost()
+    call add(s:calls, neomake#signs#by_lnum(bufnr('%')))
+  endfunction
+
+  augroup neomake_tests
+    autocmd QuickfixCmdPost caddexpr call OnQuickfixCmdPost()
+  augroup END
+
+  CallNeomake 0, [g:error_maker]
+
+  let signs = neomake#signs#by_lnum(bufnr('%'))
+  AssertEqual signs, {'1': [5000, 'neomake_project_err']}
+
+  if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
+    AssertEqual s:calls, []
+  else
+    AssertEqual s:calls, [signs]
+  endif
+  bwipe
+  delfunction OnQuickfixCmdPost
+
+Execute (neomake#signs#PlaceSigns: prevents re-used signs from being clened):
+  new
+  let bufnr = bufnr('%')
+
+  call neomake#signs#PlaceSigns(bufnr('%'),
+  \ [{'type': 'E', 'bufnr': bufnr('%'), 'lnum': 1}], 'file')
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.bufnr.'.'
+
+  call neomake#signs#Reset(bufnr, 'file')
+
+  call neomake#signs#PlaceSigns(bufnr('%'),
+  \ [{'type': 'W', 'bufnr': bufnr('%'), 'lnum': 1}], 'file')
+  AssertNeomakeMessage 'Upgrading sign for lnum=1: sign place 5000 name=neomake_file_warn buffer='.bufnr.'.'
+
+  call neomake#signs#Reset(bufnr, 'file')
+
+  AssertNeomakeMessage 'Cleaning 0 old signs.', 3
   bwipe
