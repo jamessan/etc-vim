@@ -23,6 +23,8 @@ if has('autocmd')
         autocmd FileType help nnoremap <buffer> <Enter> <C-]>
         autocmd BufEnter * if get(w:, 'quickfix_title', '') =~# '^Reconcile' | call jamessan#ledger#reconcile_setup() | endif
 
+        autocmd BufRead,BufNewFile,VimEnter * call jamessan#cscope#setup_db()
+
         autocmd ColorScheme * hi link NeomakeError ErrorMsg | hi link NeomakeWarning WarningMsg
         autocmd ColorScheme * hi link NeomakeErrorSign ErrorMsg | hi link NeomakeWarningSign WarningMsg
 
@@ -180,6 +182,7 @@ set cpoptions+=n " When 'wrap' is enabled, the 'number' column is used to
 set autoindent
 " Prompt for the tag if it's ambiguous
 set cscopetag
+set tags=.git/tags;.git,.bzr/tags;.bzr,./tags;,tags
 
 " Python
 let python_highlight_builtins = 1
@@ -248,12 +251,6 @@ nnoremap <silent> <Leader>g :Grepper<CR>
 nnoremap <silent> <Leader>lg :Grepper -noquickfix<CR>
 let g:grepper = {}
 let g:grepper.tools = ['rg', 'git', 'ag', 'ack', 'ack-grep', 'grep', 'findstr']
-
-" Cache tags in a common directory
-let g:gutentags_cache_dir = split(&directory, ',')[0]
-let g:gutentags_add_default_project_roots = 0
-let g:gutentags_project_root = ['.git', '.hg', '.svn', '.bzr']
-let g:gutentags_init_user_func = 'jamessan#gutentags#init'
 
 " Is this a Debian system?
 if executable('dpkg-architecture')
