@@ -73,13 +73,23 @@ function! sy#repo#get_diff_start(vcs) abort
     endif
 
     let [cmd, options] = s:initialize_job(a:vcs)
+    let [cwd, chdir] = sy#util#chdir()
 
-    call sy#verbose(printf('CMD: %s | CWD: %s', string(cmd), b:sy.info.dir), a:vcs)
+    call sy#verbose(['CMD: '. string(cmd), 'CMD DIR:  '. b:sy.info.dir, 'ORIG DIR: '. cwd], a:vcs)
+
+    try
+      execute chdir fnameescape(b:sy.info.dir)
+    catch
+      echohl ErrorMsg
+      echomsg 'signify: Changing directory failed: '. b:sy.info.dir
+      echohl NONE
+      return
+    endtry
     let b:sy_job_id_{a:vcs} = jobstart(cmd, extend(options, {
-          \ 'cwd':       b:sy.info.dir,
           \ 'on_stdout': function('s:callback_nvim_stdout'),
           \ 'on_exit':   function('s:callback_nvim_exit'),
           \ }))
+    execute chdir fnameescape(cwd)
 
   " Newer Vim
   elseif has('patch-7.4.1967')
@@ -90,18 +100,23 @@ function! sy#repo#get_diff_start(vcs) abort
     let [cmd, options] = s:initialize_job(a:vcs)
     let [cwd, chdir] = sy#util#chdir()
 
+    call sy#verbose(['CMD: '. string(cmd), 'CMD DIR:  '. b:sy.info.dir, 'ORIG DIR: '. cwd], a:vcs)
+
     try
       execute chdir fnameescape(b:sy.info.dir)
-      call sy#verbose(printf('CMD: %s | CWD: %s', string(cmd), getcwd()), a:vcs)
-      let opts = {
-            \ 'in_io':    'null',
-            \ 'out_cb':   function('s:callback_vim_stdout', options),
-            \ 'close_cb': function('s:callback_vim_close', options),
-            \ }
-      let b:sy_job_id_{a:vcs} = job_start(cmd, opts)
-    finally
-      execute chdir fnameescape(cwd)
+    catch
+      echohl ErrorMsg
+      echomsg 'signify: Changing directory failed: '. b:sy.info.dir
+      echohl NONE
+      return
     endtry
+    let opts = {
+          \ 'in_io':    'null',
+          \ 'out_cb':   function('s:callback_vim_stdout', options),
+          \ 'close_cb': function('s:callback_vim_close', options),
+          \ }
+    let b:sy_job_id_{a:vcs} = job_start(cmd, opts)
+    execute chdir fnameescape(cwd)
 
   " Older Vim
   else
@@ -240,7 +255,7 @@ function! sy#repo#debug_detection()
 endfunction
 
 " Function: #diffmode {{{1
-function! sy#repo#diffmode() abort
+function! sy#repo#diffmode(do_tab) abort
   execute sy#util#return_if_no_changes()
 
   let vcs = b:sy.updated_by
@@ -252,13 +267,20 @@ function! sy#repo#diffmode() abort
   let cmd = s:expand_cmd(vcs, g:signify_vcs_cmds_diffmode)
   call sy#verbose('SignifyDiff: '. cmd, vcs)
   let ft = &filetype
-  tabedit %
+  let fenc = &fenc
+  if a:do_tab
+    tabedit %
+  endif
   diffthis
   let [cwd, chdir] = sy#util#chdir()
   try
     execute chdir fnameescape(b:sy.info.dir)
     leftabove vnew
-    silent put =system(cmd)
+    if has('iconv')
+      silent put =iconv(system(cmd), fenc, &enc)
+    else
+      silent put =system(cmd)
+    endif
   finally
     execute chdir fnameescape(cwd)
   endtry
@@ -443,11 +465,11 @@ endif
 
 let s:default_vcs_cmds = {
       \ 'git':      'git diff --no-color --no-ext-diff -U0 -- %f',
-      \ 'hg':       'hg diff --config extensions.color=! --config defaults.diff= --nodates -U0 -- %f',
+      \ 'hg':       'hg diff --color=never --config aliases.diff= --nodates -U0 -- %f',
       \ 'svn':      'svn diff --diff-cmd %d -x -U0 -- %f',
       \ 'bzr':      'bzr diff --using %d --diff-options=-U0 -- %f',
       \ 'darcs':    'darcs diff --no-pause-for-gui --no-unified --diff-opts=-U0 -- %f',
-      \ 'fossil':   'fossil set diff-command "%d -U 0" && fossil diff --unified -c 0 -- %f',
+      \ 'fossil':   'fossil diff --unified -c 0 -- %f',
       \ 'cvs':      'cvs diff -U0 -- %f',
       \ 'rcs':      'rcsdiff -U0 %f 2>%n',
       \ 'accurev':  'accurev diff %f -- -U0',
