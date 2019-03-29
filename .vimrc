@@ -145,24 +145,7 @@ else
     set listchars=eol:$,tab:>-,trail:.,extends:>,precedes:<
 endif
 set visualbell t_vb= " don't blink and no noises
-set statusline=[%n]%<
-set statusline+=%{pathshorten(fnamemodify(expand('%'),':~:.'))}
-set statusline+=%{jamessan#stl#sy_stats()}
-set statusline+=%m%r\                        " flags
-try
-    set statusline+=%q                       " Added in 7.3
-catch /^Vim(set):E539/
-endtry
-set statusline+=%h%w\ 
-set statusline+=%#ErrorMsg#%{&paste?'paste/':''}%*
-set statusline+=%#WarningMsg#%{jamessan#stl#fileformat()}%*
-set statusline+=%#WarningMsg#%{jamessan#stl#encoding()}%*
-set statusline+=%y                           " filetype
-set statusline+=%=                           " right align
-set statusline+=%{jamessan#stl#neomake()}
-set statusline+=[0x%04.4B]                   " current char
-set statusline+=[%c%V]
-set statusline+=[%p%%\ line\ %l\ of\ %L]     " position in buffer
+set statusline=%!jamessan#stl#config()
 set laststatus=2 " always show the status line
 set nostartofline " Don't move to ^ after various actions.
                   " :he 'sol' for an explanation of what actions
