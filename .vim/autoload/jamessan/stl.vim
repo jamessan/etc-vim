@@ -5,9 +5,11 @@ function! jamessan#stl#config()
   let stl .= '%m%r '  " flags
   let stl .= '%q'     " quickfix/location list name
   let stl .= '%h%w '
-  let stl .= s:cond_highlight('paste', 'ErrorMsg', &paste)
-  let stl .= s:cond_highlight(&ff, 'WarningMsg', &ff != 'unix')
-  let stl .= s:cond_highlight(&fenc, 'WarningMsg', !empty(&fenc) && &fenc != 'utf-8')
+  let stl .= s:cond_highlight([
+        \ {'desc': 'paste', 'hl': 'ErrorMsg', 'enabled': &paste},
+        \ {'desc': &ff, 'hl': 'WarningMsg', 'enabled': &ff != 'unix'},
+        \ {'desc': &fenc, 'hl': 'WarningMsg', 'enabled': !empty(&fenc) && &fenc != 'utf-8'}
+        \])
   let stl .= '%y'     " filetype
   let stl .= '%='     " right align
   let stl .= s:neomake()
@@ -27,12 +29,9 @@ function! s:sy_stats()
   return stats
 endfunction
 
-function! s:cond_highlight(s, hi, cond)
-  if a:cond
-    return printf('%%#%s%%*/', a:s, a:hi)
-  else
-    return ''
-  endif
+function! s:cond_highlight(checks)
+  let strs = map(filter(a:checks, { idx, d -> d.enabled }), { idx, d -> printf('%%#%s#%s%%*', d.hl, d.desc) })
+  return join(strs, '/')
 endfunction
 
 function! s:neomake()
