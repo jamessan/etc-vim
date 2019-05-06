@@ -202,6 +202,7 @@
 !/.vim/bundle/neomake/autoload/neomake/makers/sbt.vim
 !/.vim/bundle/neomake/autoload/neomake/postprocess.vim
 !/.vim/bundle/neomake/autoload/neomake/quickfix.vim
+!/.vim/bundle/neomake/autoload/neomake/setup.vim
 !/.vim/bundle/neomake/autoload/neomake/signs.vim
 !/.vim/bundle/neomake/autoload/neomake/statusline.vim
 !/.vim/bundle/neomake/autoload/neomake/utils.vim
@@ -305,6 +306,7 @@
 !/.vim/bundle/neomake/tests/ft_erlang.vader
 !/.vim/bundle/neomake/tests/ft_go.vader
 !/.vim/bundle/neomake/tests/ft_haskell.vader
+!/.vim/bundle/neomake/tests/ft_html.vader
 !/.vim/bundle/neomake/tests/ft_idris.vader
 !/.vim/bundle/neomake/tests/ft_javascript.vader
 !/.vim/bundle/neomake/tests/ft_markdown.vader
@@ -340,6 +342,7 @@
 !/.vim/bundle/neomake/tests/isolated/logging.vader
 !/.vim/bundle/neomake/tests/isolated/modes.vader
 !/.vim/bundle/neomake/tests/isolated/resets-ignore_automake_events.vader
+!/.vim/bundle/neomake/tests/isolated/sign-highlights.vader
 !/.vim/bundle/neomake/tests/isolated/statusline-highlights.vader
 !/.vim/bundle/neomake/tests/isolated/tempfiles-cleanup.vader
 !/.vim/bundle/neomake/tests/isolated.vader
