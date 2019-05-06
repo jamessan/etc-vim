@@ -64,8 +64,8 @@ if exists('+termguicolors') && hostname() !~ 'cec\.lab\.emc\.com'
 endif
 
 if &t_Co >= 88
-    let g:nofrils_strbackgrounds = 1
-    colorscheme nofrils-dark
+    let g:jellybeans_use_term_italics = 1
+    colorscheme jellybeans
 elseif !has('nvim')
     set background=dark
 end

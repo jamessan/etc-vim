@@ -57,6 +57,12 @@
 !/.vim/bundle/grepper/test/viminfo
 !/.vim/bundle/grepper/test/vimrc
 !/.vim/bundle/grepper/.travis.yml
+!/.vim/bundle/jellybeans
+!/.vim/bundle/jellybeans/ansi-term-colors.txt
+!/.vim/bundle/jellybeans/colors
+!/.vim/bundle/jellybeans/colors/jellybeans.vim
+!/.vim/bundle/jellybeans/.gitignore
+!/.vim/bundle/jellybeans/README.markdown
 !/.vim/bundle/ledger
 !/.vim/bundle/ledger/autoload
 !/.vim/bundle/ledger/autoload/ledger.vim
@@ -88,6 +94,7 @@
 !/.vim/bundle/neomake/autoload/neomake/debug.vim
 !/.vim/bundle/neomake/autoload/neomake/highlights.vim
 !/.vim/bundle/neomake/autoload/neomake/jobinfo.vim
+!/.vim/bundle/neomake/autoload/neomake/list.vim
 !/.vim/bundle/neomake/autoload/neomake/log.vim
 !/.vim/bundle/neomake/autoload/neomake/makers
 !/.vim/bundle/neomake/autoload/neomake/makers/cabal.vim
@@ -99,6 +106,7 @@
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/apiblueprint.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/applescript.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/asciidoc.vim
+!/.vim/bundle/neomake/autoload/neomake/makers/ft/beancount.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/bib.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/cf3.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/chef.vim
@@ -150,6 +158,7 @@
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/pandoc.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/perl.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/php.vim
+!/.vim/bundle/neomake/autoload/neomake/makers/ft/proto.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/pug.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/puppet.vim
 !/.vim/bundle/neomake/autoload/neomake/makers/ft/purescript.vim
@@ -197,6 +206,7 @@
 !/.vim/bundle/neomake/autoload/neomake/statusline.vim
 !/.vim/bundle/neomake/autoload/neomake/utils.vim
 !/.vim/bundle/neomake/autoload/neomake.vim
+!/.vim/bundle/neomake/autoload/neomake/virtualtext.vim
 !/.vim/bundle/neomake/.circleci
 !/.vim/bundle/neomake/.circleci/config.yml
 !/.vim/bundle/neomake/contrib
@@ -221,14 +231,17 @@
 !/.vim/bundle/neomake/syntax/neomake/python.vim
 !/.vim/bundle/neomake/syntax/neomake/qf.vim
 !/.vim/bundle/neomake/tests
+!/.vim/bundle/neomake/tests/action_queue.vader
 !/.vim/bundle/neomake/tests/all.vader
 !/.vim/bundle/neomake/tests/args.vader
 !/.vim/bundle/neomake/tests/automake.vader
 !/.vim/bundle/neomake/tests/cancellation.vader
+!/.vim/bundle/neomake/tests/clean.vader
 !/.vim/bundle/neomake/tests/cmd_neomakeinfo.vader
 !/.vim/bundle/neomake/tests/compat.vader
 !/.vim/bundle/neomake/tests/completion.vader
 !/.vim/bundle/neomake/tests/config.vader
+!/.vim/bundle/neomake/tests/current_error.vader
 !/.vim/bundle/neomake/tests/customqf.vader
 !/.vim/bundle/neomake/tests/cwd.vader
 !/.vim/bundle/neomake/tests/debug.vader
@@ -250,8 +263,6 @@
 !/.vim/bundle/neomake/tests/fixtures/input/xmllint
 !/.vim/bundle/neomake/tests/fixtures/input/xmllint/missingdtd.xml
 !/.vim/bundle/neomake/tests/fixtures/input/xmllint/validity-error.xml
-!/.vim/bundle/neomake/tests/fixtures/input/zsh
-!/.vim/bundle/neomake/tests/fixtures/input/zsh/parse-error.zsh
 !/.vim/bundle/neomake/tests/fixtures/output
 !/.vim/bundle/neomake/tests/fixtures/output/puppet
 !/.vim/bundle/neomake/tests/fixtures/output/puppet-lint
@@ -336,6 +347,7 @@
 !/.vim/bundle/neomake/tests/json.vader
 !/.vim/bundle/neomake/tests/list-entries.vader
 !/.vim/bundle/neomake/tests/lists.vader
+!/.vim/bundle/neomake/tests/list.vader
 !/.vim/bundle/neomake/tests/log.vader
 !/.vim/bundle/neomake/tests/main.vader
 !/.vim/bundle/neomake/tests/makeprg.vader
