@@ -57,11 +57,6 @@
 !/.vim/bundle/grepper/test/viminfo
 !/.vim/bundle/grepper/test/vimrc
 !/.vim/bundle/grepper/.travis.yml
-!/.vim/bundle/janah
-!/.vim/bundle/janah/colors
-!/.vim/bundle/janah/colors/janah.vim
-!/.vim/bundle/janah/janah.png
-!/.vim/bundle/janah/README.md
 !/.vim/bundle/ledger
 !/.vim/bundle/ledger/autoload
 !/.vim/bundle/ledger/autoload/ledger.vim
