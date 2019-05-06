@@ -62,15 +62,6 @@
 !/.vim/bundle/janah/colors/janah.vim
 !/.vim/bundle/janah/janah.png
 !/.vim/bundle/janah/README.md
-!/.vim/bundle/jellyx
-!/.vim/bundle/jellyx/colors
-!/.vim/bundle/jellyx/colors/jellyx.vim
-!/.vim/bundle/jellyx/.gitignore
-!/.vim/bundle/jellyx/Rakefile
-!/.vim/bundle/jellyx/README.markdown
-!/.vim/bundle/jellyx/scripts
-!/.vim/bundle/jellyx/scripts/jellyx-devmode.vim
-!/.vim/bundle/jellyx/scripts/parametrize
 !/.vim/bundle/ledger
 !/.vim/bundle/ledger/autoload
 !/.vim/bundle/ledger/autoload/ledger.vim
