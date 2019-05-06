@@ -191,6 +191,8 @@ function! sy#repo#get_diff_cvs(sy, exitval, diff) abort
         break
       endif
     endfor
+  elseif a:exitval == 0 && len(a:diff) == 0
+    let found_diff = 1
   endif
   call s:get_diff_end(a:sy, found_diff, 'cvs', diff)
 endfunction
@@ -285,9 +287,9 @@ function! sy#repo#diffmode(do_tab) abort
     execute chdir fnameescape(cwd)
   endtry
   silent 1delete
-  diffthis
   set buftype=nofile bufhidden=wipe nomodified
   let &filetype = ft
+  diffthis
   wincmd p
   normal! ]czt
 endfunction
@@ -297,9 +299,15 @@ function! s:initialize_job(vcs) abort
   let vcs_cmd = s:expand_cmd(a:vcs, g:signify_vcs_cmds)
   if has('win32')
     if has('nvim')
-      let cmd = &shell =~ 'cmd' ? vcs_cmd : ['sh', '-c', vcs_cmd]
+      let cmd = &shell =~ '\v%(cmd|powershell)' ? vcs_cmd : ['sh', '-c', vcs_cmd]
     else
-      let cmd = join([&shell, &shellcmdflag, vcs_cmd])
+      if &shell =~ 'cmd'
+        let cmd = vcs_cmd
+      elseif empty(&shellxquote)
+        let cmd = join([&shell, &shellcmdflag, &shellquote, vcs_cmd, &shellquote])
+      else
+        let cmd = join([&shell, &shellcmdflag, &shellxquote, vcs_cmd, &shellxquote])
+      endif
     endif
   else
     let cmd = ['sh', '-c', vcs_cmd]
@@ -446,10 +454,11 @@ if executable(s:difftool)
         \ 'tfs':      'tf'
         \ }
 else
-  call sy#verbose('No "diff" executable found. Disable support for svn, darcs, bzr, fossil.')
+  call sy#verbose('No "diff" executable found. Disable support for svn, darcs, bzr.')
   let s:vcs_dict = {
         \ 'git':      'git',
         \ 'hg':       'hg',
+        \ 'fossil':   'fossil',
         \ 'cvs':      'cvs',
         \ 'rcs':      'rcsdiff',
         \ 'accurev':  'accurev',
@@ -483,6 +492,7 @@ let s:default_vcs_cmds_diffmode = {
       \ 'svn':      'svn cat %f',
       \ 'bzr':      'bzr cat %f',
       \ 'darcs':    'darcs show contents -- %f',
+      \ 'fossil':   'fossil cat %f',
       \ 'cvs':      'cvs up -p -- %f 2>%n',
       \ 'perforce': 'p4 print %f',
       \ }
