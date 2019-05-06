@@ -2,7 +2,7 @@ version: 2
 
 common: &common
   docker:
-    - image: neomake/vims-for-tests:39@sha256:77dc4c3b59981d1b792a3cede408742553e88c0d711236af112a6b5881664f79
+    - image: neomake/vims-for-tests:41@sha256:3aa6bb57ba3fb05c361ae19b1c365aeec34bf3e62b16a721d16bc67484e299a4
   working_directory: ~/repo
   steps:
     - checkout
@@ -22,7 +22,7 @@ common: &common
           coverage xml
           # -Z: exit with 1 in case of failures.
           codecov -Z -X search -X gcov -X pycov -f coverage.xml \
-            -n "$CIRCLE_JOB" -F ${CIRCLE_JOB%%-*},${CIRCLE_JOB//[-.]/}
+            -n "$CIRCLE_JOB" -F "${CIRCLE_JOB%%-*}" -e CIRCLE_JOB
           set +x
     - persist_to_workspace:
         root: .

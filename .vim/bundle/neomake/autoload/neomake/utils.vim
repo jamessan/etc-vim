@@ -264,7 +264,8 @@ function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abo
 endfunction
 
 " Get property from highlighting group.
-function! neomake#utils#GetHighlight(group, what) abort
+function! neomake#utils#GetHighlight(group, what, ...) abort
+    let fallback = a:0 ? a:1 : ''
     let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
     let what = a:what
     if reverse
@@ -276,7 +277,12 @@ function! neomake#utils#GetHighlight(group, what) abort
         let val = synIDattr(synIDtrans(hlID(a:group)), what, 'cterm')
     endif
     if empty(val) || val == -1
-        let val = 'NONE'
+        if !empty(fallback)
+            " NOTE: this might still be NONE also for "Normal", with
+            " e.g. `vim -u NONE`.
+            return neomake#utils#GetHighlight(fallback, a:what)
+        endif
+        return 'NONE'
     endif
     return val
 endfunction
@@ -332,7 +338,7 @@ function! neomake#utils#ExpandArgs(args, jobinfo) abort
     if has_key(a:jobinfo, 'tempfile')
         let fname = a:jobinfo.tempfile
     else
-        let fname = bufname('%')
+        let fname = bufname(a:jobinfo.bufnr)
         if !empty(fname)
             let fname = fnamemodify(fname, ':p')
         endif
@@ -347,7 +353,7 @@ function! neomake#utils#ExpandArgs(args, jobinfo) abort
     let ret = map(ret,
                 \ 'substitute(v:val, '
                 \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|<\|\%(:[phtreS8.~]\)\+\|\ze\w\@!\)\)'', '
-                \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
+                \ . '''\=(submatch(1) == "%%" ? "%" : expand(substitute(submatch(1), "^%", "#'.a:jobinfo.bufnr.'", "")))'', '
                 \ . '''g'')')
     let ret = map(ret, 'substitute(v:val, ''\v^\~\ze%(/|$)'', expand(''~''), ''g'')')
     return ret
@@ -414,26 +420,24 @@ function! neomake#utils#hook(event, context, ...) abort
 endfunction
 
 function! neomake#utils#diff_dict(old, new) abort
-    let diff = {}
-    let keys = keys(a:old) + keys(a:new)
-    for k in keys
+    let diff = {'removed': {}, 'added': {}, 'changed': {}}
+
+    for k in keys(a:old)
         if !has_key(a:new, k)
-            if !has_key(diff, 'removed')
-                let diff['removed'] = {}
-            endif
             let diff['removed'][k] = a:old[k]
-        elseif !has_key(a:old, k)
-            if !has_key(diff, 'added')
-                let diff['added'] = {}
-            endif
-            let diff['added'][k] = a:new[k]
         elseif type(a:old[k]) !=# type(a:new[k]) || a:old[k] !=# a:new[k]
-            if !has_key(diff, 'changed')
-                let diff['changed'] = {}
-            endif
             let diff['changed'][k] = [a:old[k], a:new[k]]
         endif
     endfor
+
+    for k in keys(a:new)
+        if !has_key(a:old, k)
+            let diff['added'][k] = a:new[k]
+        endif
+    endfor
+
+    call filter(diff, '!empty(v:val)')
+
     return diff
 endfunction
 
@@ -508,12 +512,21 @@ endfunction
 
 function! neomake#utils#write_tempfile(bufnr, temp_file) abort
     call writefile(neomake#utils#get_buffer_lines(a:bufnr), a:temp_file, 'b')
+    if exists('*setfperm')
+        let perms = getfperm(bufname(+a:bufnr))
+        if empty(perms)
+            let perms = 'rw-------'
+        endif
+        call setfperm(a:temp_file, perms)
+    endif
 endfunction
 
 " Wrapper around fnamemodify that handles special buffers (e.g. fugitive).
 function! neomake#utils#fnamemodify(bufnr, modifier) abort
     let bufnr = +a:bufnr
-    if !empty(getbufvar(bufnr, 'fugitive_type'))
+    if empty(getbufvar(bufnr, 'fugitive_type'))
+        let path = bufname(bufnr)
+    else
         if exists('*FugitivePath')
             let path = FugitivePath(bufname(bufnr))
         else
@@ -523,8 +536,6 @@ function! neomake#utils#fnamemodify(bufnr, modifier) abort
         if empty(a:modifier)
             let path = fnamemodify(path, ':.')
         endif
-    else
-        let path = bufname(bufnr)
     endif
     return empty(path) ? '' : fnamemodify(path, a:modifier)
 endfunction

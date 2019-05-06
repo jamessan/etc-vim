@@ -20,7 +20,7 @@ Execute (Neomake uses temporary file for unsaved buffer):
     let make_info = values(neomake#GetStatus().make_info)[0]
     let temp_file = make_info.tempfiles[0]
     AssertEqual fnamemodify(temp_file, ':h:h'), fnamemodify(tempname(), ':h')
-    AssertEqual getfperm(temp_file), 'rw-r--r--'
+    AssertEqual getfperm(temp_file), 'rw-------'
     NeomakeTestsWaitForFinishedJobs
   endif
 
@@ -62,15 +62,67 @@ Execute (Uses temporary file for unreadable buffer):
   let b:neomake_neomake_tests_enabled_makers = ['true']
   let b:neomake_neomake_tests_true_tempfile_enabled = 1
 
+  if exists('*setfperm')
+    let s:validated = 0
+    function! s:validate_tempfile()
+      let s:validated = 1
+      let tempfile = g:neomake_hook_context.jobinfo.tempfile
+      AssertEqual getfperm(tempfile), 'rw-------'
+    endfunction
+    augroup neomake_tests
+      au User NeomakeJobFinished call s:validate_tempfile()
+    augroup END
+  endif
+
   RunNeomake
 
-  let bufnr = bufnr('%')
   AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)"', 3
   let tempfile_name = g:neomake_test_matchlist[1]
   AssertEqual fnamemodify(tempfile_name, ':t'), printf(
   \ '.doesnotexist@neomake_%d_%d', getpid(), neomake#GetStatus().last_make_id)
   AssertEqual fnamemodify(tempfile_name, ':h'), getcwd()
+  if exists('*setfperm')
+    AssertEqual s:validated, 1
+  endif
   bwipe
+
+Execute (Uses permissions of original file):
+  if !exists('*setfperm')
+    NeomakeTestsSkip 'no setfperm support.'
+  else
+    new
+    let fname = tempname()
+    call writefile([], fname)
+    call setfperm(fname, '---rw----')
+    exe 'edit '.fname
+
+    silent normal! O
+
+    set ft=neomake_tests
+    let b:neomake_neomake_tests_enabled_makers = ['true']
+    let b:neomake_neomake_tests_true_tempfile_enabled = 1
+
+    let s:validated = 0
+    function! s:validate_tempfile()
+      let tempfile = g:neomake_hook_context.jobinfo.tempfile
+      AssertEqual getfperm(tempfile), '---rw----'
+      let s:validated = 1
+    endfunction
+    augroup neomake_tests
+      au User NeomakeJobFinished call s:validate_tempfile()
+    augroup END
+
+    RunNeomake
+
+    AssertNeomakeMessage '\v^Using tempfile for modified buffer: "(.*)"', 3
+    let tempfile_name = g:neomake_test_matchlist[1]
+    AssertEqual glob(tempfile_name), ''
+    AssertEqual s:validated, 1
+
+    AssertEqual v:warningmsg, 'W10: Warning: Changing a readonly file'
+    let v:warningmsg = ''
+    bwipe!
+  endif
 
 Execute (Only 2nd maker uses temporary file):
   call g:NeomakeSetupAutocmdWrappers()
@@ -667,4 +719,73 @@ Execute (Massages tempfile buffer with file_mode=0 and append_file=1):
   CallNeomake 0, [maker]
   AssertNeomakeMessage '\VUsing tempfile for unnamed buffer:', 3
   AssertEqual map(getqflist(), '[v:val.text, v:val.bufnr]'), [['error', bufnr('%')]]
+  bwipe
+
+Execute (Maps/sets bufnr via filename from temporary file):
+  new
+  let maker = {'exe': 'echo', 'args': ['']}
+
+  function maker.process_output(context)
+    let tempfile = a:context.output[0][1:]
+    return [{'filename': tempfile, 'lnum': 1, 'text': 'err'}]
+  endfunction
+
+  CallNeomake 1, [maker]
+
+  AssertEqual map(getloclist(0), '[v:val.bufnr, v:val.lnum, v:val.text]'),
+  \ [[bufnr('%'), 1, 'err']]
+
+  AssertNeomakeMessage 'Mapped 1 bufnrs from temporary files.', 3
+  bwipe
+
+Execute (tempfile_dir can be configured: unnamed buffer):
+  let slash = neomake#utils#Slash()
+  let maker = neomake#GetMaker({'tempfile_enabled': 1})
+  let temp_base = fnamemodify(tempname(), ':h')
+
+  new
+  " Unnamed buffer gets tempfile based on tempname().
+  let fname = maker._get_tempfilename(NeomakeTestsFakeJobinfo())
+  AssertEqual fnamemodify(fname, ':t'), 'neomaketmp.'
+  AssertEqual fname[:len(temp_base)-1], temp_base
+
+  " Dir can be configured globally.
+  let b:neomake_tempfile_dir = '/custom/global/dir'
+  let fname = maker._get_tempfilename(NeomakeTestsFakeJobinfo())
+  AssertEqual fname, '/custom/global/dir/neomaketmp.'
+
+  " Dir can be configured per buffer.
+  let b:neomake_tempfile_dir = '/custom/buffer/dir'
+  let fname = maker._get_tempfilename(NeomakeTestsFakeJobinfo())
+  AssertEqual fname, '/custom/buffer/dir/neomaketmp.'
+  bwipe
+
+Execute (tempfile_dir can be configured: named buffer):
+  let slash = neomake#utils#Slash()
+  let maker = neomake#GetMaker({'tempfile_enabled': 1})
+
+  new
+  file buffer_name.foo.ext
+
+  " Dir can be configured globally.
+  let b:neomake_tempfile_dir = '/custom/global/dir'
+  let fname = maker._get_tempfilename(NeomakeTestsFakeJobinfo())
+  AssertEqual fname, '/custom/global/dir/buffer_name.foo.ext'
+
+  " Dir can be configured per buffer.
+  let b:neomake_tempfile_dir = '/custom/buffer/dir'
+  let fname = maker._get_tempfilename(NeomakeTestsFakeJobinfo())
+  AssertEqual fname, '/custom/buffer/dir/buffer_name.foo.ext'
+  bwipe
+
+Execute (tempfile_dir gets expanded):
+  let slash = neomake#utils#Slash()
+  let maker = neomake#GetMaker({'tempfile_enabled': 1})
+
+  new
+  file buffer_name.foo.ext
+
+  let b:neomake_tempfile_dir = '/custom%:p:h'
+  let fname = maker._get_tempfilename(NeomakeTestsFakeJobinfo())
+  AssertEqual fname, '/custom'.getcwd().slash.'buffer_name.foo.ext'
   bwipe
