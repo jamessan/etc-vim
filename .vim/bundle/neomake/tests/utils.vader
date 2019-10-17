@@ -234,11 +234,11 @@ Execute (neomake#utils#GetSetting does not create a partial for dict funcs):
   function maker.func()
   endfunction
 
-  let Func = neomake#utils#GetSetting('func', maker, '', '', '', 1)
+  let l:Func = neomake#utils#GetSetting('func', maker, '', '', '', 1)
   AssertEqual type(Func), type(function('tr'))
   AssertEqual Func, get(maker, 'func')
 
-  let Func = neomake#utils#GetSetting('func', maker, '', '', '', 0)
+  let l:Func = neomake#utils#GetSetting('func', maker, '', '', '', 0)
   AssertEqual type(Func), type(function('tr'))
   AssertEqual Func, get(maker, 'func')
 
@@ -437,17 +437,38 @@ Execute (neomake#utils#diff_dict):
   AssertEqual neomake#utils#diff_dict({'a': []}, {'a': {}}),
     \ {'changed': {'a': [[], {}]}}
 
-Execute (neomake#utils#wstrpart):
-  AssertEqual neomake#utils#wstrpart('123', 0, 0), ''
-  AssertEqual neomake#utils#wstrpart('123', 0, 1), '1'
-  AssertEqual neomake#utils#wstrpart('123', 0, 2), '12'
-  AssertEqual neomake#utils#wstrpart('123', 1, 2), '23'
-  AssertEqual neomake#utils#wstrpart('123', 1, 1), '2'
-  AssertEqual neomake#utils#wstrpart('123', 1, 0), ''
+Execute (neomake#utils#truncate_width):
+  AssertEqual neomake#utils#truncate_width('', 0), ''
+  AssertEqual neomake#utils#truncate_width('', -1), ''
 
-  AssertEqual neomake#utils#wstrpart('…', 0, 1), '…'
-  AssertEqual neomake#utils#wstrpart('12…45', 1, 3), '2…4'
-  AssertEqual neomake#utils#wstrpart('…after', 1, 10), 'after'
+  AssertEqual neomake#utils#truncate_width('123', 0), ''
+  AssertEqual neomake#utils#truncate_width('123', 1), '…'
+  AssertEqual neomake#utils#truncate_width('123', 1, ''), '1'
+  AssertEqual neomake#utils#truncate_width('123', 2), '1…'
+  AssertEqual neomake#utils#truncate_width('123', 3), '123'
+  AssertEqual neomake#utils#truncate_width('123', 4), '123'
+
+  AssertEqual neomake#utils#truncate_width('长长的。', 0), ''
+  AssertEqual neomake#utils#truncate_width('长长的。', 1), '…'
+  AssertEqual neomake#utils#truncate_width('长长的。', 2), '…'
+  AssertEqual neomake#utils#truncate_width('长长的。', 3), '长…'
+  AssertEqual neomake#utils#truncate_width('长长的。', 4), '长…'
+  AssertEqual neomake#utils#truncate_width('长长的。', 10), '长长的。'
+
+  AssertEqual neomake#utils#truncate_width('abc。', 4), 'abc…'
+  AssertEqual neomake#utils#truncate_width('abc。', 5), 'abc。'
+  AssertEqual neomake#utils#truncate_width('abc。xyz', 6), 'abc。…'
+  AssertEqual neomake#utils#truncate_width('abc。xyz', 7), 'abc。x…'
+
+  " Undefined, currently acts as width=0.
+  AssertEqual neomake#utils#truncate_width('abc', -1), ''
+
+  " Longer ellipsis.
+  AssertEqual neomake#utils#truncate_width('abc', 0, '...'), ''
+  AssertEqual neomake#utils#truncate_width('abc', 1, '...'), ''
+  AssertEqual neomake#utils#truncate_width('abc', 2, '...'), ''
+  AssertEqual neomake#utils#truncate_width('abc', 3, '...'), 'abc'
+  AssertEqual neomake#utils#truncate_width('abcde', 4, '...'), 'a...'
 
 Execute (neomake#utils#sort_by_col):
   function! s:sort(l)
@@ -1005,7 +1026,7 @@ Execute (neomake#utils#buf_get_lines):
   catch
     let threw = 1
     if has('nvim')
-      AssertEqual v:exception, 'neomake#utils#buf_get_lines: Index out of bounds'
+      Assert v:exception =~# '\Vneomake#utils#buf_get_lines: \.\*Index out of bounds', v:exception
     else
       AssertEqual v:exception, 'neomake#utils#buf_get_lines: end is higher than number of lines'
     endif
@@ -1041,7 +1062,7 @@ Execute (neomake#utils#buf_set_lines):
   " end > lines
   let error = neomake#utils#buf_set_lines(b, 1, 4, [])
   if has('nvim')
-    AssertEqual error, 'neomake#utils#buf_set_lines: Index out of bounds'
+    Assert error =~# 'neomake#utils#buf_set_lines: .*Index out of bounds', error
   else
     AssertEqual error, 'neomake#utils#buf_set_lines: end is higher than number of lines'
   endif

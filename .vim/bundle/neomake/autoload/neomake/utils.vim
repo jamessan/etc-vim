@@ -15,7 +15,7 @@ function! neomake#utils#Stringify(obj) abort
         return '['.join(ls, ', ').']'
     elseif type(a:obj) == type({})
         let ls = []
-        for [k, V] in items(neomake#utils#fix_self_ref(a:obj))
+        for [k, l:V] in items(neomake#utils#fix_self_ref(a:obj))
             if type(V) == type(function('tr'))
                 let fname = substitute(string(V), ', {\zs.*\ze})', '…', '')
                 call add(ls, k.': '.fname)
@@ -32,16 +32,32 @@ function! neomake#utils#Stringify(obj) abort
     endif
 endfunction
 
-function! neomake#utils#wstrpart(mb_string, start, len) abort
-    return matchstr(a:mb_string, '.\{,'.a:len.'}', 0, a:start+1)
+function! neomake#utils#truncate_width(string, width, ...) abort
+    if a:width <= 0
+        return ''
+    endif
+    if strwidth(a:string) <= a:width
+        return a:string
+    endif
+
+    let ellipsis = a:0 ? a:1 : '…'
+    let len_ellipsis = strwidth(ellipsis)
+    let pos = a:width
+    let w_without_ellipsis = a:width - len_ellipsis
+    while pos >= 0
+        let s = matchstr(a:string, '.\{,'.pos.'}', 0, 1)
+        let w = strwidth(s)
+        if w <= w_without_ellipsis
+            return s . ellipsis
+        endif
+        let pos -= max([(w - a:width)/2, 1])
+    endwhile
+    return ''
 endfunction
 
 " This comes straight out of syntastic.
 "print as much of a:msg as possible without "Press Enter" prompt appearing
 function! neomake#utils#WideMessage(msg) abort " {{{2
-    let old_ruler = &ruler
-    let old_showcmd = &showcmd
-
     " Replace newlines (typically in the msg) with a single space.  This
     " might happen with writegood.
     let msg = substitute(a:msg, '\r\?\n', ' ', 'g')
@@ -50,14 +66,21 @@ function! neomake#utils#WideMessage(msg) abort " {{{2
     "width as the proper amount of characters
     let chunks = split(msg, "\t", 1)
     let msg = join(map(chunks[:-2], "v:val . repeat(' ', &tabstop - strwidth(v:val) % &tabstop)"), '') . chunks[-1]
-    let msg = neomake#utils#wstrpart(msg, 0, &columns - 1)
 
+    if exists('v:echospace')
+        let msg = neomake#utils#truncate_width(msg, v:echospace)
+        call neomake#log#debug('WideMessage: echo '.msg.'.')
+        echo msg
+        return
+    endif
+
+    let msg = neomake#utils#truncate_width(msg, &columns-1)
+
+    let old_ruler = &ruler
+    let old_showcmd = &showcmd
     set noruler noshowcmd
     redraw
-
-    call neomake#log#debug('WideMessage: echo '.msg.'.')
     echo msg
-
     let &ruler = old_ruler
     let &showcmd = old_showcmd
 endfunction " }}}2
@@ -117,7 +140,7 @@ let s:super_ft_cache = {}
 function! neomake#utils#GetSupersetOf(ft) abort
     if !has_key(s:super_ft_cache, a:ft)
         call neomake#utils#load_ft_makers(a:ft)
-        let SupersetOf = 'neomake#makers#ft#'.a:ft.'#SupersetOf'
+        let l:SupersetOf = 'neomake#makers#ft#'.a:ft.'#SupersetOf'
         if exists('*'.SupersetOf)
             let s:super_ft_cache[a:ft] = call(SupersetOf, [])
         else
@@ -191,14 +214,14 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
     " Check new-style config.
     if exists('g:neomake') || !empty(getbufvar(a:bufnr, 'neomake'))
         let context = {'ft': a:ft, 'maker': a:maker, 'bufnr': a:bufnr, 'maker_only': maker_only}
-        let [Ret, source] = neomake#config#get_with_source(a:key, g:neomake#config#undefined, context)
+        let [l:Ret, source] = neomake#config#get_with_source(a:key, g:neomake#config#undefined, context)
         " Check old-style setting when source is the maker.
         if source ==# 'maker' && !maker_only
             let tmpmaker = {}
             if has_key(a:maker, 'name')
                 let tmpmaker.name = a:maker.name
             endif
-            let RetOld = s:get_oldstyle_setting(a:key, tmpmaker, s:unset, a:ft, a:bufnr, 1)
+            let l:RetOld = s:get_oldstyle_setting(a:key, tmpmaker, s:unset, a:ft, a:bufnr, 1)
             if RetOld isnot# s:unset
                 return RetOld
             endif
@@ -232,7 +255,7 @@ function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abo
         endif
         let config_var = 'neomake_'.part.'_'.a:key
         if a:bufnr isnot# ''
-            let Bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
+            let l:Bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
             if Bufcfgvar isnot s:unset
                 return copy(Bufcfgvar)
             endif
@@ -263,18 +286,57 @@ function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abo
     return a:default
 endfunction
 
+" Helper function to define default highlight for a:group (e.g.
+" "Neomake%sSign"), using fg from another highlight, abd given background.
+function! neomake#utils#define_derived_highlights(group_format, bg) abort
+    for [type, fg_from] in items({
+                \ 'Error': ['Error', 'bg'],
+                \ 'Warning': ['Todo', 'fg'],
+                \ 'Info': ['Question', 'fg'],
+                \ 'Message': ['ModeMsg', 'fg']
+                \ })
+        let group = printf(a:group_format, type)
+        call s:define_derived_highlight_group(group, fg_from, a:bg)
+    endfo
+endfunction
+
+function! s:define_derived_highlight_group(group, fg_from, bg) abort
+    let [fg_group, fg_attr] = a:fg_from
+    let [ctermbg, guibg] = a:bg
+    let bg = 'ctermbg='.ctermbg.' guibg='.guibg
+
+    " NOTE: fg falls back to "Normal" always, not bg (for e.g. "SignColumn")
+    " inbetween.
+    let ctermfg = neomake#utils#GetHighlight(fg_group, fg_attr, 'Normal')
+    let guifg = neomake#utils#GetHighlight(fg_group, fg_attr.'#', 'Normal')
+
+    " Ensure that we're not using bg as fg (as with gotham
+    " colorscheme, issue https://github.com/neomake/neomake/pull/659).
+    if ctermfg !=# 'NONE' && ctermfg ==# ctermbg
+        let ctermfg = neomake#utils#GetHighlight(fg_group, neomake#utils#ReverseSynIDattr(fg_attr))
+    endif
+    if guifg !=# 'NONE' && guifg ==# guibg
+        let guifg = neomake#utils#GetHighlight(fg_group, neomake#utils#ReverseSynIDattr(fg_attr).'#')
+    endif
+    exe 'hi '.a:group.'Default ctermfg='.ctermfg.' guifg='.guifg.' '.bg
+    if !neomake#utils#highlight_is_defined(a:group)
+        exe 'hi link '.a:group.' '.a:group.'Default'
+    endif
+endfunction
+
 " Get property from highlighting group.
 function! neomake#utils#GetHighlight(group, what, ...) abort
     let fallback = a:0 ? a:1 : ''
-    let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
+    let mode = a:what[-1:] ==# '#' ? 'gui' : 'cterm'
+    let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse', mode)
     let what = a:what
     if reverse
         let what = neomake#utils#ReverseSynIDattr(what)
     endif
     if what[-1:] ==# '#'
-        let val = synIDattr(synIDtrans(hlID(a:group)), what, 'gui')
+        let val = synIDattr(synIDtrans(hlID(a:group)), what, mode)
     else
-        let val = synIDattr(synIDtrans(hlID(a:group)), what, 'cterm')
+        let val = synIDattr(synIDtrans(hlID(a:group)), what, mode)
     endif
     if empty(val) || val == -1
         if !empty(fallback)
@@ -390,7 +452,7 @@ function! s:handle_hook(jobinfo, event, context) abort
     if !empty(a:jobinfo)
         let log_args += [a:jobinfo]
     endif
-    call call('neomake#log#info', log_args)
+    call call('neomake#log#debug', log_args)
 
     unlockvar g:neomake_hook_context
     let g:neomake_hook_context = a:context
@@ -587,9 +649,18 @@ endfunction
 " This is determined by looking for specific files (e.g. `.git` and
 " `Makefile`), and `g:neomake#makers#ft#X#project_root_files` (if defined for
 " filetype "X").
+" This can be overridden in b:neomake.project_root (where it gets cached
+" also).
 " a:1 buffer number (defaults to current)
 function! neomake#utils#get_project_root(...) abort
     let bufnr = a:0 ? a:1 : bufnr('%')
+    let bufcfg = getbufvar(bufnr, 'neomake')
+    if !empty(bufcfg)
+        let buf_project_root = get(bufcfg, 'project_root', -1)
+        if buf_project_root isnot -1
+            return buf_project_root
+        endif
+    endif
     let ft = getbufvar(bufnr, '&filetype')
     call neomake#utils#load_ft_makers(ft)
 
@@ -600,14 +671,17 @@ function! neomake#utils#get_project_root(...) abort
         let project_root_files = get(g:, ft_project_root_files) + project_root_files
     endif
 
+    let r = ''
     let buf_dir = expand('#'.bufnr.':p:h')
     for fname in project_root_files
         let project_root = neomake#utils#FindGlobFile(fname, buf_dir)
         if !empty(project_root)
-            return fnamemodify(project_root, ':h')
+            let r = fnamemodify(project_root, ':h')
+            break
         endif
     endfor
-    return ''
+    call neomake#config#set_buffer(bufnr, 'project_root', r)
+    return r
 endfunction
 
 " Return the number of lines for a given buffer.
@@ -745,3 +819,8 @@ function! neomake#utils#shorten_list_for_log(l, max) abort
     endif
     return a:l
 endfunction
+
+augroup neomake_utils
+    au!
+    autocmd FileType * if exists('b:neomake.project_root') | unlet b:neomake.project_root | endif
+augroup END

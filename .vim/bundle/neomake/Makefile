@@ -1,14 +1,13 @@
 # Do not let mess "cd" with user-defined paths.
 CDPATH:=
 
-bash=$(shell command -v bash 2>/dev/null)
-TEST_SHELL:=$(bash)
+TEST_SHELL:=$(shell command -v bash 2>/dev/null)
 ifeq ($(TEST_SHELL),)
   $(error Could not determine TEST_SHELL (defaults to bash))
 endif
 # This is expected in tests.
 TEST_VIM_PREFIX:=SHELL=$(TEST_SHELL)
-SHELL:=$(bash) -o pipefail
+SHELL:=$(TEST_SHELL) -o pipefail
 
 # Use nvim if it is installed, otherwise vim.
 ifeq ($(TEST_VIM),)
@@ -78,7 +77,9 @@ _SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log --compact vader
 #  - test "Automake restarts if popup menu is visible" hangs (https://github.com/vim/vim/issues/1320)
 #  - running the command from "make testvim" directly (i.e. without "make")
 #    triggers half the screen to be cleared in the end
-_REDIR_STDOUT:=2>&1 >/dev/null </dev/null $(_SED_HIGHLIGHT_ERRORS)
+# Vim requires stdin to be closed for feedkeys to stay in insert mode, at
+# least in Docker on CircleCI.
+_REDIR_STDOUT:=2>&1 >/dev/null </dev/null
 
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
 # Vim hangs with /dev/null on Windows (native Vim via MSYS2).
@@ -94,9 +95,9 @@ COVERAGE_FILE:=.coverage_covimerage
 _COVIMERAGE=$(if $(filter-out 0,$(NEOMAKE_DO_COVERAGE)),covimerage run --data-file $(COVERAGE_FILE) --append --no-report ,)
 define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) "$(TEST_VIM)" --version | head -n2))
-	$(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)"$(TEST_VIM)" \
+	($(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)"$(TEST_VIM)" \
 	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X $(if $(_REDIR_STDOUT),-s /dev/null,)) \
-	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
+	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)) $(_SED_HIGHLIGHT_ERRORS)
 endef
 
 # Interactive tests, keep Vader open.
@@ -182,7 +183,7 @@ vimhelplint: | $(if $(VIMHELPLINT_DIR),,build/vimhelplint)
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=41
+DOCKER_TAG:=47
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
@@ -201,12 +202,12 @@ docker_update_latest:
 	docker push $(DOCKER_REPO):latest
 docker_update_image:
 	@git diff --cached --exit-code >/dev/null || { echo "WARN: git index is not clean."; }
-	@if git diff --exit-code Makefile >/dev/null; then \
+	@if git diff --exit-code -- Makefile >/dev/null; then \
 	  sed -i '/^DOCKER_TAG:=/s/:=.*/:=$(shell echo $$(($(DOCKER_TAG)+1)))/' Makefile; \
 	else \
 	  echo "WARN: Makefile is not clean. Not updating."; \
 	fi
-	@if git diff --exit-code Dockerfile.tests >/dev/null; then \
+	@if git diff --exit-code -- Dockerfile.tests >/dev/null; then \
 	  sed -i '/^ENV NEOMAKE_DOCKERFILE_UPDATE=/s/=.*/=$(shell date +%Y-%m-%d)/' Dockerfile.tests; \
 	else \
 	  echo "WARN: Dockerfile.tests is not clean. Not updating."; \
@@ -216,7 +217,7 @@ docker_update_image:
 	@echo "Done.  Use 'make docker_push' to push it, and then update .circleci/config.yml."
 
 DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim80 vim81 \
-  neovim-v0.1.7 neovim-v0.3.1 neovim-master
+  neovim-v0.1.7 neovim-v0.3.8 neovim-master vim-master
 _DOCKER_VIM_TARGETS:=$(addprefix docker_test-,$(DOCKER_VIMS))
 
 docker_test_all: $(_DOCKER_VIM_TARGETS)

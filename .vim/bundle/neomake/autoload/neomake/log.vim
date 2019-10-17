@@ -4,12 +4,14 @@ let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 let s:is_testing = exists('g:neomake_test_messages')
 let s:pid = getpid()
 
-let s:last_msg_ts = neomake#compat#reltimefloat()
+if !exists('s:last_msg_ts')
+    let s:last_msg_ts = neomake#compat#reltimefloat()
+endif
 
 function! s:reltime_lastmsg() abort
     let cur = neomake#compat#reltimefloat()
     let diff = (cur - s:last_msg_ts)
-    let s:last_msg_ts = neomake#compat#reltimefloat()
+    let s:last_msg_ts = cur
 
     if diff < 0.01
         return '     '
@@ -77,7 +79,6 @@ function! s:log(level, msg, ...) abort
             let g:neomake_test_errors += ['Log msg does not end with punctuation: "'.a:msg.'".']
         endif
     elseif verbosity >= a:level
-        redraw
         if verbosity > 2
             echom 'Neomake: '.msg
         else
@@ -100,7 +101,6 @@ function! s:log(level, msg, ...) abort
                 let s:logfile_writefile_opts = 'aS'
             else
                 let s:logfile_writefile_opts = ''
-                redraw
                 echohl WarningMsg
                 echom 'Neomake: appending to the logfile is not supported in your Vim version.'
                 echohl NONE
@@ -147,7 +147,6 @@ endfunction
 
 function! neomake#log#exception(error, ...) abort
     let log_context = a:0 ? a:1 : {'bufnr': bufnr('%')}
-    redraw
     echom printf('Neomake error in: %s', v:throwpoint)
     call neomake#log#error(a:error, log_context)
     call neomake#log#debug(printf('(in %s)', v:throwpoint), log_context)
@@ -158,7 +157,7 @@ function! neomake#log#warn_once(msg, key) abort
     if !has_key(s:warned, a:key)
         let s:warned[a:key] = 1
         echohl WarningMsg
-        redraw | echom 'Neomake: ' . a:msg
+        echom 'Neomake: ' . a:msg
         echohl None
         let v:warningmsg = 'Neomake: '.a:msg
         call neomake#log#debug('Neomake warning: '.a:msg)

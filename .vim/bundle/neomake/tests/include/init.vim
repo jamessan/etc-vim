@@ -258,7 +258,7 @@ command! -nargs=1 AssertNeomakeWarning call s:AssertNeomakeWarning(<args>)
 
 function! s:AssertEqualQf(actual, expected, ...) abort
   let expected = a:expected
-  if has('patch-8.0.1782')
+  if has('patch-8.0.1782') || has('nvim-0.4.0')
     let expected = map(copy(expected), "extend(v:val, {'module': ''})")
   endif
   call call('vader#assert#equal', [a:actual, expected] + a:000)
@@ -329,7 +329,7 @@ let s:jobinfo_count = 0
 function! NeomakeTestsFakeJobinfo() abort
   let s:jobinfo_count += 1
   let make_id = -42
-  let jobinfo = copy(g:neomake#jobinfo#base)
+  let jobinfo = neomake#jobinfo#new()
   let maker = copy(g:neomake#config#_defaults.maker_defaults)
   let maker.name = 'fake_jobinfo_name'
 
@@ -590,6 +590,18 @@ function! s:After()
   endfor
 
   let new_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val) && index(g:neomake_test_buffers_before, v:val) == -1')
+  if !empty(new_buffers) && has('patch-8.1.0877')
+    " Filter out unlisted qf buffers, which Vim keeps around.
+    let new_new_buffers = []
+    for b in new_buffers
+      if !buflisted(b) && getbufvar(b, '&ft') ==# 'qf'
+        exe 'bwipe!' b
+        continue
+      endif
+      call add(new_new_buffers, b)
+    endfor
+    let new_buffers = new_new_buffers
+  endif
   if !empty(new_buffers)
     let curbuffers = neomake#utils#redir('ls!')
     call add(errors, 'Unexpected/not wiped buffers: '.join(new_buffers, ', ')."\ncurrent buffers:".curbuffers)
@@ -622,8 +634,15 @@ function! s:After()
 
   " Check that no highlights are left.
   let highlights = neomake#highlights#_get()
+  " Ignore unlisted qf buffers that Vim keeps around
+  " (having ft='' (likely due to bwipe above)).
+  if has('patch-8.1.0877')
+      call filter(highlights['file'], 'buflisted(v:key)')
+  endif
   if highlights != {'file': {}, 'project': {}}
     call add(errors, printf('Highlights were not reset (use a new buffer): %s', highlights))
+    let highlights.file = {}
+    let highlights.project = {}
   endif
 
   if exists('#neomake_event_queue')
