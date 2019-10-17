@@ -218,6 +218,7 @@
 !/.vim/bundle/neomake/.coveragerc
 !/.vim/bundle/neomake/doc
 !/.vim/bundle/neomake/Dockerfile.tests
+!/.vim/bundle/neomake/.dockerignore
 !/.vim/bundle/neomake/doc/neomake.txt
 !/.vim/bundle/neomake/.github
 !/.vim/bundle/neomake/.github/ISSUE_TEMPLATE.md
@@ -231,6 +232,7 @@
 !/.vim/bundle/neomake/syntax/neomake
 !/.vim/bundle/neomake/syntax/neomake/python.vim
 !/.vim/bundle/neomake/syntax/neomake/qf.vim
+!/.vim/bundle/neomake/syntax/qf.vim
 !/.vim/bundle/neomake/tests
 !/.vim/bundle/neomake/tests/action_queue.vader
 !/.vim/bundle/neomake/tests/all.vader
@@ -336,6 +338,7 @@
 !/.vim/bundle/neomake/tests/isolated/compat-get_argv-on-emulated-windows.vader
 !/.vim/bundle/neomake/tests/isolated/completion-handles-throw.vader
 !/.vim/bundle/neomake/tests/isolated/configure.vader
+!/.vim/bundle/neomake/tests/isolated/customqf.vader
 !/.vim/bundle/neomake/tests/isolated/ft_help.vader
 !/.vim/bundle/neomake/tests/isolated/ft_vim.vader
 !/.vim/bundle/neomake/tests/isolated/highlights.vader
@@ -343,6 +346,7 @@
 !/.vim/bundle/neomake/tests/isolated/modes.vader
 !/.vim/bundle/neomake/tests/isolated/resets-ignore_automake_events.vader
 !/.vim/bundle/neomake/tests/isolated/sign-highlights.vader
+!/.vim/bundle/neomake/tests/isolated/signs.vader
 !/.vim/bundle/neomake/tests/isolated/statusline-highlights.vader
 !/.vim/bundle/neomake/tests/isolated/tempfiles-cleanup.vader
 !/.vim/bundle/neomake/tests/isolated.vader
@@ -369,6 +373,7 @@
 !/.vim/bundle/neomake/tests/utils.vader
 !/.vim/bundle/neomake/tests/verbosity.vader
 !/.vim/bundle/neomake/tests/vim
+!/.vim/bundle/neomake/tests/vim_and_neovim_behavior.vader
 !/.vim/bundle/neomake/tests/vim/vimrc
 !/.vim/bundle/neomake/.vintrc.yaml
 !/.vim/bundle/nofrils
