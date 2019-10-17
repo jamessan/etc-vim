@@ -118,6 +118,9 @@ set shortmess=atI " shortens messages to avoid 'press a key' prompt
 set report=0 " tell us when anything is changed via :...
 set noconfirm " Don't use dialog boxes to confirm choices
 set ttyfast
+if exists('+signcolumn')
+    set signcolumn=yes
+endif
 
 " Visual Cues
 
