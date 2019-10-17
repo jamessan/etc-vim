@@ -185,7 +185,15 @@ Execute (Instantiate all default makers):
       endtry
 
       " Validate maker.
-      let issues = neomake#debug#validate_maker(extend(maker, {'exe': 'true'}))
+      let error_with_validate_maker = 1
+      try
+        let issues = neomake#debug#validate_maker(extend(maker, {'exe': 'true'}))
+        let error_with_validate_maker = 0
+      finally
+        if error_with_validate_maker
+          call vader#log(printf('Error with: %s!', m))
+        endif
+      endtry
       if !empty(issues.errors)
         call add(file_errors, 'Maker '.string(m).' for filetype '.ft.' has errors: '.join(issues.errors))
       endif
@@ -545,8 +553,9 @@ Execute (Makers: get_list_entries):
   let maker = {}
   function! maker.get_list_entries(...) abort dict
     let jobinfo = a:1
-    AssertEqual keys(jobinfo.maker), ['name', 'get_list_entries']
+    AssertEqual sort(keys(jobinfo.maker)), ['auto_enabled', 'get_list_entries', 'name']
     Assert !has_key(self, 'errorformat'), 'errorformat is not required'
+    AssertEqual jobinfo.maker.auto_enabled, 0
     return deepcopy(g:neomake_test_entries)
   endfunction
 
@@ -563,6 +572,16 @@ Execute (Makers: get_list_entries):
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
   AssertEqual len(g:neomake_test_finished), 1
+  bwipe
+
+Execute (Makers: auto_enabled is kept if provided):
+  new
+  set filetype=neomake_tests
+  let b:neomake_neomake_tests_enabled_makers = [
+  \ {'name': 'custom', 'auto_enabled': 1},
+  \ ]
+  AssertEqual map(neomake#GetEnabledMakers('neomake_tests'), '[v:val.name, v:val.auto_enabled]'),
+  \ [['custom', 1]]
   bwipe
 
 Execute (Makers: get_list_entries with non-list return value):
@@ -935,3 +954,141 @@ Execute (Job can be skipped via InitForJob):
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
   bwipe!
+
+Execute (Makers: compare list entry defaults):
+  " setloclist: => nr=0
+  new
+  call setloclist(0, [{}])
+  let list1 = getloclist(0)
+  AssertEqualQf list1, [
+  \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
+  \  'vcol': 0, 'nr': 0, 'type': '', 'text': ''}]
+  bwipe
+
+  " lgetexpr: => nr=-1 (needs text implicitly)
+  new
+  let &l:efm = '%m'
+  lgetexpr 'hastext'
+  let list2 = getloclist(0)
+  AssertEqualQf list2, [
+  \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
+  \  'vcol': 0, 'nr': -1, 'type': '', 'text': 'hastext'}]
+  bwipe
+
+  " get_list_entries, without text: => nr=0, type=W (default)
+  new
+  let maker = {}
+  function! maker.get_list_entries(...)
+    return [{}]
+  endfunction
+  CallNeomake 1, [maker]
+  let list3 = getloclist(0)
+  " AssertEqualQf list3, list1
+  AssertEqualQf list3, [
+  \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
+  \  'vcol': 0, 'nr': 0, 'type': 'W', 'text': ''}]
+  bwipe
+
+  " get_list_entries, with text: => nr=-1, type=W (default)
+  new
+  let maker = {}
+  function! maker.get_list_entries(...)
+    return [{'text': 'hastext'}]
+  endfunction
+  CallNeomake 1, [maker]
+  let list4 = getloclist(0)
+  " AssertEqualQf list4, list2
+  AssertEqualQf list4, [
+  \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
+  \  'vcol': 0, 'nr': -1, 'type': 'W', 'text': 'hastext'}]
+  bwipe
+
+  " cmd maker, without text: => nr=-1
+  " This is not consistent - due to appending?!
+  new
+  let cmd_maker = NeomakeTestsGetMakerWithOutput({}, [''])
+  CallNeomake 1, [cmd_maker]
+  let list5 = getloclist(0)
+  AssertEqualQf list5, [
+  \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
+  \  'vcol': 0, 'nr': -1, 'type': '', 'text': ''}]
+  bwipe
+
+  " cmd maker, with text: => nr=-1
+  new
+  let cmd_maker = NeomakeTestsGetMakerWithOutput({}, ['hastext'])
+  CallNeomake 1, [cmd_maker]
+  let list6 = getloclist(0)
+  AssertEqualQf list6, list2
+  bwipe
+
+Execute (neomake#core#instantiate_maker: does not use copy for self):
+  let maker = {
+  \ 'args': [],
+  \ 'init_call_count': 0,
+  \ }
+  function! maker.InitForJob(...) abort
+    let self.init_call_count += 1
+    let self.args += ['arg_for_job']
+  endfunction
+
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job']
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job', 'arg_for_job']
+  AssertEqual maker.init_call_count, 2
+  AssertEqual bound_maker.init_call_count, 2
+
+  " deepcopy in InitForJob.
+  let maker = {
+  \ 'args': [],
+  \ 'init_call_count': 0,
+  \ }
+  function! maker.InitForJob(...) abort
+    let self.init_call_count += 1
+    let maker = deepcopy(self)
+    let maker.args += ['arg_for_job']
+    return maker
+  endfunction
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job']
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job']
+  AssertEqual maker.init_call_count, 2
+  AssertEqual bound_maker.init_call_count, 2
+
+  " copy in InitForJob (mutates args).
+  let maker = {
+  \ 'args': [],
+  \ 'init_call_count': 0,
+  \ }
+  function! maker.InitForJob(...) abort
+    let self.init_call_count += 1
+    let maker = copy(self)
+    let maker.args += ['arg_for_job']
+    return maker
+  endfunction
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job']
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job', 'arg_for_job']
+  AssertEqual maker.init_call_count, 2
+  AssertEqual bound_maker.init_call_count, 2
+
+  " copy in InitForJob (copied args).
+  let maker = {
+  \ 'args': [],
+  \ 'init_call_count': 0,
+  \ }
+  function! maker.InitForJob(...) abort
+    let self.init_call_count += 1
+    let maker = copy(self)
+    let maker.args = maker.args + ['arg_for_job']
+    return maker
+  endfunction
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job']
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job']
+  AssertEqual maker.init_call_count, 2
+  AssertEqual bound_maker.init_call_count, 2

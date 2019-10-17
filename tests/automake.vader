@@ -82,6 +82,12 @@ Execute (short setup: 'r'):
   call neomake#configure#automake('r')
   call NeomakeTestsAssertAutomakeAutocommands(['BufWinEnter', 'FileChangedShellPost', 'FileType'])
 
+Execute (short setup: reports unknown modes):
+  call neomake#configure#automake('z')
+  AssertNeomakeMessage 'unknown modes in string automake config (z): z.', 0
+  call neomake#configure#automake('Xwz')
+  AssertNeomakeMessage 'unknown modes in string automake config (Xwz): X, z.', 0
+
 Execute (setup: short vs. long):
   call neomake#configure#automake('w', 500)
   let short_config = copy(g:neomake)
@@ -245,7 +251,7 @@ Execute (Automake):
   AssertEqual len(g:neomake_test_jobfinished), 1
 
   " 'jobs' in logged context.
-  AssertNeomakeMessage '\VCalling User autocmd NeomakeFinished with context: \.\*''jobs'': [''true'']\.\*}.', 2
+  AssertNeomakeMessage '\VCalling User autocmd NeomakeFinished with context: \.\*''jobs'': [''true'']\.\*}.', 3
 
   " Tick was not reset on FileType-reconfig (no changes).
   doautocmd FileType
@@ -551,7 +557,7 @@ Execute (BufWritePost does not run for unchanged buffer):
   call neomake#configure#automake('w')
 
   new
-  let b:neomake_test_enabledmakers = ['true']
+  let b:neomake_test_enabledmakers = ['success_entry_maker']
   set filetype=neomake_tests
 
   CallNeomake 1, []
@@ -559,33 +565,25 @@ Execute (BufWritePost does not run for unchanged buffer):
   Assert !exists('b:_neomake_automake_tick')
 
   exe 'w' tempname()
-  NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 2
   Assert exists('b:_neomake_automake_tick')
 
+  " Every write used to trigger a run (due to b:changedtick being incremented,
+  " https://github.com/vim/vim/issues/2764).
   w
-  NeomakeTestsWaitForFinishedJobs
-  AssertEqual len(g:neomake_test_jobfinished), 2
-  AssertNeomakeMessage 'automake: buffer was not changed.'
+  if has('patch-8.1.1498') || has('nvim-0.4')
+    AssertEqual len(g:neomake_test_jobfinished), 2
+  else
+    AssertEqual len(g:neomake_test_jobfinished), 3
+  endif
 
+  let expected = len(g:neomake_test_jobfinished) + 1
   normal! ifoo
   w
-  NeomakeTestsWaitForFinishedJobs
-  AssertEqual len(g:neomake_test_jobfinished), 3
+  AssertEqual len(g:neomake_test_jobfinished), expected
 
-  w
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual len(g:neomake_test_jobfinished), 3
-  AssertNeomakeMessage 'automake: buffer was not changed.'
-
-  normal! oline2
-  call neomake#Make(1, [])
-  NeomakeTestsWaitForFinishedJobs
-  AssertEqual len(g:neomake_test_jobfinished), 4
-
-  w
-  AssertNeomakeMessage 'automake: buffer was not changed.'
-  AssertEqual len(g:neomake_test_jobfinished), 4
+  AssertEqual len(g:neomake_test_jobfinished), expected
   bwipe
 
 Execute (BufWritePost does not run for unchanged buffer (delayed)):
@@ -596,31 +594,29 @@ Execute (BufWritePost does not run for unchanged buffer (delayed)):
     AssertNeomakeMessage 'automake: timer support is required for automaking, removing event BufWritePost.', 0
   else
     new
-    let b:neomake_test_enabledmakers = ['true']
+    let b:neomake_test_enabledmakers = ['success_entry_maker']
     set filetype=neomake_tests
     exe 'w' tempname()
     AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
     NeomakeTestsWaitForNextFinishedJob
     AssertEqual len(g:neomake_test_jobfinished), 1
 
+    " Every write used to trigger a run (due to b:changedtick being incremented,
+    " https://github.com/vim/vim/issues/2764).
     w
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual len(g:neomake_test_jobfinished), 1
-    AssertNeomakeMessage 'automake: buffer was not changed.'
+    if has('patch-8.1.1498') || has('nvim-0.4')
+      let offset_for_unchanged_write = 0
+    else
+      let offset_for_unchanged_write = 1
+      NeomakeTestsWaitForNextFinishedJob
+    endif
+    AssertEqual len(g:neomake_test_jobfinished), 1 + offset_for_unchanged_write
 
     normal! ifoo
     w
     NeomakeTestsWaitForNextFinishedJob
-    AssertEqual len(g:neomake_test_jobfinished), 2
+    AssertEqual len(g:neomake_test_jobfinished), 2 + offset_for_unchanged_write
 
-    w
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual len(g:neomake_test_jobfinished), 2
-    AssertNeomakeMessage 'automake: buffer was not changed.'
-    w
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual len(g:neomake_test_jobfinished), 2
-    AssertNeomakeMessage 'automake: buffer was not changed.'
     bwipe
   endif
 
@@ -1523,3 +1519,113 @@ Execute (automake: creates/handles single cleanup autocmd per buffer):
   call neomake#configure#reset_automake()
   Assert !exists('#neomake_automake_clean#BufWipeout')
   bwipe
+
+Execute (BufWritePost via doautocmd is handled (e.g. vim-fugitive)):
+  call g:NeomakeSetupAutocmdWrappers()
+  call neomake#configure#automake('w')
+
+  function! s:BufWriteCmd() abort
+    exe 'doautocmd BufWritePost '.expand('<amatch>')
+  endfunction
+  augroup neomake_tests
+    au BufWriteCmd * call s:BufWriteCmd()
+  augroup END
+
+  new
+  let b:neomake_test_enabledmakers = ['success_entry_maker']
+  set filetype=neomake_tests
+
+  exe 'w' tempname()
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  Assert exists('b:_neomake_automake_tick')
+
+  " Setup tick for when :diffget was used (only changing it by one), in
+  " contrast to e.g. ":normal o".
+  let b:_neomake_automake_tick[0] = b:_neomake_automake_tick[0] - 1
+  setlocal modified
+  update
+  AssertEqual len(g:neomake_test_jobfinished), 2
+  bwipe!
+
+Execute (automake: skip automake with manual run (in init)):
+  if NeomakeAsyncTestsSetup()
+    call neomake#configure#automake({'BufWritePost': {'delay': 100}})
+
+    new
+    let bufnr = bufnr('%')
+    let g:neomake_test_enabledmakers = [g:entry_maker]
+    set filetype=neomake_tests
+
+    call neomake#Make(1, [g:sleep_maker])
+    doautocmd BufWritePost
+    AssertNeomakeMessage '\Vautomake: skipping for already running jobs: [''Job \d\+: sleep-maker''].', 3
+
+    NeomakeTestsWaitForFinishedJobs
+    let valid = has('patch-8.0.0580')
+    AssertEqualQf getloclist(0), [
+      \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': valid,
+      \  'vcol': 0, 'nr': -1, 'type': 'W', 'text': 'slept'}]
+
+    " Next automake triggers run (not having updated tick).
+    doautocmd BufWritePost
+    AssertNeomakeMessage 'automake: automake for event BufWritePost.', 3
+    NeomakeTestsWaitForNextFinishedJob
+    AssertEqualQf getloclist(0), [
+      \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'pattern': '', 'valid': 1,
+      \  'vcol': 0, 'nr': -1, 'type': 'E', 'text': 'error'}]
+    bwipe!
+  endif
+
+Execute (automake: skip automake with manual run (in callback)):
+  if NeomakeAsyncTestsSetup()
+    call neomake#configure#automake({'BufWritePost': {'delay': 10}})
+
+    new
+    let bufnr = bufnr('%')
+    let g:neomake_test_enabledmakers = [g:entry_maker]
+    set filetype=neomake_tests
+
+    doautocmd BufWritePost
+    AssertNeomakeMessage 'automake: automake for event BufWritePost.', 3
+    call neomake#Make(1, [g:sleep_maker])
+
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage '\Vautomake: skipping for already running jobs: [''Job \d\+: sleep-maker''].', 3
+    let valid = has('patch-8.0.0580')
+    AssertEqualQf getloclist(0), [
+      \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': valid,
+      \  'vcol': 0, 'nr': -1, 'type': 'W', 'text': 'slept'}]
+
+    " Next automake triggers run (not having updated tick).
+    doautocmd BufWritePost
+    AssertNeomakeMessage 'automake: automake for event BufWritePost.', 3
+    NeomakeTestsWaitForNextFinishedJob
+    AssertEqualQf getloclist(0), [
+      \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'pattern': '', 'valid': 1,
+      \  'vcol': 0, 'nr': -1, 'type': 'E', 'text': 'error'}]
+    bwipe!
+  endif
+
+Execute (automake: abort automake with manual run):
+  if NeomakeAsyncTestsSetup()
+    call neomake#configure#automake({'BufWritePost': {'delay': 100}})
+
+    new
+    let bufnr = bufnr('%')
+    let g:neomake_test_enabledmakers = [g:sleep_maker]
+    set filetype=neomake_tests
+
+    doautocmd BufWritePost
+    AssertNeomakeMessage 'automake: automake for event BufWritePost.'
+    NeomakeTestsWaitForMessage 'Running makers: sleep-maker (auto).'
+
+    call neomake#Make(1, [g:entry_maker])
+    let expected_loclist = [
+    \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'pattern': '', 'valid': 1,
+    \  'vcol': 0, 'nr': -1, 'type': 'E', 'text': 'error'}]
+    AssertEqualQf getloclist(0), expected_loclist
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqualQf getloclist(0), expected_loclist
+    bwipe!
+  endif

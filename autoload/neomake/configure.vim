@@ -54,16 +54,6 @@ function! s:tick_changed(context) abort
             call s:debug_log('tick is unchanged')
             return 0
         endif
-
-        " NOTE: every write (BufWritePost) increments b:changedtick.
-        if a:context.event ==# 'BufWritePost'
-            let adjusted_prev_tick = [prev_tick[0]+1, prev_tick[1]]
-            if adjusted_prev_tick == cur_tick
-                let r = 0
-                call setbufvar(bufnr, '_neomake_automake_tick', adjusted_prev_tick)
-                call s:debug_log('tick is unchanged with BufWritePost adjustment')
-            endif
-        endif
     endif
     return r
 endfunction
@@ -160,6 +150,9 @@ endfunction
 
 function! s:neomake_do_automake(context) abort
     let bufnr = +a:context.bufnr
+    if s:skip_for_running_jobs(bufnr)
+        return
+    endif
 
     if !get(a:context, '_via_timer_cb') && a:context.delay
         if exists('s:timer_by_bufnr[bufnr]')
@@ -408,48 +401,54 @@ function! s:parse_events_from_args(config, string_or_dict_config, ...) abort
         endif
     else
         " Map string config to events dict.
-        let modes = a:string_or_dict_config
+        let modes = split(a:string_or_dict_config, '\zs')
         let events = {}
         let default_with_delay = {}
 
-        " Insert mode.
-        if modes =~# 'i'
-            if exists('##TextChangedI') && has('timers')
-                let events['TextChangedI'] = default_with_delay
-            else
-                call s:debug_log('using CursorHoldI instead of TextChangedI')
-                let events['CursorHoldI'] = (delay != 0 ? {'delay': 0} : {})
-            endif
-        endif
-        " Normal mode.
-        if modes =~# 'n'
-            if exists('##TextChanged') && has('timers')
-                let events['TextChanged'] = default_with_delay
-                if !has_key(events, 'TextChangedI')
-                    " Run when leaving insert mode, since only TextChangedI would be triggered
-                    " for `ciw` etc.
-                    let events['InsertLeave'] = default_with_delay
+        let unknown = []
+        for mode in modes
+            " Insert mode.
+            if mode ==# 'i'
+                if exists('##TextChangedI') && has('timers')
+                    let events['TextChangedI'] = default_with_delay
+                else
+                    call s:debug_log('using CursorHoldI instead of TextChangedI')
+                    let events['CursorHoldI'] = (delay != 0 ? {'delay': 0} : {})
                 endif
-            else
-                call s:debug_log('using CursorHold instead of TextChanged')
-                let events['CursorHold'] = (delay != 0 ? {'delay': 0} : {})
-                let events['InsertLeave'] = (delay != 0 ? {'delay': 0} : {})
-            endif
-        endif
-        " On writes.
-        if modes =~# 'w'
-            let events['BufWritePost'] = (delay != 0 ? {'delay': 0} : {})
-        endif
-        " On reads.
-        if modes =~# 'r'
-            let events['BufWinEnter'] = {}
-            let events['FileType'] = {}
+            " Normal mode.
+            elseif mode ==# 'n'
+                if exists('##TextChanged') && has('timers')
+                    let events['TextChanged'] = default_with_delay
+                    if !has_key(events, 'TextChangedI')
+                        " Run when leaving insert mode, since only TextChangedI would be triggered
+                        " for `ciw` etc.
+                        let events['InsertLeave'] = default_with_delay
+                    endif
+                else
+                    call s:debug_log('using CursorHold instead of TextChanged')
+                    let events['CursorHold'] = (delay != 0 ? {'delay': 0} : {})
+                    let events['InsertLeave'] = (delay != 0 ? {'delay': 0} : {})
+                endif
+            " On writes.
+            elseif mode ==# 'w'
+                let events['BufWritePost'] = (delay != 0 ? {'delay': 0} : {})
+            " On reads.
+            elseif mode ==# 'r'
+                let events['BufWinEnter'] = {}
+                let events['FileType'] = {}
 
-            " When a file was changed outside of Vim.
-            " TODO: test
-            let events['FileChangedShellPost'] = {}
-            " XXX: FileType might work better, at least when wanting to skip filetypes.
-            " let events['FileType'] = {'delay': a:0 > 1 ? delay : 0}
+                " When a file was changed outside of Vim.
+                " TODO: test
+                let events['FileChangedShellPost'] = {}
+                " XXX: FileType might work better, at least when wanting to skip filetypes.
+                " let events['FileType'] = {'delay': a:0 > 1 ? delay : 0}
+            else
+                let unknown += [mode]
+            endif
+        endfor
+        if !empty(unknown)
+            call neomake#log#error(printf('unknown modes in string automake config (%s): %s.',
+                        \ a:string_or_dict_config, join(unknown, ', ')))
         endif
     endif
 
@@ -602,6 +601,20 @@ function! s:maybe_reconfigure_buffer(bufnr) abort
     endif
 endfunction
 
+function! s:skip_for_running_jobs(bufnr) abort
+    let running_jobs = values(filter(copy(neomake#_get_s().jobs),
+                        \ 'v:val.bufnr == a:bufnr'
+                        \ .' && v:val.file_mode == 1'
+                        \ .' && !get(v:val, "automake", 0)'
+                        \ ." && !get(v:val, 'canceled')"))
+    if !empty(running_jobs)
+        call s:debug_log(printf('skipping for already running jobs: %s',
+                    \ string(map(running_jobs, 'v:val.as_string()'))),
+                    \ {'bufnr': a:bufnr})
+        return 1
+    endif
+endfunction
+
 " Called from autocommands.
 function! s:neomake_automake(event, bufnr) abort
     let disabled = neomake#config#get_with_source('disabled', 0)
@@ -635,6 +648,10 @@ function! s:neomake_automake(event, bufnr) abort
 
     if empty(s:configured_buffers[bufnr].maker_jobs)
         call s:debug_log('no enabled makers', {'bufnr': bufnr})
+        return
+    endif
+
+    if s:skip_for_running_jobs(bufnr)
         return
     endif
 
