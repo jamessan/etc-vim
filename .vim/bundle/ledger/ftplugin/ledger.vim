@@ -13,11 +13,19 @@ let b:undo_ftplugin = "setlocal ".
                     \ "foldtext< ".
                     \ "include< comments< commentstring< omnifunc< formatprg<"
 
+if !exists('current_compiler')
+  compiler ledger
+endif
+
 setl foldtext=LedgerFoldText()
 setl include=^!\\?include
 setl comments=b:;
 setl commentstring=;%s
 setl omnifunc=LedgerComplete
+
+if !exists('g:ledger_main')
+  let g:ledger_main = '%'
+endif
 
 " set location of ledger binary for checking and auto-formatting
 if ! exists("g:ledger_bin") || empty(g:ledger_bin) || ! executable(g:ledger_bin)
@@ -54,6 +62,18 @@ endif
 
 if !exists('g:ledger_fillstring')
   let g:ledger_fillstring = ' '
+endif
+
+if !exists("g:ledger_accounts_cmd")
+  if exists("g:ledger_bin")
+    let g:ledger_accounts_cmd = g:ledger_bin . ' -f ' . shellescape(expand(g:ledger_main)) . ' accounts'
+  endif
+endif
+
+if !exists("g:ledger_descriptions_cmd")
+  if exists("g:ledger_bin")
+    let g:ledger_descriptions_cmd = g:ledger_bin . ' -f ' . shellescape(expand(g:ledger_main)) . ' descriptions'
+  endif
 endif
 
 if !exists('g:ledger_decimal_sep')
@@ -111,10 +131,6 @@ if !exists('g:ledger_include_original')
 endif
 
 " Settings for Ledger reports {{{
-if !exists('g:ledger_main')
-  let g:ledger_main = '%'
-endif
-
 if !exists('g:ledger_winpos')
   let g:ledger_winpos = 'B'  " Window position (see s:winpos_map)
 endif
@@ -159,12 +175,12 @@ endif
 " }}}
 
 " Highlight groups for Ledger reports {{{
-hi! link LedgerNumber Number
-hi! link LedgerNegativeNumber Special
-hi! link LedgerCleared Constant
-hi! link LedgerPending Todo
-hi! link LedgerTarget Statement
-hi! link LedgerImproperPerc Special
+hi link LedgerNumber Number
+hi link LedgerNegativeNumber Special
+hi link LedgerCleared Constant
+hi link LedgerPending Todo
+hi link LedgerTarget Statement
+hi link LedgerImproperPerc Special
 " }}}
 
 let s:rx_amount = '\('.
@@ -179,7 +195,7 @@ let s:rx_amount = '\('.
 function! LedgerFoldText() "{{{1
   " find amount
   let amount = ""
-  let lnum = v:foldstart
+  let lnum = v:foldstart + 1
   while lnum <= v:foldend
     let line = getline(lnum)
 
@@ -195,7 +211,6 @@ function! LedgerFoldText() "{{{1
     let lnum += 1
   endwhile
 
-  let fmt = '%s %s '
   " strip whitespace at beginning and end of line
   let foldtext = substitute(getline(v:foldstart),
                           \ '\(^\s\+\|\s\+$\)', '', 'g')
@@ -205,26 +220,49 @@ function! LedgerFoldText() "{{{1
   if g:ledger_maxwidth
     let columns = min([columns, g:ledger_maxwidth])
   endif
-  let columns -= s:multibyte_strlen(printf(fmt, '', amount))
 
-  " add spaces so the text is always long enough when we strip it
-  " to a certain width (fake table)
-  if strlen(g:ledger_fillstring)
-    " add extra spaces so fillstring aligns
-    let filen = s:multibyte_strlen(g:ledger_fillstring)
-    let folen = s:multibyte_strlen(foldtext)
-    let foldtext .= repeat(' ', filen - (folen%filen))
+  let amount = printf(' %s ', amount)
+  " left cut-off if window is too narrow to display the amount
+  while columns < strdisplaywidth(amount)
+    let amount = substitute(amount, '^.', '', '')
+  endwhile
+  let columns -= strdisplaywidth(amount)
 
-    let foldtext .= repeat(g:ledger_fillstring,
-                  \ s:get_columns()/filen)
-  else
-    let foldtext .= repeat(' ', s:get_columns())
+  if columns <= 0
+    return amount
   endif
 
-  " we don't use slices[:5], because that messes up multibyte characters
-  let foldtext = substitute(foldtext, '.\{'.columns.'}\zs.*$', '', '')
+  " right cut-off if there is not sufficient space to display the description
+  while columns < strdisplaywidth(foldtext)
+    let foldtext = substitute(foldtext, '.$', '', '')
+  endwhile
+  let columns -= strdisplaywidth(foldtext)
 
-  return printf(fmt, foldtext, amount)
+  if columns <= 0
+    return foldtext . amount
+  endif
+
+  " fill in the fillstring
+  if strlen(g:ledger_fillstring)
+    let fillstring = g:ledger_fillstring
+  else
+    let fillstring = ' '
+  endif
+  let fillstrlen = strdisplaywidth(fillstring)
+
+  let foldtext .= ' '
+  let columns -= 1
+  while columns >= fillstrlen
+    let foldtext .= fillstring
+    let columns -= fillstrlen
+  endwhile
+
+  while columns < strdisplaywidth(fillstring)
+    let fillstring = substitute(fillstring, '.$', '', '')
+  endwhile
+  let foldtext .= fillstring
+
+  return foldtext . amount
 endfunction "}}}
 
 function! LedgerComplete(findstart, base) "{{{1
@@ -329,26 +367,37 @@ unlet s:old s:new s:fun
 function! s:collect_completion_data() "{{{1
   let transactions = ledger#transactions()
   let cache = {'descriptions': [], 'tags': {}, 'accounts': {}}
-  let accounts = []
+  if exists("g:ledger_accounts_cmd")
+    let accounts = systemlist(g:ledger_accounts_cmd)
+  else
+    let accounts = ledger#declared_accounts()
+  endif
+  if exists("g:ledger_descriptions_cmd")
+    let cache.descriptions = systemlist(g:ledger_descriptions_cmd)
+  endif
   for xact in transactions
-    " collect descriptions
-    if has_key(xact, 'description') && index(cache.descriptions, xact['description']) < 0
-      call add(cache.descriptions, xact['description'])
+    if !exists("g:ledger_descriptions_cmd")
+      " collect descriptions
+      if has_key(xact, 'description') && index(cache.descriptions, xact['description']) < 0
+        call add(cache.descriptions, xact['description'])
+      endif
     endif
     let [t, postings] = xact.parse_body()
     let tagdicts = [t]
 
-    " collect account names
-    for posting in postings
-      if has_key(posting, 'tags')
-        call add(tagdicts, posting.tags)
-      endif
-      " remove virtual-transaction-marks
-      let name = substitute(posting.account, '\%(^\s*[\[(]\?\|[\])]\?\s*$\)', '', 'g')
-      if index(accounts, name) < 0
-        call add(accounts, name)
-      endif
-    endfor
+		" collect account names
+    if !exists("g:ledger_accounts_cmd")
+      for posting in postings
+        if has_key(posting, 'tags')
+          call add(tagdicts, posting.tags)
+        endif
+        " remove virtual-transaction-marks
+        let name = substitute(posting.account, '\%(^\s*[\[(]\?\|[\])]\?\s*$\)', '', 'g')
+        if index(accounts, name) < 0
+          call add(accounts, name)
+        endif
+      endfor
+    endif
 
     " collect tags
     for tags in tagdicts | for [tag, val] in items(tags)
