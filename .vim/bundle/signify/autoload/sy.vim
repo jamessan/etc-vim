@@ -1,11 +1,8 @@
-" vim: et sw=2 sts=2
+" vim: et sw=2 sts=2 fdm=marker
 
 scriptencoding utf-8
 
-" Init: values {{{1
-let s:has_doau_modeline = v:version > 703 || v:version == 703 && has('patch442')
-
-" Function: #start {{{1
+" #start {{{1
 function! sy#start() abort
   if g:signify_locked
     call sy#verbose('Locked.')
@@ -75,41 +72,13 @@ function! sy#start() abort
         call sy#verbose('Update is already in progress.', vcs)
       else
         call sy#verbose('Updating signs.', vcs)
-        call sy#repo#get_diff_start(vcs)
+        call sy#repo#get_diff(vcs, function('sy#sign#set_signs'))
       endif
     endfor
   endif
 endfunction
 
-" Function: #set_signs {{{1
-function! sy#set_signs(sy, vcs, diff) abort
-  call sy#verbose('set_signs()', a:vcs)
-
-  if a:sy.stats == [-1, -1, -1]
-    let a:sy.stats = [0, 0, 0]
-  endif
-
-  if empty(a:diff)
-    call sy#verbose('No changes found.', a:vcs)
-    let a:sy.stats = [0, 0, 0]
-    call sy#sign#remove_all_signs(a:sy.buffer)
-    return
-  endif
-
-  if get(g:, 'signify_line_highlight')
-    call sy#highlight#line_enable()
-  else
-    call sy#highlight#line_disable()
-  endif
-
-  call sy#sign#process_diff(a:sy, a:vcs, a:diff)
-
-  if exists('#User#Signify')
-    execute 'doautocmd' (s:has_doau_modeline ? '<nomodeline>' : '') 'User Signify'
-  endif
-endfunction
-
-" Function: #stop {{{1
+" #stop {{{1
 function! sy#stop(bufnr) abort
   let sy = getbufvar(a:bufnr, 'sy')
   if empty(sy)
@@ -119,7 +88,7 @@ function! sy#stop(bufnr) abort
   call sy#sign#remove_all_signs(a:bufnr)
 endfunction
 
-" Function: #enable {{{1
+" #enable {{{1
 function! sy#enable() abort
   if !exists('b:sy')
     call sy#start()
@@ -133,7 +102,7 @@ function! sy#enable() abort
   endif
 endfunction
 
-" Function: #disable {{{1
+" #disable {{{1
 function! sy#disable() abort
   if exists('b:sy') && b:sy.active
     call sy#stop(b:sy.buffer)
@@ -142,7 +111,7 @@ function! sy#disable() abort
   endif
 endfunction
 
-" Function: #toggle {{{1
+" #toggle {{{1
 function! sy#toggle() abort
   if !exists('b:sy') || !b:sy.active
     call sy#enable()
@@ -151,12 +120,12 @@ function! sy#toggle() abort
   endif
 endfunction
 
-" Function: #buffer_is_active {{{1
+" #buffer_is_active {{{1
 function! sy#buffer_is_active()
   return exists('b:sy') && b:sy.active
 endfunction
 
-" Function: #verbose {{{1
+" #verbose {{{1
 function! sy#verbose(msg, ...) abort
   if &verbose
     if type(a:msg) == type([])
@@ -169,7 +138,7 @@ function! sy#verbose(msg, ...) abort
   endif
 endfunction
 
-" Function: s:skip {{{1
+" s:skip {{{1
 function! s:skip(path)
   if &diff || !filereadable(a:path)
     return 1
