@@ -84,6 +84,12 @@ endif
 
 " Vim UI
 
+set title
+let &titlestring = printf('%svim:%%t%%r%%m', has('nvim') ? 'n' : '')
+if $TERM =~ 'screen\|tmux'
+    let &titlestring = '\ek' . &titlestring . '\e\\'
+endif
+
 set diffopt+=horizontal
 set linespace=0 " space it out just like unix
 set wildmenu " turn on wild menu
