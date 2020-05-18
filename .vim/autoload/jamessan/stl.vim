@@ -20,7 +20,7 @@ endfunction
 function! jamessan#stl#sy_stats()
   let stats=''
   let sy = get(b:, 'sy', {})
-  if !empty(get(sy, 'updated_by', ''))
+  if get(sy, 'active', 0) && !empty(get(sy, 'updated_by', ''))
     let [added, modified, deleted] = sy#repo#get_stats()
     let stats = printf('[+%d ~%d -%d]', added, modified, deleted)
   endif
