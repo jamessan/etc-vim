@@ -37,33 +37,33 @@ let s:defaults = {
       \ 'repo':          ['.git', '.hg', '.svn'],
       \ 'tools':         ['git', 'ag', 'ack', 'ack-grep', 'grep', 'findstr', 'rg', 'pt', 'sift'],
       \ 'git':           { 'grepprg':    'git grep -nGI',
-      \                    'grepformat': '%f:%l:%c:%m,%f:%l:%m',
+      \                    'grepformat': '%f:%l:%c:%m,%f:%l:%m,%f',
       \                    'escape':     '\^$.*[]' },
       \ 'ag':            { 'grepprg':    'ag --vimgrep',
-      \                    'grepformat': '%f:%l:%c:%m,%f:%l:%m',
+      \                    'grepformat': '%f:%l:%c:%m,%f:%l:%m,%f',
       \                    'escape':     '\^$.*+?()[]{}|' },
       \ 'rg':            { 'grepprg':    'rg -H --no-heading --vimgrep' . (has('win32') ? ' $* .' : ''),
-      \                    'grepformat': '%f:%l:%c:%m',
+      \                    'grepformat': '%f:%l:%c:%m,%f',
       \                    'escape':     '\^$.*+?()[]{}|' },
       \ 'pt':            { 'grepprg':    'pt --nogroup',
-      \                    'grepformat': '%f:%l:%m' },
+      \                    'grepformat': '%f:%l:%m,%f' },
       \ 'sift':          { 'grepprg':    'sift -n --column --binary-skip $* .',
       \                    'grepprgbuf': 'sift -n --column --binary-skip --filename -- $* $.',
-      \                    'grepformat': '%f:%l:%c:%m',
+      \                    'grepformat': '%f:%l:%c:%m,%f',
       \                    'escape':     '\+*?^$%#()[]' },
       \ 'ack':           { 'grepprg':    'ack --noheading --column',
-      \                    'grepformat': '%f:%l:%c:%m',
+      \                    'grepformat': '%f:%l:%c:%m,%f',
       \                    'escape':     '\^$.*+?()[]{}|' },
       \ 'ack-grep':      { 'grepprg':    'ack-grep --noheading --column',
-      \                    'grepformat': '%f:%l:%c:%m',
+      \                    'grepformat': '%f:%l:%c:%m,%f',
       \                    'escape':     '\^$.*+?()[]{}|' },
       \ 'grep':          { 'grepprg':    'grep -RIn $* .',
       \                    'grepprgbuf': 'grep -HIn -- $* $.',
-      \                    'grepformat': '%f:%l:%m',
+      \                    'grepformat': '%f:%l:%m,%f',
       \                    'escape':     '\^$.*[]' },
       \ 'findstr':       { 'grepprg':    'findstr -rspnc:$* *',
       \                    'grepprgbuf': 'findstr -rpnc:$* $.',
-      \                    'grepformat': '%f:%l:%m',
+      \                    'grepformat': '%f:%l:%m,%f',
       \                    'wordanchors': ['\<', '\>'] }
       \ }
 
@@ -761,13 +761,13 @@ function! s:prompt(flags)
   endif
 
   " Store original mappings
-  let mapping_esc  = maparg('<esc>', 'c', '', 1)
+  let mapping_cr   = maparg('<cr>', 'c', '', 1)
   let mapping_tool = maparg(get(g:grepper, 'next_tool', g:grepper.prompt_mapping_tool), 'c', '', 1)
   let mapping_dir  = maparg(g:grepper.prompt_mapping_dir,  'c', '', 1)
   let mapping_side = maparg(g:grepper.prompt_mapping_side, 'c', '', 1)
 
   " Set plugin-specific mappings
-  cnoremap <silent> <esc> <c-\>e<sid>set_prompt_op('cancelled')<cr><c-c>
+  cnoremap <silent> <cr> <c-\>e<sid>set_prompt_op('cr')<cr><cr>
   execute 'cnoremap <silent>' g:grepper.prompt_mapping_tool "\<c-\>e\<sid>set_prompt_op('flag_tool')<cr><cr>"
   execute 'cnoremap <silent>' g:grepper.prompt_mapping_dir  "\<c-\>e\<sid>set_prompt_op('flag_dir')<cr><cr>"
   execute 'cnoremap <silent>' g:grepper.prompt_mapping_side "\<c-\>e\<sid>set_prompt_op('flag_side')<cr><cr>"
@@ -793,7 +793,7 @@ function! s:prompt(flags)
   "   'flag_dir':   don't start searching; toggle -dir flag
   "   'flag_side':  don't start searching; toggle -side flag
   "   'cr':         start searching
-  let s:prompt_op = 'cr'
+  let s:prompt_op = 'cancelled'
 
   echohl GrepperPrompt
   call inputsave()
@@ -816,11 +816,11 @@ function! s:prompt(flags)
     redraw!
 
     " Restore mappings
-    cunmap <esc>
+    cunmap <cr>
     execute 'cunmap' g:grepper.prompt_mapping_tool
     execute 'cunmap' g:grepper.prompt_mapping_dir
     execute 'cunmap' g:grepper.prompt_mapping_side
-    call s:restore_mapping(mapping_esc)
+    call s:restore_mapping(mapping_cr)
     call s:restore_mapping(mapping_tool)
     call s:restore_mapping(mapping_dir)
     call s:restore_mapping(mapping_side)
