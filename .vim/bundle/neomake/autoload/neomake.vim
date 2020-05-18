@@ -28,7 +28,9 @@ endif
 " A list of references to keep when profiling.
 " Workaround for https://github.com/vim/vim/issues/2350, where
 " https://github.com/blueyed/vader.vim/commit/e66d91dea is not enough.
-let s:hack_keep_refs_for_profiling = []
+if v:profiling
+    let s:hack_keep_refs_for_profiling = []
+endif
 
 " Can Neovim buffer output?
 let s:nvim_can_buffer_output = has('nvim-0.3.0') ? 1 : 0
@@ -206,8 +208,7 @@ function! neomake#CancelJob(job_id, ...) abort
         endif
         if has('nvim')
             try
-                call jobstop(job)
-                let ret = 1
+                let ret = jobstop(job)
             catch /^Vim\%((\a\+)\)\=:\(E474\|E900\):/
                 call neomake#log#info(printf(
                             \ 'jobstop failed: %s.', v:exception), jobinfo)
@@ -1262,17 +1263,18 @@ function! s:Make(options) abort
         " @vimlint(EVL102, 1, l:job)
         for job in jobs
             let running_already = values(filter(copy(s:jobs),
-                        \ '(v:val.maker == job.maker'
+                        \ '(v:val.maker.name == job.maker.name'
                         \ .'   || (!is_automake && get(v:val, "automake", 0)))'
                         \ .' && v:val.bufnr == job.bufnr'
                         \ .' && v:val.file_mode == job.file_mode'
                         \ ." && !get(v:val, 'canceled')"))
             if !empty(running_already)
-                let jobinfo = running_already[0]
-                call neomake#log#info(printf(
-                            \ 'Canceling already running job (%d.%d) for the same maker.',
-                            \ jobinfo.make_id, jobinfo.id), {'make_id': make_id})
-                call neomake#CancelJob(jobinfo.id, 1)
+                for running_job in running_already
+                    call neomake#log#info(printf(
+                                \ 'Canceling already running job (%d.%d) for the same maker.',
+                                \ running_job.make_id, running_job.id), {'make_id': make_id})
+                    call neomake#CancelJob(running_job.id, 1)
+                endfor
             endif
         endfor
     endif
@@ -1906,7 +1908,12 @@ function! s:process_pending_output(jobinfo, lines, source, ...) abort
             return g:neomake#action_queue#processed
         endif
     endif
-    call add(a:jobinfo.pending_output, [a:lines, a:source])
+
+    if !a:0
+        " Remember pending output, but only when not called via action queue.
+        call add(a:jobinfo.pending_output, [a:lines, a:source])
+    endif
+
     if index(neomake#action_queue#get_queued_actions(a:jobinfo),
                 \ ['process_pending_output', retry_events]) == -1
         return neomake#action_queue#add(retry_events, [s:function('s:process_pending_output'), [a:jobinfo, [], a:source, retry_events]])

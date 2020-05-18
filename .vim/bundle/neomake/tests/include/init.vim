@@ -395,6 +395,7 @@ function! s:IncMakerInitForJobs(_jobinfo) dict
     let cmd .= 'echo b'.g:neomake_test_inc_maker_counter.' '.g:neomake_test_inc_maker_counter.':'.i.': buf: '.shellescape(bufname('%')).'; '
   endfor
   let self.args = s:shell_argv[1:] + [cmd]
+  let self.name = 'incmaker_' . g:neomake_test_inc_maker_counter
 endfunction
 let g:neomake_test_inc_maker = {
       \ 'name': 'incmaker',
@@ -419,17 +420,38 @@ function! NeomakeTestsGetVimMessages()
   return reverse(msgs[0 : idx-1])
 endfunction
 
-function! NeomakeTestsGetMakerWithOutput(base_maker, lines_or_file) abort
-  if type(a:lines_or_file) == type([])
-    let output_file = tempname()
-    call writefile(a:lines_or_file, output_file)
+function! NeomakeTestsGetMakerWithOutput(base_maker, stdout, ...) abort
+  if type(a:stdout) == type([])
+    let stdout_file = tempname()
+    call writefile(a:stdout, stdout_file)
   else
-    let output_file = a:lines_or_file
+    let stdout_file = a:stdout
   endif
 
   let maker = copy(a:base_maker)
-  let maker.exe = 'cat'
-  let maker.args = [output_file]
+
+  if a:0
+    let stderr = a:1
+    if type(stderr) == type([])
+      let stderr_file = tempname()
+      call writefile(stderr, stderr_file)
+    else
+      let stderr_file = a:1
+    endif
+    if a:0 > 1
+      let exitcode = a:2
+    else
+      let exitcode = 0
+    endif
+    let maker.exe = &shell
+    let maker.args = [&shellcmdflag, printf(
+          \ 'cat %s; cat %s >&2; exit %d',
+          \ fnameescape(stdout_file), fnameescape(stderr_file), exitcode)]
+  else
+    let maker.exe = 'cat'
+    let maker.args = [stdout_file]
+  endif
+
   let maker.append_file = 0
   let maker.name = printf('%s-mocked', get(a:base_maker, 'name', 'unnamed_maker'))
   return maker
@@ -574,7 +596,7 @@ function! s:After()
     endtry
     call add(errors, error)
   elseif bufname(winbufnr(1)) !=# '[Vader-workbench]'
-    call add(errors, 'Vader-workbench has been renamed: '.bufname(winbufnr(1)))
+    call add(errors, 'Vader-workbench has been renamed (too many bwipe commands?): '.bufname(winbufnr(1)))
   endif
 
   " Ensure that all w:neomake_make_ids lists have been removed.
@@ -667,7 +689,7 @@ function! s:After()
       call map(errors, "printf('%d. %s', v:key+1, v:val)")
       throw len(errors)." error(s) in teardown:\n".join(errors, "\n")
     else
-      Log printf('NOTE: %d error(s) in teardown.', len(errors))
+      Log printf('NOTE: %d error(s) in teardown (ignored with failing test).', len(errors))
     endif
   endif
   echom ''
