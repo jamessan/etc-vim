@@ -7,14 +7,14 @@ if exists("g:loaded_characterize") || v:version < 700 || &cp
 endif
 let g:loaded_characterize = 1
 
-function! s:info(char)
+function! s:info(char) abort
   if empty(a:char)
     return 'NUL'
   endif
   let charseq = a:char
   let outs = []
   while !empty(charseq)
-    let nr = charseq ==# "\n" ? 0 : char2nr(charseq)
+    let nr = charseq ==# "\n" ? 0 : charseq ==# "\r" && &fileformat ==# 'mac' ? 10 : char2nr(charseq)
     let char = nr < 32 ? '^'.nr2char(64 + nr) : nr2char(nr)
     let charseq = strpart(charseq, nr ? len(nr2char(nr)) : 1)
     let out = '<' . (empty(outs) ? '' : ' ') . char . '> ' . nr
@@ -39,7 +39,7 @@ function! s:info(char)
 endfunction
 
 nnoremap <silent><script> <Plug>(characterize) :<C-U>echo <SID>info(matchstr(getline('.')[col('.')-1:-1],'.'))<CR>
-if !hasmapto('<Plug>(characterize)', 'n')
+if !hasmapto('<Plug>(characterize)', 'n') && mapcheck('ga', 'n') ==# ''
   nmap ga <Plug>(characterize)
 endif
 
