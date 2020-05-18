@@ -21,7 +21,6 @@ if has('autocmd')
     augroup jamessan
         autocmd!
         autocmd FileType help nnoremap <buffer> <Enter> <C-]>
-        autocmd BufEnter * if get(w:, 'quickfix_title', '') =~# '^Reconcile' | call jamessan#ledger#reconcile_setup() | endif
 
         autocmd BufRead,BufNewFile,VimEnter * call jamessan#cscope#setup_db()
 
@@ -234,8 +233,6 @@ let g:neomake_cpp_lint_maker = g:neomake_c_lint_maker
 let g:neomake_make_maker = {
             \ 'postprocess': function('jamessan#neomake#make_post'),
             \}
-
-let g:ledger_extra_options = '--aux-date'
 
 nmap gs <plug>(GrepperOperator)
 xmap gs <plug>(GrepperOperator)
