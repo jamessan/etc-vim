@@ -3,19 +3,17 @@
 " by Johann Klähn; Use according to the terms of the GPL>=2.
 " vim:ts=2:sw=2:sts=2:foldmethod=marker
 
-if exists("b:did_ftplugin")
+scriptencoding utf-8
+
+if exists('b:did_ftplugin')
   finish
 endif
 
 let b:did_ftplugin = 1
 
-let b:undo_ftplugin = "setlocal ".
-                    \ "foldtext< ".
-                    \ "include< comments< commentstring< omnifunc< formatprg<"
-
-if !exists('current_compiler')
-  compiler ledger
-endif
+let b:undo_ftplugin = 'setlocal '.
+                    \ 'foldtext< '.
+                    \ 'include< comments< commentstring< omnifunc< formatprg<'
 
 setl foldtext=LedgerFoldText()
 setl include=^!\\?include
@@ -27,20 +25,31 @@ if !exists('g:ledger_main')
   let g:ledger_main = '%'
 endif
 
-" set location of ledger binary for checking and auto-formatting
-if ! exists("g:ledger_bin") || empty(g:ledger_bin) || ! executable(g:ledger_bin)
-  if executable('ledger')
+if exists('g:ledger_no_bin') && g:ledger_no_bin
+	unlet! g:ledger_bin
+elseif !exists('g:ledger_bin') || empty(g:ledger_bin)
+  if executable('hledger')
+    let g:ledger_bin = 'hledger'
+  elseif executable('ledger')
     let g:ledger_bin = 'ledger'
   else
     unlet! g:ledger_bin
     echohl WarningMsg
-    echomsg "ledger command not found. Set g:ledger_bin or extend $PATH ".
-          \ "to enable error checking and auto-formatting."
+    echomsg 'No ledger command detected, set g:ledger_bin to enable more vim-ledger features.'
     echohl None
   endif
+elseif !executable(g:ledger_bin)
+	unlet! g:ledger_bin
+	echohl WarningMsg
+	echomsg 'Command set in g:ledger_bin is not executable, fix to to enable more vim-ledger features.'
+	echohl None
 endif
 
-if exists("g:ledger_bin")
+if exists('g:ledger_bin') && !exists('g:ledger_is_hledger')
+  let g:ledger_is_hledger = g:ledger_bin =~# '.*hledger'
+endif
+
+if exists('g:ledger_bin')
   exe 'setl formatprg='.substitute(g:ledger_bin, ' ', '\\ ', 'g').'\ -f\ -\ print'
 endif
 
@@ -64,15 +73,19 @@ if !exists('g:ledger_fillstring')
   let g:ledger_fillstring = ' '
 endif
 
-if !exists("g:ledger_accounts_cmd")
-  if exists("g:ledger_bin")
+if !exists('g:ledger_accounts_cmd')
+  if exists('g:ledger_bin')
     let g:ledger_accounts_cmd = g:ledger_bin . ' -f ' . shellescape(expand(g:ledger_main)) . ' accounts'
   endif
 endif
 
-if !exists("g:ledger_descriptions_cmd")
-  if exists("g:ledger_bin")
-    let g:ledger_descriptions_cmd = g:ledger_bin . ' -f ' . shellescape(expand(g:ledger_main)) . ' descriptions'
+if !exists('g:ledger_descriptions_cmd')
+  if exists('g:ledger_bin')
+    if g:ledger_is_hledger
+      let g:ledger_descriptions_cmd = g:ledger_bin . ' -f ' . shellescape(expand(g:ledger_main)) . ' descriptions'
+    else
+      let g:ledger_descriptions_cmd = g:ledger_bin . ' -f ' . shellescape(expand(g:ledger_main)) . ' payees'
+    endif
   endif
 endif
 
@@ -174,6 +187,10 @@ if !exists('g:ledger_qf_hide_file')
 endif
 " }}}
 
+if !exists('current_compiler')
+  compiler ledger
+endif
+
 " Highlight groups for Ledger reports {{{
 hi link LedgerNumber Number
 hi link LedgerNegativeNumber Special
@@ -194,13 +211,13 @@ let s:rx_amount = '\('.
 
 function! LedgerFoldText() "{{{1
   " find amount
-  let amount = ""
+  let amount = ''
   let lnum = v:foldstart + 1
   while lnum <= v:foldend
     let line = getline(lnum)
 
     " Skip metadata/leading comment
-    if line !~ '^\%(\s\+;\|\d\)'
+    if line !~# '^\%(\s\+;\|\d\)'
       " No comment, look for amount...
       let groups = matchlist(line, s:rx_amount)
       if ! empty(groups)
@@ -270,7 +287,7 @@ function! LedgerComplete(findstart, base) "{{{1
     let lnum = line('.')
     let line = getline('.')
     let b:compl_context = ''
-    if line =~ '^\s\+[^[:blank:];]' "{{{2 (account)
+    if line =~# '^\s\+[^[:blank:];]' "{{{2 (account)
       " only allow completion when in or at end of account name
       if matchend(line, '^\s\+\%(\S \S\|\S\)\+') >= col('.') - 1
         " the start of the first non-blank character
@@ -279,13 +296,13 @@ function! LedgerComplete(findstart, base) "{{{1
         let b:compl_context = 'account'
         return matchend(line, '^\s\+[*!]\?\s*[\[(]\?')
       endif
-    elseif line =~ '^\d' "{{{2 (description)
+    elseif line =~# '^\d' "{{{2 (description)
       let pre = matchend(line, '^\d\S\+\%(([^)]*)\|[*?!]\|\s\)\+')
       if pre < col('.') - 1
         let b:compl_context = 'description'
         return pre
       endif
-    elseif line =~ '^$' "{{{2 (new line)
+    elseif line =~# '^$' "{{{2 (new line)
       let b:compl_context = 'new'
     endif "}}}
     return -1
@@ -297,9 +314,9 @@ function! LedgerComplete(findstart, base) "{{{1
     let update_cache = 0
 
     let results = []
-    if b:compl_context == 'account' "{{{2 (account)
+    if b:compl_context ==# 'account' "{{{2 (account)
       let hierarchy = split(a:base, ':')
-      if a:base =~ ':$'
+      if a:base =~# ':$'
         call add(hierarchy, '')
       endif
 
@@ -322,13 +339,13 @@ function! LedgerComplete(findstart, base) "{{{1
       else
         let results = sort(results)
       endif
-    elseif b:compl_context == 'description' "{{{2 (description)
+    elseif b:compl_context ==# 'description' "{{{2 (description)
       let results = ledger#filter_items(b:compl_cache.descriptions, a:base)
 
       if len(results) < 1
         let update_cache = 1
       endif
-    elseif b:compl_context == 'new' "{{{2 (new line)
+    elseif b:compl_context ==# 'new' "{{{2 (new line)
       return [strftime(g:ledger_date_format)]
     endif "}}}
 
@@ -357,7 +374,7 @@ let s:deprecated = {
 
 for [s:old, s:new] in items(s:deprecated)
   let s:fun = "function! {s:old}(...)\nechohl WarningMsg\necho '" . s:old .
-            \ " is deprecated. Use ".s:new." instead!'\nechohl None\n" .
+            \ ' is deprecated. Use '.s:new." instead!'\nechohl None\n" .
             \ "call call('" . s:new . "', a:000)\nendf"
   exe s:fun
 endfor
@@ -367,16 +384,16 @@ unlet s:old s:new s:fun
 function! s:collect_completion_data() "{{{1
   let transactions = ledger#transactions()
   let cache = {'descriptions': [], 'tags': {}, 'accounts': {}}
-  if exists("g:ledger_accounts_cmd")
+  if exists('g:ledger_accounts_cmd')
     let accounts = systemlist(g:ledger_accounts_cmd)
   else
     let accounts = ledger#declared_accounts()
   endif
-  if exists("g:ledger_descriptions_cmd")
+  if exists('g:ledger_descriptions_cmd')
     let cache.descriptions = systemlist(g:ledger_descriptions_cmd)
   endif
   for xact in transactions
-    if !exists("g:ledger_descriptions_cmd")
+    if !exists('g:ledger_descriptions_cmd')
       " collect descriptions
       if has_key(xact, 'description') && index(cache.descriptions, xact['description']) < 0
         call add(cache.descriptions, xact['description'])
@@ -386,7 +403,7 @@ function! s:collect_completion_data() "{{{1
     let tagdicts = [t]
 
 		" collect account names
-    if !exists("g:ledger_accounts_cmd")
+    if !exists('g:ledger_accounts_cmd')
       for posting in postings
         if has_key(posting, 'tags')
           call add(tagdicts, posting.tags)
@@ -424,7 +441,7 @@ endf "}}}
 
 " return length of string with fix for multibyte characters
 function! s:multibyte_strlen(text) "{{{2
-   return strlen(substitute(a:text, ".", "x", "g"))
+   return strlen(substitute(a:text, '.', 'x', 'g'))
 endfunction "}}}
 
 " get # of visible/usable columns in current window
@@ -441,7 +458,7 @@ function! s:get_columns() " {{{2
 
   " are there any signs/is the sign column displayed?
   redir => signs
-  silent execute 'sign place buffer='.string(bufnr("%"))
+  silent execute 'sign place buffer='.string(bufnr('%'))
   redir END
   if signs =~# 'id='
     let columns -= 2
@@ -461,7 +478,7 @@ function! s:count_expression(text, expression) "{{{2
 endf "}}}
 
 function! s:autocomplete_account_or_payee(argLead, cmdLine, cursorPos) "{{{2
-  return (a:argLead =~ '^@') ?
+  return (a:argLead =~# '^@') ?
         \ map(filter(systemlist(g:ledger_bin . ' -f ' . shellescape(expand(g:ledger_main)) . ' payees'),
         \ "v:val =~? '" . strpart(a:argLead, 1) . "' && v:val !~? '^Warning: '"), '"@" . escape(v:val, " ")')
         \ :
