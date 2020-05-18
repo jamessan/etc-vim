@@ -131,11 +131,11 @@ default values, as long as no "Default:" section is given.
     |g:signify_sign_delete|
     |g:signify_sign_delete_first_line|
     |g:signify_sign_change|
-    |g:signify_sign_changedelete|
     |g:signify_sign_show_count|
     |g:signify_sign_show_text|
     |g:signify_difftool|
     |g:signify_fold_context|
+    |g:signify_priority|
 
 ------------------------------------------------------------------------------
                                                             *g:signify_vcs_cmds*  >
@@ -264,13 +264,11 @@ Enable line highlighting in addition to using signs by default.
                                               *g:signify_sign_delete*
                                               *g:signify_sign_delete_first_line*
                                               *g:signify_sign_change*
-                                              *g:signify_sign_changedelete*
 >
     let g:signify_sign_add               = '+'
     let g:signify_sign_delete            = '_'
     let g:signify_sign_delete_first_line = '‾'
     let g:signify_sign_change            = '!'
-    let g:signify_sign_changedelete      = g:signify_sign_change
 <
 The sign to use if a line was added, deleted or changed or a combination of
 these.
@@ -278,16 +276,12 @@ these.
 You can use Unicode characters, but signs must not take up more than two
 cells. Otherwise, |E239| is thrown.
 
-If |g:signify_sign_show_count| is set, |g:signify_sign_delete| and
-|g:signify_sign_changedelete| get truncated as needed.
-
 ------------------------------------------------------------------------------
                                                      *g:signify_sign_show_count*  >
     let g:signify_sign_show_count = 1
 <
-Add the number of deleted lines to |g:signify_sign_delete| (up to 99) and
-|g:signify_sign_changedelete| (up to 9). Otherwise, only the normal signs will
-be shown.
+Add the number of deleted lines to |g:signify_sign_delete| (up to 99).
+Otherwise, only the usual sign text will be shown.
 
 ------------------------------------------------------------------------------
                                                       *g:signify_sign_show_text*  >
@@ -327,6 +321,14 @@ unfolded. Using |zo| (and similar |fold-commands|) on a folded line will reveal
 3 more lines of context. Using |zo| a second time will reveal everything.
 
 Default: [3, 8]
+
+------------------------------------------------------------------------------
+                                                        *g:signify_priority*  >
+    let g:signify_priority = 5
+<
+This changes the sign priority used for signs. See |sign-priority|.
+
+Default: 10
 
 ==============================================================================
 COMMAND                                                       *signify-commands*
@@ -451,6 +453,12 @@ You can disable sign updating for certain events:
 >
     autocmd User SignifySetup autocmd! signify CursorHold,CursorHoldI
 <
+If you don't need immediate feedback or responses from your VCS are slow, then
+use this to only update signs when writing the buffer:
+>
+    autocmd User SignifySetup
+          \ exe 'au! signify' | au signify BufWritePost * call sy#start()
+<
 ==============================================================================
 EVENTS                                                          *signify-events*
 
@@ -520,13 +528,11 @@ highlighting groups: |hl-DiffAdd|, |hl-DiffChange|, |hl-DiffDelete|:
     highlight link SignifyLineAdd             DiffAdd
     highlight link SignifyLineChange          DiffChange
     highlight link SignifyLineDelete          DiffDelete
-    highlight link SignifyLineChangeDelete    SignifyLineChange
     highlight link SignifyLineDeleteFirstLine SignifyLineDelete
 
     highlight link SignifySignAdd             DiffAdd
     highlight link SignifySignChange          DiffChange
     highlight link SignifySignDelete          DiffDelete
-    highlight link SignifySignChangeDelete    SignifySignChange
     highlight link SignifySignDeleteFirstLine SignifySignDelete
 <
 Thus if you do not want to change the standard highlighting groups, but want
@@ -566,37 +572,60 @@ color for |hl-Normal| but for |hl-SignColumn|. To avoid that visible difference:
 ==============================================================================
 FAQ                                                                *signify-faq*
 
-    |signify-faq-01|  What about vim-flagship support?
+    |signify-faq-01|  How to display changes in the statusline?
     |signify-faq-02|  The plugin is slow!
     |signify-faq-03|  Line highlighting without showing signs?
 
 ------------------------------------------------------------------------------
                                                                 *signify-faq-01*
-What about vim-flagship support?~
+How to display changes in the statusline?~
 
-sy#repo#get_stats() returns a list with 3 integers for added, modified and
-removed lines. Create a wrapper function around it and return a string:
+Use either of the following two functions. Both take an optional buffer number
+and default to the current one.
+
+  - sy#repo#get_stats(...)~
+
+    Returns a list with the number of added, modified, and removed lines.
+
+  - sy#repo#get_stats_decorated(...)~
+
+    Similar to sy#repo#get_stats(), but with added decorations.
+    Example: "[+3 -8 ~5]"
+
+Using 'statusline':
+>
+    function! MyStatusline()
+      return ' %f '. sy#repo#get_stats_decorated()
+    endfunction
+
+    set statusline=%!MyStatusline()
+<
+The above is the short form of:
 >
     function! s:sy_stats_wrapper()
-      let symbols = ['+', '-', '~']
       let [added, modified, removed] = sy#repo#get_stats()
+      let symbols = ['+', '-', '~']
       let stats = [added, removed, modified]  " reorder
-      let hunkline = ''
+      let statline = ''
 
       for i in range(3)
         if stats[i] > 0
-          let hunkline .= printf('%s%s ', symbols[i], stats[i])
+          let statline .= printf('%s%s ', symbols[i], stats[i])
         endif
       endfor
 
-      if !empty(hunkline)
-        let hunkline = printf('[%s]', hunkline[:-2])
+      if !empty(statline)
+        let statline = printf('[%s]', statline[:-2])
       endif
 
-      return hunkline
+      return statline
     endfunction
 
-    autocmd User Flags call Hoist('buffer', function('s:sy_stats_wrapper'))
+    function! MyStatusline()
+      return ' %f '. s:sy_stats_wrapper()
+    endfunction
+
+    set statusline=%!MyStatusline()
 <
 ------------------------------------------------------------------------------
                                                                 *signify-faq-02*
