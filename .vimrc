@@ -86,7 +86,7 @@ endif
 set title
 let &titlestring = printf('%svim:%%t%%r%%m', has('nvim') ? 'n' : '')
 if $TERM =~ 'screen\|tmux'
-    let &titlestring = '\ek' . &titlestring . '\e\\'
+    let &titlestring = "\ek" . &titlestring . "\e\\"
 endif
 
 set diffopt+=horizontal
