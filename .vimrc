@@ -126,6 +126,9 @@ set ttyfast
 if exists('+signcolumn')
     set signcolumn=yes
 endif
+if exists('+pumblend')
+    set pumblend=20
+endif
 
 " Visual Cues
 
