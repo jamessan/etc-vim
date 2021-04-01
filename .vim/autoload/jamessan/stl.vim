@@ -1,7 +1,7 @@
 function! jamessan#stl#config()
   let stl = '[%n]%<'
   let stl .= '%{pathshorten(fnamemodify(expand("%"), ":~:."))}'
-  let stl .= '%{jamessan#stl#sy_stats()}'
+  let stl .= jamessan#stl#sy_stats()
   let stl .= '%m%r '  " flags
   let stl .= '%q'     " quickfix/location list name
   let stl .= '%h%w '
