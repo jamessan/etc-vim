@@ -1,7 +1,7 @@
 function! jamessan#stl#config()
   let stl = '[%n]%<'
   let stl .= '%{pathshorten(fnamemodify(expand("%"), ":~:."))}'
-  let stl .= jamessan#stl#sy_stats()
+  let stl .= '%{jamessan#stl#sy_stats()}'
   let stl .= '%m%r '  " flags
   let stl .= '%q'     " quickfix/location list name
   let stl .= '%h%w '
@@ -20,7 +20,7 @@ endfunction
 function! jamessan#stl#sy_stats()
   let stats=''
   let sy = get(b:, 'sy', {})
-  if !empty(sy) && !empty(get(sy, 'updated_by', ''))
+  if !empty(sy) && !empty(get(sy, 'updated_by', '')) && !empty(get(sy, 'hunks', []))
     let [added, modified, deleted] = sy#repo#get_stats()
     let stats = printf('[+%d ~%d -%d]', added, modified, deleted)
   endif
