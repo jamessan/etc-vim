@@ -24,10 +24,6 @@ endfunction
 
 " #refresh_windows {{{1
 function! sy#util#refresh_windows() abort
-  " return if signify is not active
-  if empty(getbufvar(bufnr(''), 'sy'))
-    return
-  endif
   if exists('*win_getid')
     let winid = win_getid()
   else
@@ -36,7 +32,9 @@ function! sy#util#refresh_windows() abort
 
   if !get(g:, 'signify_cmdwin_active')
     for bufnr in tabpagebuflist()
-      call sy#start({'bufnr': bufnr})
+      if sy#buffer_is_active(bufnr)
+        call sy#start({'bufnr': bufnr})
+      endif
     endfor
   endif
 
@@ -116,6 +114,22 @@ function! sy#util#execute(cmd) abort
 endfunction
 
 let s:popup_window = 0
+
+" #get_hunk_stats {{{1
+function! sy#util#get_hunk_stats() abort
+  execute sy#util#return_if_no_changes()
+
+  let curline = line('.')
+  let total_hunks = len(b:sy.hunks)
+
+  for i in range(total_hunks)
+    if b:sy.hunks[i].start <= curline && b:sy.hunks[i].end >= curline
+      return { 'total_hunks': total_hunks, 'current_hunk': i + 1 }
+    endif
+  endfor
+
+  return {}
+endfunction
 
 " #popup_close {{{1
 function! sy#util#popup_close() abort
