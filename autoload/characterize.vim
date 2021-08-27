@@ -42,6 +42,19 @@ function! characterize#html_entity(nr) abort
   endif
 endfunction
 
+function! characterize#emojis(...) abort
+  return a:0 ? get(s:emojis, a:1, []) : s:emojis
+endfunction
+
+function! characterize#description(nr, ...) abort
+  for [first, last, name] in s:ranges
+    if a:nr > first && a:nr < last
+      return name
+    endif
+  endfor
+  return get(s:d, a:nr, a:0 ? a:1 : '')
+endfunction
+
 let s:html_entities = {
       \  160:    'nbsp',  161:   'iexcl',  162:    'cent',  163:   'pound',
       \  164:  'curren',  165:     'yen',  166:  'brvbar',  167:    'sect',
@@ -107,10 +120,6 @@ let s:html_entities = {
       \ 9824:  'spades', 9827:   'clubs', 9829:  'hearts', 9830:   'diams',
       \   38:     'amp',   39:    'apos',   60:      'lt',   62:      'gt'}
 
-function! characterize#emojis(...) abort
-  return a:0 ? get(s:emojis, a:1, []) : s:emojis
-endfunction
-
 let s:emojis = {
       \ 0x00a9: [':copyright:'],
       \ 0x00ae: [':registered:'],
@@ -127,24 +136,55 @@ let s:emojis = {
       \ 0x21a9: [':leftwards_arrow_with_hook:'],
       \ 0x21aa: [':arrow_right_hook:'],
       \ 0x231a: [':watch:'],
+      \ 0x231b: [':hourglass:'],
+      \ 0x2328: [':keyboard:'],
+      \ 0x23cf: [':eject_button:'],
       \ 0x23e9: [':fast_forward:'],
       \ 0x23ea: [':rewind:'],
       \ 0x23eb: [':arrow_double_up:'],
       \ 0x23ec: [':arrow_double_down:'],
+      \ 0x23ed: [':next_track_button:'],
+      \ 0x23ee: [':previous_track_button:'],
+      \ 0x23ef: [':play_or_pause_button:'],
       \ 0x23f0: [':alarm_clock:'],
-      \ 0x23f3: [':hourglass:'],
+      \ 0x23f1: [':stopwatch:'],
+      \ 0x23f2: [':timer_clock:'],
+      \ 0x23f3: [':hourglass_flowing_sand:'],
+      \ 0x23f8: [':pause_button:'],
+      \ 0x23f9: [':stop_button:'],
+      \ 0x23fa: [':record_button:'],
       \ 0x24c2: [':m:'],
+      \ 0x25aa: [':black_small_square:'],
+      \ 0x25ab: [':white_small_square:'],
       \ 0x25b6: [':arrow_forward:'],
       \ 0x25c0: [':arrow_backward:'],
-      \ 0x25fc: [':black_square:'],
+      \ 0x25fb: [':white_medium_square:'],
+      \ 0x25fc: [':black_medium_square:'],
+      \ 0x25fd: [':white_medium_small_square:'],
+      \ 0x25fe: [':black_medium_small_square:'],
       \ 0x2600: [':sunny:'],
       \ 0x2601: [':cloud:'],
+      \ 0x2602: [':open_umbrella:'],
+      \ 0x2603: [':snowman_with_snow:'],
+      \ 0x2604: [':comet:'],
       \ 0x260e: [':phone:', ':telephone:'],
       \ 0x2611: [':ballot_box_with_check:'],
       \ 0x2614: [':umbrella:'],
       \ 0x2615: [':coffee:'],
+      \ 0x2618: [':shamrock:'],
       \ 0x261d: [':point_up:'],
+      \ 0x2620: [':skull_and_crossbones:'],
+      \ 0x2622: [':radioactive:'],
+      \ 0x2623: [':biohazard:'],
+      \ 0x2626: [':orthodox_cross:'],
+      \ 0x262a: [':star_and_crescent:'],
+      \ 0x262e: [':peace_symbol:'],
+      \ 0x262f: [':yin_yang:'],
+      \ 0x2638: [':wheel_of_dharma:'],
+      \ 0x2639: [':frowning_face:'],
       \ 0x263a: [':relaxed:'],
+      \ 0x2640: [':female_sign:'],
+      \ 0x2642: [':male_sign:'],
       \ 0x2648: [':aries:'],
       \ 0x2649: [':taurus:'],
       \ 0x264a: [':gemini:'],
@@ -157,50 +197,79 @@ let s:emojis = {
       \ 0x2651: [':capricorn:'],
       \ 0x2652: [':aquarius:'],
       \ 0x2653: [':pisces:'],
+      \ 0x265f: [':chess_pawn:'],
       \ 0x2660: [':spades:'],
       \ 0x2663: [':clubs:'],
       \ 0x2665: [':hearts:'],
       \ 0x2666: [':diamonds:'],
       \ 0x2668: [':hotsprings:'],
       \ 0x267b: [':recycle:'],
+      \ 0x267e: [':infinity:'],
       \ 0x267f: [':wheelchair:'],
+      \ 0x2692: [':hammer_and_pick:'],
       \ 0x2693: [':anchor:'],
+      \ 0x2694: [':crossed_swords:'],
+      \ 0x2695: [':medical_symbol:'],
+      \ 0x2696: [':balance_scale:'],
+      \ 0x2697: [':alembic:'],
+      \ 0x2699: [':gear:'],
+      \ 0x269b: [':atom_symbol:'],
+      \ 0x269c: [':fleur_de_lis:'],
       \ 0x26a0: [':warning:'],
       \ 0x26a1: [':zap:'],
       \ 0x26aa: [':white_circle:'],
       \ 0x26ab: [':black_circle:'],
+      \ 0x26b0: [':coffin:'],
+      \ 0x26b1: [':funeral_urn:'],
       \ 0x26bd: [':soccer:'],
       \ 0x26be: [':baseball:'],
       \ 0x26c4: [':snowman:'],
       \ 0x26c5: [':partly_sunny:'],
+      \ 0x26c8: [':cloud_with_lightning_and_rain:'],
       \ 0x26ce: [':ophiuchus:'],
+      \ 0x26cf: [':pick:'],
+      \ 0x26d1: [':rescue_worker_helmet:'],
+      \ 0x26d3: [':chains:'],
       \ 0x26d4: [':no_entry:'],
+      \ 0x26e9: [':shinto_shrine:'],
       \ 0x26ea: [':church:'],
+      \ 0x26f0: [':mountain:'],
+      \ 0x26f1: [':parasol_on_ground:'],
       \ 0x26f2: [':fountain:'],
       \ 0x26f3: [':golf:'],
+      \ 0x26f4: [':ferry:'],
       \ 0x26f5: [':boat:', ':sailboat:'],
+      \ 0x26f7: [':skier:'],
+      \ 0x26f8: [':ice_skate:'],
+      \ 0x26f9: [':bouncing_ball_person:'],
       \ 0x26fa: [':tent:'],
       \ 0x26fd: [':fuelpump:'],
       \ 0x2702: [':scissors:'],
       \ 0x2705: [':white_check_mark:'],
       \ 0x2708: [':airplane:'],
-      \ 0x2709: [':envelope:'],
-      \ 0x270a: [':fist:'],
-      \ 0x270b: [':hand:'],
+      \ 0x2709: [':email:', ':envelope:'],
+      \ 0x270a: [':fist:', ':fist_raised:'],
+      \ 0x270b: [':hand:', ':raised_hand:'],
       \ 0x270c: [':v:'],
+      \ 0x270d: [':writing_hand:'],
       \ 0x270f: [':pencil2:'],
       \ 0x2712: [':black_nib:'],
       \ 0x2714: [':heavy_check_mark:'],
       \ 0x2716: [':heavy_multiplication_x:'],
+      \ 0x271d: [':latin_cross:'],
+      \ 0x2721: [':star_of_david:'],
       \ 0x2728: [':sparkles:'],
       \ 0x2733: [':eight_spoked_asterisk:'],
       \ 0x2734: [':eight_pointed_black_star:'],
       \ 0x2744: [':snowflake:'],
+      \ 0x2747: [':sparkle:'],
       \ 0x274c: [':x:'],
       \ 0x274e: [':negative_squared_cross_mark:'],
-      \ 0x2754: [':grey_question:', ':question:'],
-      \ 0x2755: [':exclamation:', ':grey_exclamation:'],
-      \ 0x2757: [':heavy_exclamation_mark:'],
+      \ 0x2753: [':question:'],
+      \ 0x2754: [':grey_question:'],
+      \ 0x2755: [':grey_exclamation:'],
+      \ 0x2757: [':exclamation:', ':heavy_exclamation_mark:'],
+      \ 0x2763: [':heavy_heart_exclamation:'],
       \ 0x2764: [':heart:'],
       \ 0x2795: [':heavy_plus_sign:'],
       \ 0x2796: [':heavy_minus_sign:'],
@@ -213,7 +282,9 @@ let s:emojis = {
       \ 0x2b05: [':arrow_left:'],
       \ 0x2b06: [':arrow_up:'],
       \ 0x2b07: [':arrow_down:'],
-      \ 0x2b1c: [':white_square:'],
+      \ 0x2b1b: [':black_large_square:'],
+      \ 0x2b1c: [':white_large_square:'],
+      \ 0x2b50: [':star:'],
       \ 0x2b55: [':o:'],
       \ 0x3030: [':wavy_dash:'],
       \ 0x303d: [':part_alternation_mark:'],
@@ -254,7 +325,7 @@ let s:emojis = {
       \ 0x1f300: [':cyclone:'],
       \ 0x1f301: [':foggy:'],
       \ 0x1f302: [':closed_umbrella:'],
-      \ 0x1f303: [':stars:'],
+      \ 0x1f303: [':night_with_stars:'],
       \ 0x1f304: [':sunrise_over_mountains:'],
       \ 0x1f305: [':sunrise:'],
       \ 0x1f306: [':city_sunset:'],
@@ -271,24 +342,39 @@ let s:emojis = {
       \ 0x1f311: [':new_moon:'],
       \ 0x1f312: [':waxing_crescent_moon:'],
       \ 0x1f313: [':first_quarter_moon:'],
-      \ 0x1f314: [':waxing_gibbous_moon:'],
+      \ 0x1f314: [':moon:', ':waxing_gibbous_moon:'],
       \ 0x1f315: [':full_moon:'],
       \ 0x1f316: [':waning_gibbous_moon:'],
       \ 0x1f317: [':last_quarter_moon:'],
       \ 0x1f318: [':waning_crescent_moon:'],
-      \ 0x1f319: [':moon:'],
+      \ 0x1f319: [':crescent_moon:'],
       \ 0x1f31a: [':new_moon_with_face:'],
       \ 0x1f31b: [':first_quarter_moon_with_face:'],
       \ 0x1f31c: [':last_quarter_moon_with_face:'],
       \ 0x1f31d: [':full_moon_with_face:'],
       \ 0x1f31e: [':sun_with_face:'],
-      \ 0x1f31f: [':star:', ':star2:'],
+      \ 0x1f31f: [':star2:'],
+      \ 0x1f320: [':stars:'],
+      \ 0x1f321: [':thermometer:'],
+      \ 0x1f324: [':sun_behind_small_cloud:'],
+      \ 0x1f325: [':sun_behind_large_cloud:'],
+      \ 0x1f326: [':sun_behind_rain_cloud:'],
+      \ 0x1f327: [':cloud_with_rain:'],
+      \ 0x1f328: [':cloud_with_snow:'],
+      \ 0x1f329: [':cloud_with_lightning:'],
+      \ 0x1f32a: [':tornado:'],
+      \ 0x1f32b: [':fog:'],
+      \ 0x1f32c: [':wind_face:'],
+      \ 0x1f32d: [':hotdog:'],
+      \ 0x1f32e: [':taco:'],
+      \ 0x1f32f: [':burrito:'],
       \ 0x1f330: [':chestnut:'],
       \ 0x1f331: [':seedling:'],
       \ 0x1f332: [':evergreen_tree:'],
       \ 0x1f333: [':deciduous_tree:'],
       \ 0x1f334: [':palm_tree:'],
       \ 0x1f335: [':cactus:'],
+      \ 0x1f336: [':hot_pepper:'],
       \ 0x1f337: [':tulip:'],
       \ 0x1f338: [':cherry_blossom:'],
       \ 0x1f339: [':rose:'],
@@ -308,7 +394,7 @@ let s:emojis = {
       \ 0x1f347: [':grapes:'],
       \ 0x1f348: [':melon:'],
       \ 0x1f349: [':watermelon:'],
-      \ 0x1f34a: [':tangerine:'],
+      \ 0x1f34a: [':mandarin:', ':orange:', ':tangerine:'],
       \ 0x1f34b: [':lemon:'],
       \ 0x1f34c: [':banana:'],
       \ 0x1f34d: [':pineapple:'],
@@ -349,7 +435,7 @@ let s:emojis = {
       \ 0x1f370: [':cake:'],
       \ 0x1f371: [':bento:'],
       \ 0x1f372: [':stew:'],
-      \ 0x1f373: [':egg:'],
+      \ 0x1f373: [':fried_egg:'],
       \ 0x1f374: [':fork_and_knife:'],
       \ 0x1f375: [':tea:'],
       \ 0x1f376: [':sake:'],
@@ -359,6 +445,9 @@ let s:emojis = {
       \ 0x1f37a: [':beer:'],
       \ 0x1f37b: [':beers:'],
       \ 0x1f37c: [':baby_bottle:'],
+      \ 0x1f37d: [':plate_with_cutlery:'],
+      \ 0x1f37e: [':champagne:'],
+      \ 0x1f37f: [':popcorn:'],
       \ 0x1f380: [':ribbon:'],
       \ 0x1f381: [':gift:'],
       \ 0x1f382: [':birthday:'],
@@ -379,6 +468,13 @@ let s:emojis = {
       \ 0x1f391: [':rice_scene:'],
       \ 0x1f392: [':school_satchel:'],
       \ 0x1f393: [':mortar_board:'],
+      \ 0x1f396: [':medal_military:'],
+      \ 0x1f397: [':reminder_ribbon:'],
+      \ 0x1f399: [':studio_microphone:'],
+      \ 0x1f39a: [':level_slider:'],
+      \ 0x1f39b: [':control_knobs:'],
+      \ 0x1f39e: [':film_strip:'],
+      \ 0x1f39f: [':tickets:'],
       \ 0x1f3a0: [':carousel_horse:'],
       \ 0x1f3a1: [':ferris_wheel:'],
       \ 0x1f3a2: [':roller_coaster:'],
@@ -416,12 +512,35 @@ let s:emojis = {
       \ 0x1f3c2: [':snowboarder:'],
       \ 0x1f3c3: [':runner:', ':running:'],
       \ 0x1f3c4: [':surfer:'],
+      \ 0x1f3c5: [':medal_sports:'],
       \ 0x1f3c6: [':trophy:'],
       \ 0x1f3c7: [':horse_racing:'],
       \ 0x1f3c8: [':football:'],
       \ 0x1f3c9: [':rugby_football:'],
       \ 0x1f3ca: [':swimmer:'],
+      \ 0x1f3cb: [':weight_lifting:'],
+      \ 0x1f3cc: [':golfing:'],
+      \ 0x1f3cd: [':motorcycle:'],
+      \ 0x1f3ce: [':racing_car:'],
+      \ 0x1f3cf: [':cricket_game:'],
+      \ 0x1f3d0: [':volleyball:'],
+      \ 0x1f3d1: [':field_hockey:'],
+      \ 0x1f3d2: [':ice_hockey:'],
+      \ 0x1f3d3: [':ping_pong:'],
+      \ 0x1f3d4: [':mountain_snow:'],
+      \ 0x1f3d5: [':camping:'],
+      \ 0x1f3d6: [':beach_umbrella:'],
+      \ 0x1f3d7: [':building_construction:'],
+      \ 0x1f3d8: [':houses:'],
+      \ 0x1f3d9: [':cityscape:'],
+      \ 0x1f3da: [':derelict_house:'],
+      \ 0x1f3db: [':classical_building:'],
+      \ 0x1f3dc: [':desert:'],
+      \ 0x1f3dd: [':desert_island:'],
+      \ 0x1f3de: [':national_park:'],
+      \ 0x1f3df: [':stadium:'],
       \ 0x1f3e0: [':house:'],
+      \ 0x1f3e1: [':house_with_garden:'],
       \ 0x1f3e2: [':office:'],
       \ 0x1f3e3: [':post_office:'],
       \ 0x1f3e4: [':european_post_office:'],
@@ -434,9 +553,16 @@ let s:emojis = {
       \ 0x1f3eb: [':school:'],
       \ 0x1f3ec: [':department_store:'],
       \ 0x1f3ed: [':factory:'],
-      \ 0x1f3ee: [':izakaya_lantern:'],
+      \ 0x1f3ee: [':izakaya_lantern:', ':lantern:'],
       \ 0x1f3ef: [':japanese_castle:'],
       \ 0x1f3f0: [':european_castle:'],
+      \ 0x1f3f3: [':white_flag:'],
+      \ 0x1f3f4: [':black_flag:'],
+      \ 0x1f3f5: [':rosette:'],
+      \ 0x1f3f7: [':label:'],
+      \ 0x1f3f8: [':badminton:'],
+      \ 0x1f3f9: [':bow_and_arrow:'],
+      \ 0x1f3fa: [':amphora:'],
       \ 0x1f400: [':rat:'],
       \ 0x1f401: [':mouse2:'],
       \ 0x1f402: [':ox:'],
@@ -466,7 +592,7 @@ let s:emojis = {
       \ 0x1f41a: [':shell:'],
       \ 0x1f41b: [':bug:'],
       \ 0x1f41c: [':ant:'],
-      \ 0x1f41d: [':honeybee:'],
+      \ 0x1f41d: [':bee:', ':honeybee:'],
       \ 0x1f41e: [':beetle:'],
       \ 0x1f41f: [':fish:'],
       \ 0x1f420: [':tropical_fish:'],
@@ -481,7 +607,7 @@ let s:emojis = {
       \ 0x1f429: [':poodle:'],
       \ 0x1f42a: [':dromedary_camel:'],
       \ 0x1f42b: [':camel:'],
-      \ 0x1f42c: [':dolphin:'],
+      \ 0x1f42c: [':dolphin:', ':flipper:'],
       \ 0x1f42d: [':mouse:'],
       \ 0x1f42e: [':cow:'],
       \ 0x1f42f: [':tiger:'],
@@ -499,17 +625,19 @@ let s:emojis = {
       \ 0x1f43b: [':bear:'],
       \ 0x1f43c: [':panda_face:'],
       \ 0x1f43d: [':pig_nose:'],
-      \ 0x1f43e: [':paw_prints:'],
+      \ 0x1f43e: [':feet:', ':paw_prints:'],
+      \ 0x1f43f: [':chipmunk:'],
       \ 0x1f440: [':eyes:'],
+      \ 0x1f441: [':eye:'],
       \ 0x1f442: [':ear:'],
       \ 0x1f443: [':nose:'],
       \ 0x1f444: [':lips:'],
-      \ 0x1f445: [':tongue2:'],
+      \ 0x1f445: [':tongue:'],
       \ 0x1f446: [':point_up_2:'],
       \ 0x1f447: [':point_down:'],
       \ 0x1f448: [':point_left:'],
       \ 0x1f449: [':point_right:'],
-      \ 0x1f44a: [':facepunch:', ':punch:'],
+      \ 0x1f44a: [':facepunch:', ':fist_oncoming:', ':punch:'],
       \ 0x1f44b: [':wave:'],
       \ 0x1f44c: [':ok_hand:'],
       \ 0x1f44d: [':+1:', ':thumbsup:'],
@@ -529,12 +657,12 @@ let s:emojis = {
       \ 0x1f45b: [':purse:'],
       \ 0x1f45c: [':handbag:'],
       \ 0x1f45d: [':pouch:'],
-      \ 0x1f45e: [':mans_shoe:'],
-      \ 0x1f45f: [':shoe:'],
+      \ 0x1f45e: [':mans_shoe:', ':shoe:'],
+      \ 0x1f45f: [':athletic_shoe:'],
       \ 0x1f460: [':high_heel:'],
       \ 0x1f461: [':sandal:'],
       \ 0x1f462: [':boot:'],
-      \ 0x1f463: [':feet:'],
+      \ 0x1f463: [':footprints:'],
       \ 0x1f464: [':bust_in_silhouette:'],
       \ 0x1f465: [':busts_in_silhouette:'],
       \ 0x1f466: [':boy:'],
@@ -545,12 +673,12 @@ let s:emojis = {
       \ 0x1f46b: [':couple:'],
       \ 0x1f46c: [':two_men_holding_hands:'],
       \ 0x1f46d: [':two_women_holding_hands:'],
-      \ 0x1f46e: [':cop:'],
+      \ 0x1f46e: [':cop:', ':police_officer:'],
       \ 0x1f46f: [':dancers:'],
       \ 0x1f470: [':bride_with_veil:'],
-      \ 0x1f471: [':person_with_blond_hair:'],
+      \ 0x1f471: [':blond_haired_person:'],
       \ 0x1f472: [':man_with_gua_pi_mao:'],
-      \ 0x1f473: [':man_with_turban:'],
+      \ 0x1f473: [':person_with_turban:'],
       \ 0x1f474: [':older_man:'],
       \ 0x1f475: [':older_woman:'],
       \ 0x1f476: [':baby:'],
@@ -564,9 +692,9 @@ let s:emojis = {
       \ 0x1f47e: [':space_invader:'],
       \ 0x1f47f: [':imp:'],
       \ 0x1f480: [':skull:'],
-      \ 0x1f481: [':information_desk_person:'],
-      \ 0x1f482: [':guardsman:'],
-      \ 0x1f483: [':dancer:'],
+      \ 0x1f481: [':information_desk_person:', ':tipping_hand_person:'],
+      \ 0x1f482: [':guard:'],
+      \ 0x1f483: [':dancer:', ':woman_dancing:'],
       \ 0x1f484: [':lipstick:'],
       \ 0x1f485: [':nail_care:'],
       \ 0x1f486: [':massage:'],
@@ -585,6 +713,7 @@ let s:emojis = {
       \ 0x1f493: [':heartbeat:'],
       \ 0x1f494: [':broken_heart:'],
       \ 0x1f495: [':two_hearts:'],
+      \ 0x1f496: [':sparkling_heart:'],
       \ 0x1f497: [':heartpulse:'],
       \ 0x1f498: [':cupid:'],
       \ 0x1f499: [':blue_heart:'],
@@ -648,7 +777,7 @@ let s:emojis = {
       \ 0x1f4d3: [':notebook:'],
       \ 0x1f4d4: [':notebook_with_decorative_cover:'],
       \ 0x1f4d5: [':closed_book:'],
-      \ 0x1f4d6: [':book:'],
+      \ 0x1f4d6: [':book:', ':open_book:'],
       \ 0x1f4d7: [':green_book:'],
       \ 0x1f4d8: [':blue_book:'],
       \ 0x1f4d9: [':orange_book:'],
@@ -664,9 +793,10 @@ let s:emojis = {
       \ 0x1f4e3: [':mega:'],
       \ 0x1f4e4: [':outbox_tray:'],
       \ 0x1f4e5: [':inbox_tray:'],
+      \ 0x1f4e6: [':package:'],
       \ 0x1f4e7: [':e-mail:'],
       \ 0x1f4e8: [':incoming_envelope:'],
-      \ 0x1f4e9: [':email:'],
+      \ 0x1f4e9: [':envelope_with_arrow:'],
       \ 0x1f4ea: [':mailbox_closed:'],
       \ 0x1f4eb: [':mailbox:'],
       \ 0x1f4ec: [':mailbox_with_mail:'],
@@ -681,10 +811,13 @@ let s:emojis = {
       \ 0x1f4f5: [':no_mobile_phones:'],
       \ 0x1f4f6: [':signal_strength:'],
       \ 0x1f4f7: [':camera:'],
+      \ 0x1f4f8: [':camera_flash:'],
       \ 0x1f4f9: [':video_camera:'],
       \ 0x1f4fa: [':tv:'],
       \ 0x1f4fb: [':radio:'],
       \ 0x1f4fc: [':vhs:'],
+      \ 0x1f4fd: [':film_projector:'],
+      \ 0x1f4ff: [':prayer_beads:'],
       \ 0x1f500: [':twisted_rightwards_arrows:'],
       \ 0x1f501: [':repeat:'],
       \ 0x1f502: [':repeat_one:'],
@@ -693,8 +826,9 @@ let s:emojis = {
       \ 0x1f505: [':low_brightness:'],
       \ 0x1f506: [':high_brightness:'],
       \ 0x1f507: [':mute:'],
+      \ 0x1f508: [':speaker:'],
       \ 0x1f509: [':sound:'],
-      \ 0x1f50a: [':speaker:'],
+      \ 0x1f50a: [':loud_sound:'],
       \ 0x1f50b: [':battery:'],
       \ 0x1f50c: [':electric_plug:'],
       \ 0x1f50d: [':mag:'],
@@ -709,6 +843,7 @@ let s:emojis = {
       \ 0x1f516: [':bookmark:'],
       \ 0x1f517: [':link:'],
       \ 0x1f518: [':radio_button:'],
+      \ 0x1f519: [':back:'],
       \ 0x1f51a: [':end:'],
       \ 0x1f51b: [':on:'],
       \ 0x1f51c: [':soon:'],
@@ -725,7 +860,7 @@ let s:emojis = {
       \ 0x1f527: [':wrench:'],
       \ 0x1f528: [':hammer:'],
       \ 0x1f529: [':nut_and_bolt:'],
-      \ 0x1f52a: [':hocho:'],
+      \ 0x1f52a: [':hocho:', ':knife:'],
       \ 0x1f52b: [':gun:'],
       \ 0x1f52c: [':microscope:'],
       \ 0x1f52d: [':telescope:'],
@@ -733,6 +868,8 @@ let s:emojis = {
       \ 0x1f52f: [':six_pointed_star:'],
       \ 0x1f530: [':beginner:'],
       \ 0x1f531: [':trident:'],
+      \ 0x1f532: [':black_square_button:'],
+      \ 0x1f533: [':white_square_button:'],
       \ 0x1f534: [':red_circle:'],
       \ 0x1f535: [':large_blue_circle:'],
       \ 0x1f536: [':large_orange_diamond:'],
@@ -743,6 +880,12 @@ let s:emojis = {
       \ 0x1f53b: [':small_red_triangle_down:'],
       \ 0x1f53c: [':arrow_up_small:'],
       \ 0x1f53d: [':arrow_down_small:'],
+      \ 0x1f549: [':om:'],
+      \ 0x1f54a: [':dove:'],
+      \ 0x1f54b: [':kaaba:'],
+      \ 0x1f54c: [':mosque:'],
+      \ 0x1f54d: [':synagogue:'],
+      \ 0x1f54e: [':menorah:'],
       \ 0x1f550: [':clock1:'],
       \ 0x1f551: [':clock2:'],
       \ 0x1f552: [':clock3:'],
@@ -767,51 +910,103 @@ let s:emojis = {
       \ 0x1f565: [':clock1030:'],
       \ 0x1f566: [':clock1130:'],
       \ 0x1f567: [':clock1230:'],
+      \ 0x1f56f: [':candle:'],
+      \ 0x1f570: [':mantelpiece_clock:'],
+      \ 0x1f573: [':hole:'],
+      \ 0x1f574: [':business_suit_levitating:'],
+      \ 0x1f575: [':detective:'],
+      \ 0x1f576: [':dark_sunglasses:'],
+      \ 0x1f577: [':spider:'],
+      \ 0x1f578: [':spider_web:'],
+      \ 0x1f579: [':joystick:'],
+      \ 0x1f57a: [':man_dancing:'],
+      \ 0x1f587: [':paperclips:'],
+      \ 0x1f58a: [':pen:'],
+      \ 0x1f58b: [':fountain_pen:'],
+      \ 0x1f58c: [':paintbrush:'],
+      \ 0x1f58d: [':crayon:'],
+      \ 0x1f590: [':raised_hand_with_fingers_splayed:'],
+      \ 0x1f595: [':fu:', ':middle_finger:'],
+      \ 0x1f596: [':vulcan_salute:'],
+      \ 0x1f5a4: [':black_heart:'],
+      \ 0x1f5a5: [':desktop_computer:'],
+      \ 0x1f5a8: [':printer:'],
+      \ 0x1f5b1: [':computer_mouse:'],
+      \ 0x1f5b2: [':trackball:'],
+      \ 0x1f5bc: [':framed_picture:'],
+      \ 0x1f5c2: [':card_index_dividers:'],
+      \ 0x1f5c3: [':card_file_box:'],
+      \ 0x1f5c4: [':file_cabinet:'],
+      \ 0x1f5d1: [':wastebasket:'],
+      \ 0x1f5d2: [':spiral_notepad:'],
+      \ 0x1f5d3: [':spiral_calendar:'],
+      \ 0x1f5dc: [':clamp:'],
+      \ 0x1f5dd: [':old_key:'],
+      \ 0x1f5de: [':newspaper_roll:'],
+      \ 0x1f5e1: [':dagger:'],
+      \ 0x1f5e3: [':speaking_head:'],
+      \ 0x1f5e8: [':left_speech_bubble:'],
+      \ 0x1f5ef: [':right_anger_bubble:'],
+      \ 0x1f5f3: [':ballot_box:'],
+      \ 0x1f5fa: [':world_map:'],
       \ 0x1f5fb: [':mount_fuji:'],
       \ 0x1f5fc: [':tokyo_tower:'],
       \ 0x1f5fd: [':statue_of_liberty:'],
       \ 0x1f5fe: [':japan:'],
       \ 0x1f5ff: [':moyai:'],
+      \ 0x1f600: [':grinning:'],
       \ 0x1f601: [':grin:'],
       \ 0x1f602: [':joy:'],
       \ 0x1f603: [':smiley:'],
       \ 0x1f604: [':smile:'],
       \ 0x1f605: [':sweat_smile:'],
-      \ 0x1f606: [':laughing:'],
+      \ 0x1f606: [':laughing:', ':satisfied:'],
       \ 0x1f607: [':innocent:'],
       \ 0x1f608: [':smiling_imp:'],
       \ 0x1f609: [':wink:'],
       \ 0x1f60a: [':blush:'],
       \ 0x1f60b: [':yum:'],
-      \ 0x1f60c: [':satisfied:'],
+      \ 0x1f60c: [':relieved:'],
       \ 0x1f60d: [':heart_eyes:'],
       \ 0x1f60e: [':sunglasses:'],
       \ 0x1f60f: [':smirk:'],
       \ 0x1f610: [':neutral_face:'],
+      \ 0x1f611: [':expressionless:'],
       \ 0x1f612: [':unamused:'],
       \ 0x1f613: [':sweat:'],
       \ 0x1f614: [':pensive:'],
+      \ 0x1f615: [':confused:'],
       \ 0x1f616: [':confounded:'],
+      \ 0x1f617: [':kissing:'],
       \ 0x1f618: [':kissing_heart:'],
-      \ 0x1f61a: [':kissing_face:'],
-      \ 0x1f61c: [':wink2:'],
-      \ 0x1f61d: [':tongue:'],
+      \ 0x1f619: [':kissing_smiling_eyes:'],
+      \ 0x1f61a: [':kissing_closed_eyes:'],
+      \ 0x1f61b: [':stuck_out_tongue:'],
+      \ 0x1f61c: [':stuck_out_tongue_winking_eye:'],
+      \ 0x1f61d: [':stuck_out_tongue_closed_eyes:'],
       \ 0x1f61e: [':disappointed:'],
+      \ 0x1f61f: [':worried:'],
       \ 0x1f620: [':angry:'],
-      \ 0x1f621: [':rage:'],
+      \ 0x1f621: [':pout:', ':rage:'],
       \ 0x1f622: [':cry:'],
       \ 0x1f623: [':persevere:'],
       \ 0x1f624: [':triumph:'],
-      \ 0x1f625: [':relieved:'],
+      \ 0x1f625: [':disappointed_relieved:'],
+      \ 0x1f626: [':frowning:'],
+      \ 0x1f627: [':anguished:'],
       \ 0x1f628: [':fearful:'],
       \ 0x1f629: [':weary:'],
       \ 0x1f62a: [':sleepy:'],
       \ 0x1f62b: [':tired_face:'],
+      \ 0x1f62c: [':grimacing:'],
       \ 0x1f62d: [':sob:'],
+      \ 0x1f62e: [':open_mouth:'],
+      \ 0x1f62f: [':hushed:'],
       \ 0x1f630: [':cold_sweat:'],
       \ 0x1f631: [':scream:'],
       \ 0x1f632: [':astonished:'],
       \ 0x1f633: [':flushed:'],
+      \ 0x1f634: [':sleeping:'],
       \ 0x1f635: [':dizzy_face:'],
       \ 0x1f636: [':no_mouth:'],
       \ 0x1f637: [':mask:'],
@@ -824,21 +1019,25 @@ let s:emojis = {
       \ 0x1f63e: [':pouting_cat:'],
       \ 0x1f63f: [':crying_cat_face:'],
       \ 0x1f640: [':scream_cat:'],
+      \ 0x1f641: [':slightly_frowning_face:'],
+      \ 0x1f642: [':slightly_smiling_face:'],
+      \ 0x1f643: [':upside_down_face:'],
+      \ 0x1f644: [':roll_eyes:'],
       \ 0x1f645: [':no_good:'],
-      \ 0x1f646: [':ok_woman:'],
+      \ 0x1f646: [':ok_person:'],
       \ 0x1f647: [':bow:'],
       \ 0x1f648: [':see_no_evil:'],
       \ 0x1f649: [':hear_no_evil:'],
       \ 0x1f64a: [':speak_no_evil:'],
-      \ 0x1f64b: [':raised_hand:'],
+      \ 0x1f64b: [':raising_hand:'],
       \ 0x1f64c: [':raised_hands:'],
-      \ 0x1f64d: [':person_frowning:'],
-      \ 0x1f64e: [':person_with_pouting_face:'],
+      \ 0x1f64d: [':frowning_person:'],
+      \ 0x1f64e: [':pouting_face:'],
       \ 0x1f64f: [':pray:'],
       \ 0x1f680: [':rocket:'],
       \ 0x1f681: [':helicopter:'],
       \ 0x1f682: [':steam_locomotive:'],
-      \ 0x1f683: [':railway_car:', ':train:'],
+      \ 0x1f683: [':railway_car:'],
       \ 0x1f684: [':bullettrain_side:'],
       \ 0x1f685: [':bullettrain_front:'],
       \ 0x1f686: [':train2:'],
@@ -846,6 +1045,7 @@ let s:emojis = {
       \ 0x1f688: [':light_rail:'],
       \ 0x1f689: [':station:'],
       \ 0x1f68a: [':tram:'],
+      \ 0x1f68b: [':train:'],
       \ 0x1f68c: [':bus:'],
       \ 0x1f68d: [':oncoming_bus:'],
       \ 0x1f68e: [':trolleybus:'],
@@ -904,16 +1104,288 @@ let s:emojis = {
       \ 0x1f6c3: [':customs:'],
       \ 0x1f6c4: [':baggage_claim:'],
       \ 0x1f6c5: [':left_luggage:'],
+      \ 0x1f6cb: [':couch_and_lamp:'],
+      \ 0x1f6cc: [':sleeping_bed:'],
+      \ 0x1f6cd: [':shopping:'],
+      \ 0x1f6ce: [':bellhop_bell:'],
+      \ 0x1f6cf: [':bed:'],
+      \ 0x1f6d0: [':place_of_worship:'],
+      \ 0x1f6d1: [':stop_sign:'],
+      \ 0x1f6d2: [':shopping_cart:'],
+      \ 0x1f6d5: [':hindu_temple:'],
+      \ 0x1f6e0: [':hammer_and_wrench:'],
+      \ 0x1f6e1: [':shield:'],
+      \ 0x1f6e2: [':oil_drum:'],
+      \ 0x1f6e3: [':motorway:'],
+      \ 0x1f6e4: [':railway_track:'],
+      \ 0x1f6e5: [':motor_boat:'],
+      \ 0x1f6e9: [':small_airplane:'],
+      \ 0x1f6eb: [':flight_departure:'],
+      \ 0x1f6ec: [':flight_arrival:'],
+      \ 0x1f6f0: [':artificial_satellite:'],
+      \ 0x1f6f3: [':passenger_ship:'],
+      \ 0x1f6f4: [':kick_scooter:'],
+      \ 0x1f6f5: [':motor_scooter:'],
+      \ 0x1f6f6: [':canoe:'],
+      \ 0x1f6f7: [':sled:'],
+      \ 0x1f6f8: [':flying_saucer:'],
+      \ 0x1f6f9: [':skateboard:'],
+      \ 0x1f6fa: [':auto_rickshaw:'],
+      \ 0x1f7e0: [':orange_circle:'],
+      \ 0x1f7e1: [':yellow_circle:'],
+      \ 0x1f7e2: [':green_circle:'],
+      \ 0x1f7e3: [':purple_circle:'],
+      \ 0x1f7e4: [':brown_circle:'],
+      \ 0x1f7e5: [':red_square:'],
+      \ 0x1f7e6: [':blue_square:'],
+      \ 0x1f7e7: [':orange_square:'],
+      \ 0x1f7e8: [':yellow_square:'],
+      \ 0x1f7e9: [':green_square:'],
+      \ 0x1f7ea: [':purple_square:'],
+      \ 0x1f7eb: [':brown_square:'],
+      \ 0x1f90d: [':white_heart:'],
+      \ 0x1f90e: [':brown_heart:'],
+      \ 0x1f90f: [':pinching_hand:'],
+      \ 0x1f910: [':zipper_mouth_face:'],
+      \ 0x1f911: [':money_mouth_face:'],
+      \ 0x1f912: [':face_with_thermometer:'],
+      \ 0x1f913: [':nerd_face:'],
+      \ 0x1f914: [':thinking:'],
+      \ 0x1f915: [':face_with_head_bandage:'],
+      \ 0x1f916: [':robot:'],
+      \ 0x1f917: [':hugs:'],
+      \ 0x1f918: [':metal:'],
+      \ 0x1f919: [':call_me_hand:'],
+      \ 0x1f91a: [':raised_back_of_hand:'],
+      \ 0x1f91b: [':fist_left:'],
+      \ 0x1f91c: [':fist_right:'],
+      \ 0x1f91d: [':handshake:'],
+      \ 0x1f91e: [':crossed_fingers:'],
+      \ 0x1f91f: [':love_you_gesture:'],
+      \ 0x1f920: [':cowboy_hat_face:'],
+      \ 0x1f921: [':clown_face:'],
+      \ 0x1f922: [':nauseated_face:'],
+      \ 0x1f923: [':rofl:'],
+      \ 0x1f924: [':drooling_face:'],
+      \ 0x1f925: [':lying_face:'],
+      \ 0x1f926: [':facepalm:'],
+      \ 0x1f927: [':sneezing_face:'],
+      \ 0x1f928: [':raised_eyebrow:'],
+      \ 0x1f929: [':star_struck:'],
+      \ 0x1f92a: [':zany_face:'],
+      \ 0x1f92b: [':shushing_face:'],
+      \ 0x1f92c: [':cursing_face:'],
+      \ 0x1f92d: [':hand_over_mouth:'],
+      \ 0x1f92e: [':vomiting_face:'],
+      \ 0x1f92f: [':exploding_head:'],
+      \ 0x1f930: [':pregnant_woman:'],
+      \ 0x1f931: [':breast_feeding:'],
+      \ 0x1f932: [':palms_up_together:'],
+      \ 0x1f933: [':selfie:'],
+      \ 0x1f934: [':prince:'],
+      \ 0x1f935: [':man_in_tuxedo:'],
+      \ 0x1f936: [':mrs_claus:'],
+      \ 0x1f937: [':shrug:'],
+      \ 0x1f938: [':cartwheeling:'],
+      \ 0x1f939: [':juggling_person:'],
+      \ 0x1f93a: [':person_fencing:'],
+      \ 0x1f93c: [':wrestling:'],
+      \ 0x1f93d: [':water_polo:'],
+      \ 0x1f93e: [':handball_person:'],
+      \ 0x1f93f: [':diving_mask:'],
+      \ 0x1f940: [':wilted_flower:'],
+      \ 0x1f941: [':drum:'],
+      \ 0x1f942: [':clinking_glasses:'],
+      \ 0x1f943: [':tumbler_glass:'],
+      \ 0x1f944: [':spoon:'],
+      \ 0x1f945: [':goal_net:'],
+      \ 0x1f947: [':1st_place_medal:'],
+      \ 0x1f948: [':2nd_place_medal:'],
+      \ 0x1f949: [':3rd_place_medal:'],
+      \ 0x1f94a: [':boxing_glove:'],
+      \ 0x1f94b: [':martial_arts_uniform:'],
+      \ 0x1f94c: [':curling_stone:'],
+      \ 0x1f94d: [':lacrosse:'],
+      \ 0x1f94e: [':softball:'],
+      \ 0x1f94f: [':flying_disc:'],
+      \ 0x1f950: [':croissant:'],
+      \ 0x1f951: [':avocado:'],
+      \ 0x1f952: [':cucumber:'],
+      \ 0x1f953: [':bacon:'],
+      \ 0x1f954: [':potato:'],
+      \ 0x1f955: [':carrot:'],
+      \ 0x1f956: [':baguette_bread:'],
+      \ 0x1f957: [':green_salad:'],
+      \ 0x1f958: [':shallow_pan_of_food:'],
+      \ 0x1f959: [':stuffed_flatbread:'],
+      \ 0x1f95a: [':egg:'],
+      \ 0x1f95b: [':milk_glass:'],
+      \ 0x1f95c: [':peanuts:'],
+      \ 0x1f95d: [':kiwi_fruit:'],
+      \ 0x1f95e: [':pancakes:'],
+      \ 0x1f95f: [':dumpling:'],
+      \ 0x1f960: [':fortune_cookie:'],
+      \ 0x1f961: [':takeout_box:'],
+      \ 0x1f962: [':chopsticks:'],
+      \ 0x1f963: [':bowl_with_spoon:'],
+      \ 0x1f964: [':cup_with_straw:'],
+      \ 0x1f965: [':coconut:'],
+      \ 0x1f966: [':broccoli:'],
+      \ 0x1f967: [':pie:'],
+      \ 0x1f968: [':pretzel:'],
+      \ 0x1f969: [':cut_of_meat:'],
+      \ 0x1f96a: [':sandwich:'],
+      \ 0x1f96b: [':canned_food:'],
+      \ 0x1f96c: [':leafy_green:'],
+      \ 0x1f96d: [':mango:'],
+      \ 0x1f96e: [':moon_cake:'],
+      \ 0x1f96f: [':bagel:'],
+      \ 0x1f970: [':smiling_face_with_three_hearts:'],
+      \ 0x1f971: [':yawning_face:'],
+      \ 0x1f973: [':partying_face:'],
+      \ 0x1f974: [':woozy_face:'],
+      \ 0x1f975: [':hot_face:'],
+      \ 0x1f976: [':cold_face:'],
+      \ 0x1f97a: [':pleading_face:'],
+      \ 0x1f97b: [':sari:'],
+      \ 0x1f97c: [':lab_coat:'],
+      \ 0x1f97d: [':goggles:'],
+      \ 0x1f97e: [':hiking_boot:'],
+      \ 0x1f97f: [':flat_shoe:'],
+      \ 0x1f980: [':crab:'],
+      \ 0x1f981: [':lion:'],
+      \ 0x1f982: [':scorpion:'],
+      \ 0x1f983: [':turkey:'],
+      \ 0x1f984: [':unicorn:'],
+      \ 0x1f985: [':eagle:'],
+      \ 0x1f986: [':duck:'],
+      \ 0x1f987: [':bat:'],
+      \ 0x1f988: [':shark:'],
+      \ 0x1f989: [':owl:'],
+      \ 0x1f98a: [':fox_face:'],
+      \ 0x1f98b: [':butterfly:'],
+      \ 0x1f98c: [':deer:'],
+      \ 0x1f98d: [':gorilla:'],
+      \ 0x1f98e: [':lizard:'],
+      \ 0x1f98f: [':rhinoceros:'],
+      \ 0x1f990: [':shrimp:'],
+      \ 0x1f991: [':squid:'],
+      \ 0x1f992: [':giraffe:'],
+      \ 0x1f993: [':zebra:'],
+      \ 0x1f994: [':hedgehog:'],
+      \ 0x1f995: [':sauropod:'],
+      \ 0x1f996: [':t-rex:'],
+      \ 0x1f997: [':cricket:'],
+      \ 0x1f998: [':kangaroo:'],
+      \ 0x1f999: [':llama:'],
+      \ 0x1f99a: [':peacock:'],
+      \ 0x1f99b: [':hippopotamus:'],
+      \ 0x1f99c: [':parrot:'],
+      \ 0x1f99d: [':raccoon:'],
+      \ 0x1f99e: [':lobster:'],
+      \ 0x1f99f: [':mosquito:'],
+      \ 0x1f9a0: [':microbe:'],
+      \ 0x1f9a1: [':badger:'],
+      \ 0x1f9a2: [':swan:'],
+      \ 0x1f9a5: [':sloth:'],
+      \ 0x1f9a6: [':otter:'],
+      \ 0x1f9a7: [':orangutan:'],
+      \ 0x1f9a8: [':skunk:'],
+      \ 0x1f9a9: [':flamingo:'],
+      \ 0x1f9aa: [':oyster:'],
+      \ 0x1f9ae: [':guide_dog:'],
+      \ 0x1f9af: [':probing_cane:'],
+      \ 0x1f9b4: [':bone:'],
+      \ 0x1f9b5: [':leg:'],
+      \ 0x1f9b6: [':foot:'],
+      \ 0x1f9b7: [':tooth:'],
+      \ 0x1f9b8: [':superhero:'],
+      \ 0x1f9b9: [':supervillain:'],
+      \ 0x1f9ba: [':safety_vest:'],
+      \ 0x1f9bb: [':ear_with_hearing_aid:'],
+      \ 0x1f9bc: [':motorized_wheelchair:'],
+      \ 0x1f9bd: [':manual_wheelchair:'],
+      \ 0x1f9be: [':mechanical_arm:'],
+      \ 0x1f9bf: [':mechanical_leg:'],
+      \ 0x1f9c0: [':cheese:'],
+      \ 0x1f9c1: [':cupcake:'],
+      \ 0x1f9c2: [':salt:'],
+      \ 0x1f9c3: [':beverage_box:'],
+      \ 0x1f9c4: [':garlic:'],
+      \ 0x1f9c5: [':onion:'],
+      \ 0x1f9c6: [':falafel:'],
+      \ 0x1f9c7: [':waffle:'],
+      \ 0x1f9c8: [':butter:'],
+      \ 0x1f9c9: [':mate:'],
+      \ 0x1f9ca: [':ice_cube:'],
+      \ 0x1f9cd: [':standing_person:'],
+      \ 0x1f9ce: [':kneeling_person:'],
+      \ 0x1f9cf: [':deaf_person:'],
+      \ 0x1f9d0: [':monocle_face:'],
+      \ 0x1f9d1: [':adult:'],
+      \ 0x1f9d2: [':child:'],
+      \ 0x1f9d3: [':older_adult:'],
+      \ 0x1f9d4: [':bearded_person:'],
+      \ 0x1f9d5: [':woman_with_headscarf:'],
+      \ 0x1f9d6: [':sauna_person:'],
+      \ 0x1f9d7: [':climbing:'],
+      \ 0x1f9d8: [':lotus_position:'],
+      \ 0x1f9d9: [':mage:'],
+      \ 0x1f9da: [':fairy:'],
+      \ 0x1f9db: [':vampire:'],
+      \ 0x1f9dc: [':merperson:'],
+      \ 0x1f9dd: [':elf:'],
+      \ 0x1f9de: [':genie:'],
+      \ 0x1f9df: [':zombie:'],
+      \ 0x1f9e0: [':brain:'],
+      \ 0x1f9e1: [':orange_heart:'],
+      \ 0x1f9e2: [':billed_cap:'],
+      \ 0x1f9e3: [':scarf:'],
+      \ 0x1f9e4: [':gloves:'],
+      \ 0x1f9e5: [':coat:'],
+      \ 0x1f9e6: [':socks:'],
+      \ 0x1f9e7: [':red_envelope:'],
+      \ 0x1f9e8: [':firecracker:'],
+      \ 0x1f9e9: [':jigsaw:'],
+      \ 0x1f9ea: [':test_tube:'],
+      \ 0x1f9eb: [':petri_dish:'],
+      \ 0x1f9ec: [':dna:'],
+      \ 0x1f9ed: [':compass:'],
+      \ 0x1f9ee: [':abacus:'],
+      \ 0x1f9ef: [':fire_extinguisher:'],
+      \ 0x1f9f0: [':toolbox:'],
+      \ 0x1f9f1: [':bricks:'],
+      \ 0x1f9f2: [':magnet:'],
+      \ 0x1f9f3: [':luggage:'],
+      \ 0x1f9f4: [':lotion_bottle:'],
+      \ 0x1f9f5: [':thread:'],
+      \ 0x1f9f6: [':yarn:'],
+      \ 0x1f9f7: [':safety_pin:'],
+      \ 0x1f9f8: [':teddy_bear:'],
+      \ 0x1f9f9: [':broom:'],
+      \ 0x1f9fa: [':basket:'],
+      \ 0x1f9fb: [':roll_of_paper:'],
+      \ 0x1f9fc: [':soap:'],
+      \ 0x1f9fd: [':sponge:'],
+      \ 0x1f9fe: [':receipt:'],
+      \ 0x1f9ff: [':nazar_amulet:'],
+      \ 0x1fa70: [':ballet_shoes:'],
+      \ 0x1fa71: [':one_piece_swimsuit:'],
+      \ 0x1fa72: [':swim_brief:'],
+      \ 0x1fa73: [':shorts:'],
+      \ 0x1fa78: [':drop_of_blood:'],
+      \ 0x1fa79: [':adhesive_bandage:'],
+      \ 0x1fa7a: [':stethoscope:'],
+      \ 0x1fa80: [':yo_yo:'],
+      \ 0x1fa81: [':kite:'],
+      \ 0x1fa82: [':parachute:'],
+      \ 0x1fa90: [':ringed_planet:'],
+      \ 0x1fa91: [':chair:'],
+      \ 0x1fa92: [':razor:'],
+      \ 0x1fa93: [':axe:'],
+      \ 0x1fa94: [':diya_lamp:'],
+      \ 0x1fa95: [':banjo:'],
       \ }
-
-function! characterize#description(nr, ...) abort
-  for [first, last, name] in s:ranges
-    if a:nr > first && a:nr < last
-      return name
-    endif
-  endfor
-  return get(s:d, a:nr, a:0 ? a:1 : '')
-endfunction
 
 let s:d = {}
 
@@ -3037,6 +3509,16 @@ let s:d[0x08BA]='ARABIC LETTER YEH WITH TWO DOTS BELOW AND SMALL NOON ABOVE'
 let s:d[0x08BB]='ARABIC LETTER AFRICAN FEH'
 let s:d[0x08BC]='ARABIC LETTER AFRICAN QAF'
 let s:d[0x08BD]='ARABIC LETTER AFRICAN NOON'
+let s:d[0x08BE]='ARABIC LETTER PEH WITH SMALL V'
+let s:d[0x08BF]='ARABIC LETTER TEH WITH SMALL V'
+let s:d[0x08C0]='ARABIC LETTER TTEH WITH SMALL V'
+let s:d[0x08C1]='ARABIC LETTER TCHEH WITH SMALL V'
+let s:d[0x08C2]='ARABIC LETTER KEHEH WITH SMALL V'
+let s:d[0x08C3]='ARABIC LETTER GHAIN WITH THREE DOTS ABOVE'
+let s:d[0x08C4]='ARABIC LETTER AFRICAN QAF WITH THREE DOTS ABOVE'
+let s:d[0x08C5]='ARABIC LETTER JEEM WITH THREE DOTS ABOVE'
+let s:d[0x08C6]='ARABIC LETTER JEEM WITH THREE DOTS BELOW'
+let s:d[0x08C7]='ARABIC LETTER LAM WITH SMALL ARABIC LETTER TAH ABOVE'
 let s:d[0x08D3]='ARABIC SMALL LOW WAW'
 let s:d[0x08D4]='ARABIC SMALL HIGH WORD AR-RUB'
 let s:d[0x08D5]='ARABIC SMALL HIGH SAD'
@@ -3540,6 +4022,7 @@ let s:d[0x0B48]='ORIYA VOWEL SIGN AI'
 let s:d[0x0B4B]='ORIYA VOWEL SIGN O'
 let s:d[0x0B4C]='ORIYA VOWEL SIGN AU'
 let s:d[0x0B4D]='ORIYA SIGN VIRAMA'
+let s:d[0x0B55]='ORIYA SIGN OVERLINE'
 let s:d[0x0B56]='ORIYA AI LENGTH MARK'
 let s:d[0x0B57]='ORIYA AU LENGTH MARK'
 let s:d[0x0B5C]='ORIYA LETTER RRA'
@@ -3830,6 +4313,7 @@ let s:d[0x0D00]='MALAYALAM SIGN COMBINING ANUSVARA ABOVE'
 let s:d[0x0D01]='MALAYALAM SIGN CANDRABINDU'
 let s:d[0x0D02]='MALAYALAM SIGN ANUSVARA'
 let s:d[0x0D03]='MALAYALAM SIGN VISARGA'
+let s:d[0x0D04]='MALAYALAM LETTER VEDIC ANUSVARA'
 let s:d[0x0D05]='MALAYALAM LETTER A'
 let s:d[0x0D06]='MALAYALAM LETTER AA'
 let s:d[0x0D07]='MALAYALAM LETTER I'
@@ -3943,6 +4427,7 @@ let s:d[0x0D7C]='MALAYALAM LETTER CHILLU RR'
 let s:d[0x0D7D]='MALAYALAM LETTER CHILLU L'
 let s:d[0x0D7E]='MALAYALAM LETTER CHILLU LL'
 let s:d[0x0D7F]='MALAYALAM LETTER CHILLU K'
+let s:d[0x0D81]='SINHALA SIGN CANDRABINDU'
 let s:d[0x0D82]='SINHALA SIGN ANUSVARAYA'
 let s:d[0x0D83]='SINHALA SIGN VISARGAYA'
 let s:d[0x0D85]='SINHALA LETTER AYANNA'
@@ -6963,6 +7448,8 @@ let s:d[0x1ABB]='COMBINING PARENTHESES ABOVE'
 let s:d[0x1ABC]='COMBINING DOUBLE PARENTHESES ABOVE'
 let s:d[0x1ABD]='COMBINING PARENTHESES BELOW'
 let s:d[0x1ABE]='COMBINING PARENTHESES OVERLAY'
+let s:d[0x1ABF]='COMBINING LATIN SMALL LETTER W BELOW'
+let s:d[0x1AC0]='COMBINING LATIN SMALL LETTER TURNED W BELOW'
 let s:d[0x1B00]='BALINESE SIGN ULU RICEM'
 let s:d[0x1B01]='BALINESE SIGN ULU CANDRA'
 let s:d[0x1B02]='BALINESE SIGN CECEK'
@@ -11052,6 +11539,7 @@ let s:d[0x2B92]='NEWLINE LEFT'
 let s:d[0x2B93]='NEWLINE RIGHT'
 let s:d[0x2B94]='FOUR CORNER ARROWS CIRCLING ANTICLOCKWISE'
 let s:d[0x2B95]='RIGHTWARDS BLACK ARROW'
+let s:d[0x2B97]='SYMBOL FOR TYPE A ELECTRONICS'
 let s:d[0x2B98]='THREE-D TOP-LIGHTED LEFTWARDS EQUILATERAL ARROWHEAD'
 let s:d[0x2B99]='THREE-D RIGHT-LIGHTED UPWARDS EQUILATERAL ARROWHEAD'
 let s:d[0x2B9A]='THREE-D TOP-LIGHTED RIGHTWARDS EQUILATERAL ARROWHEAD'
@@ -11695,6 +12183,9 @@ let s:d[0x2E4C]='MEDIEVAL COMMA'
 let s:d[0x2E4D]='PARAGRAPHUS MARK'
 let s:d[0x2E4E]='PUNCTUS ELEVATUS MARK'
 let s:d[0x2E4F]='CORNISH VERSE DIVIDER'
+let s:d[0x2E50]='CROSS PATTY WITH RIGHT CROSSBAR'
+let s:d[0x2E51]='CROSS PATTY WITH LEFT CROSSBAR'
+let s:d[0x2E52]='TIRONIAN SIGN CAPITAL ET'
 let s:d[0x2E80]='CJK RADICAL REPEAT'
 let s:d[0x2E81]='CJK RADICAL CLIFF'
 let s:d[0x2E82]='CJK RADICAL SECOND ONE'
@@ -12469,6 +12960,11 @@ let s:d[0x31B7]='BOPOMOFO FINAL LETTER H'
 let s:d[0x31B8]='BOPOMOFO LETTER GH'
 let s:d[0x31B9]='BOPOMOFO LETTER LH'
 let s:d[0x31BA]='BOPOMOFO LETTER ZY'
+let s:d[0x31BB]='BOPOMOFO FINAL LETTER G'
+let s:d[0x31BC]='BOPOMOFO LETTER GW'
+let s:d[0x31BD]='BOPOMOFO LETTER KW'
+let s:d[0x31BE]='BOPOMOFO LETTER OE'
+let s:d[0x31BF]='BOPOMOFO LETTER AH'
 let s:d[0x31C0]='CJK STROKE T'
 let s:d[0x31C1]='CJK STROKE WG'
 let s:d[0x31C2]='CJK STROKE XG'
@@ -15045,6 +15541,12 @@ let s:d[0xA7C3]='LATIN SMALL LETTER ANGLICANA W'
 let s:d[0xA7C4]='LATIN CAPITAL LETTER C WITH PALATAL HOOK'
 let s:d[0xA7C5]='LATIN CAPITAL LETTER S WITH HOOK'
 let s:d[0xA7C6]='LATIN CAPITAL LETTER Z WITH PALATAL HOOK'
+let s:d[0xA7C7]='LATIN CAPITAL LETTER D WITH SHORT STROKE OVERLAY'
+let s:d[0xA7C8]='LATIN SMALL LETTER D WITH SHORT STROKE OVERLAY'
+let s:d[0xA7C9]='LATIN CAPITAL LETTER S WITH SHORT STROKE OVERLAY'
+let s:d[0xA7CA]='LATIN SMALL LETTER S WITH SHORT STROKE OVERLAY'
+let s:d[0xA7F5]='LATIN CAPITAL LETTER REVERSED HALF H'
+let s:d[0xA7F6]='LATIN SMALL LETTER REVERSED HALF H'
 let s:d[0xA7F7]='LATIN EPIGRAPHIC LETTER SIDEWAYS I'
 let s:d[0xA7F8]='MODIFIER LETTER CAPITAL H WITH STROKE'
 let s:d[0xA7F9]='MODIFIER LETTER SMALL LIGATURE OE'
@@ -15098,6 +15600,7 @@ let s:d[0xA828]='SYLOTI NAGRI POETRY MARK-1'
 let s:d[0xA829]='SYLOTI NAGRI POETRY MARK-2'
 let s:d[0xA82A]='SYLOTI NAGRI POETRY MARK-3'
 let s:d[0xA82B]='SYLOTI NAGRI POETRY MARK-4'
+let s:d[0xA82C]='SYLOTI NAGRI SIGN ALTERNATE HASANTA'
 let s:d[0xA830]='NORTH INDIC FRACTION ONE QUARTER'
 let s:d[0xA831]='NORTH INDIC FRACTION ONE HALF'
 let s:d[0xA832]='NORTH INDIC FRACTION THREE QUARTERS'
@@ -15812,6 +16315,10 @@ let s:d[0xAB64]='LATIN SMALL LETTER INVERTED ALPHA'
 let s:d[0xAB65]='GREEK LETTER SMALL CAPITAL OMEGA'
 let s:d[0xAB66]='LATIN SMALL LETTER DZ DIGRAPH WITH RETROFLEX HOOK'
 let s:d[0xAB67]='LATIN SMALL LETTER TS DIGRAPH WITH RETROFLEX HOOK'
+let s:d[0xAB68]='LATIN SMALL LETTER TURNED R WITH MIDDLE TILDE'
+let s:d[0xAB69]='MODIFIER LETTER SMALL TURNED W'
+let s:d[0xAB6A]='MODIFIER LETTER LEFT TACK'
+let s:d[0xAB6B]='MODIFIER LETTER RIGHT TACK'
 let s:d[0xAB70]='CHEROKEE SMALL LETTER A'
 let s:d[0xAB71]='CHEROKEE SMALL LETTER E'
 let s:d[0xAB72]='CHEROKEE SMALL LETTER I'
@@ -17991,6 +18498,7 @@ let s:d[0x10198]='ROMAN SESTERTIUS SIGN'
 let s:d[0x10199]='ROMAN DUPONDIUS SIGN'
 let s:d[0x1019A]='ROMAN AS SIGN'
 let s:d[0x1019B]='ROMAN CENTURIAL SIGN'
+let s:d[0x1019C]='ASCIA SYMBOL'
 let s:d[0x101A0]='GREEK SYMBOL TAU RHO'
 let s:d[0x101D0]='PHAISTOS DISC SIGN PEDESTRIAN'
 let s:d[0x101D1]='PHAISTOS DISC SIGN PLUMED HEAD'
@@ -19962,6 +20470,53 @@ let s:d[0x10E7B]='RUMI FRACTION ONE HALF'
 let s:d[0x10E7C]='RUMI FRACTION ONE QUARTER'
 let s:d[0x10E7D]='RUMI FRACTION ONE THIRD'
 let s:d[0x10E7E]='RUMI FRACTION TWO THIRDS'
+let s:d[0x10E80]='YEZIDI LETTER ELIF'
+let s:d[0x10E81]='YEZIDI LETTER BE'
+let s:d[0x10E82]='YEZIDI LETTER PE'
+let s:d[0x10E83]='YEZIDI LETTER PHE'
+let s:d[0x10E84]='YEZIDI LETTER THE'
+let s:d[0x10E85]='YEZIDI LETTER SE'
+let s:d[0x10E86]='YEZIDI LETTER CIM'
+let s:d[0x10E87]='YEZIDI LETTER CHIM'
+let s:d[0x10E88]='YEZIDI LETTER CHHIM'
+let s:d[0x10E89]='YEZIDI LETTER HHA'
+let s:d[0x10E8A]='YEZIDI LETTER XA'
+let s:d[0x10E8B]='YEZIDI LETTER DAL'
+let s:d[0x10E8C]='YEZIDI LETTER ZAL'
+let s:d[0x10E8D]='YEZIDI LETTER RA'
+let s:d[0x10E8E]='YEZIDI LETTER RHA'
+let s:d[0x10E8F]='YEZIDI LETTER ZA'
+let s:d[0x10E90]='YEZIDI LETTER JA'
+let s:d[0x10E91]='YEZIDI LETTER SIN'
+let s:d[0x10E92]='YEZIDI LETTER SHIN'
+let s:d[0x10E93]='YEZIDI LETTER SAD'
+let s:d[0x10E94]='YEZIDI LETTER DAD'
+let s:d[0x10E95]='YEZIDI LETTER TA'
+let s:d[0x10E96]='YEZIDI LETTER ZE'
+let s:d[0x10E97]='YEZIDI LETTER EYN'
+let s:d[0x10E98]='YEZIDI LETTER XHEYN'
+let s:d[0x10E99]='YEZIDI LETTER FA'
+let s:d[0x10E9A]='YEZIDI LETTER VA'
+let s:d[0x10E9B]='YEZIDI LETTER VA ALTERNATE FORM'
+let s:d[0x10E9C]='YEZIDI LETTER QAF'
+let s:d[0x10E9D]='YEZIDI LETTER KAF'
+let s:d[0x10E9E]='YEZIDI LETTER KHAF'
+let s:d[0x10E9F]='YEZIDI LETTER GAF'
+let s:d[0x10EA0]='YEZIDI LETTER LAM'
+let s:d[0x10EA1]='YEZIDI LETTER MIM'
+let s:d[0x10EA2]='YEZIDI LETTER NUN'
+let s:d[0x10EA3]='YEZIDI LETTER UM'
+let s:d[0x10EA4]='YEZIDI LETTER WAW'
+let s:d[0x10EA5]='YEZIDI LETTER OW'
+let s:d[0x10EA6]='YEZIDI LETTER EW'
+let s:d[0x10EA7]='YEZIDI LETTER HAY'
+let s:d[0x10EA8]='YEZIDI LETTER YOT'
+let s:d[0x10EA9]='YEZIDI LETTER ET'
+let s:d[0x10EAB]='YEZIDI COMBINING HAMZA MARK'
+let s:d[0x10EAC]='YEZIDI COMBINING MADDA MARK'
+let s:d[0x10EAD]='YEZIDI HYPHENATION MARK'
+let s:d[0x10EB0]='YEZIDI LETTER LAM WITH DOT ABOVE'
+let s:d[0x10EB1]='YEZIDI LETTER YOT WITH CIRCUMFLEX ABOVE'
 let s:d[0x10F00]='OLD SOGDIAN LETTER ALEPH'
 let s:d[0x10F01]='OLD SOGDIAN LETTER FINAL ALEPH'
 let s:d[0x10F02]='OLD SOGDIAN LETTER BETH'
@@ -20044,6 +20599,34 @@ let s:d[0x10F56]='SOGDIAN PUNCTUATION TWO VERTICAL BARS WITH DOTS'
 let s:d[0x10F57]='SOGDIAN PUNCTUATION CIRCLE WITH DOT'
 let s:d[0x10F58]='SOGDIAN PUNCTUATION TWO CIRCLES WITH DOTS'
 let s:d[0x10F59]='SOGDIAN PUNCTUATION HALF CIRCLE WITH DOT'
+let s:d[0x10FB0]='CHORASMIAN LETTER ALEPH'
+let s:d[0x10FB1]='CHORASMIAN LETTER SMALL ALEPH'
+let s:d[0x10FB2]='CHORASMIAN LETTER BETH'
+let s:d[0x10FB3]='CHORASMIAN LETTER GIMEL'
+let s:d[0x10FB4]='CHORASMIAN LETTER DALETH'
+let s:d[0x10FB5]='CHORASMIAN LETTER HE'
+let s:d[0x10FB6]='CHORASMIAN LETTER WAW'
+let s:d[0x10FB7]='CHORASMIAN LETTER CURLED WAW'
+let s:d[0x10FB8]='CHORASMIAN LETTER ZAYIN'
+let s:d[0x10FB9]='CHORASMIAN LETTER HETH'
+let s:d[0x10FBA]='CHORASMIAN LETTER YODH'
+let s:d[0x10FBB]='CHORASMIAN LETTER KAPH'
+let s:d[0x10FBC]='CHORASMIAN LETTER LAMEDH'
+let s:d[0x10FBD]='CHORASMIAN LETTER MEM'
+let s:d[0x10FBE]='CHORASMIAN LETTER NUN'
+let s:d[0x10FBF]='CHORASMIAN LETTER SAMEKH'
+let s:d[0x10FC0]='CHORASMIAN LETTER AYIN'
+let s:d[0x10FC1]='CHORASMIAN LETTER PE'
+let s:d[0x10FC2]='CHORASMIAN LETTER RESH'
+let s:d[0x10FC3]='CHORASMIAN LETTER SHIN'
+let s:d[0x10FC4]='CHORASMIAN LETTER TAW'
+let s:d[0x10FC5]='CHORASMIAN NUMBER ONE'
+let s:d[0x10FC6]='CHORASMIAN NUMBER TWO'
+let s:d[0x10FC7]='CHORASMIAN NUMBER THREE'
+let s:d[0x10FC8]='CHORASMIAN NUMBER FOUR'
+let s:d[0x10FC9]='CHORASMIAN NUMBER TEN'
+let s:d[0x10FCA]='CHORASMIAN NUMBER TWENTY'
+let s:d[0x10FCB]='CHORASMIAN NUMBER ONE HUNDRED'
 let s:d[0x10FE0]='ELYMAIC LETTER ALEPH'
 let s:d[0x10FE1]='ELYMAIC LETTER BETH'
 let s:d[0x10FE2]='ELYMAIC LETTER GIMEL'
@@ -20348,6 +20931,7 @@ let s:d[0x11143]='CHAKMA QUESTION MARK'
 let s:d[0x11144]='CHAKMA LETTER LHAA'
 let s:d[0x11145]='CHAKMA VOWEL SIGN AA'
 let s:d[0x11146]='CHAKMA VOWEL SIGN EI'
+let s:d[0x11147]='CHAKMA LETTER VAA'
 let s:d[0x11150]='MAHAJANI LETTER A'
 let s:d[0x11151]='MAHAJANI LETTER I'
 let s:d[0x11152]='MAHAJANI LETTER U'
@@ -20465,6 +21049,8 @@ let s:d[0x111CA]='SHARADA SIGN NUKTA'
 let s:d[0x111CB]='SHARADA VOWEL MODIFIER MARK'
 let s:d[0x111CC]='SHARADA EXTRA SHORT VOWEL MARK'
 let s:d[0x111CD]='SHARADA SUTRA MARK'
+let s:d[0x111CE]='SHARADA VOWEL SIGN PRISHTHAMATRA E'
+let s:d[0x111CF]='SHARADA SIGN INVERTED CANDRABINDU'
 let s:d[0x111D0]='SHARADA DIGIT ZERO'
 let s:d[0x111D1]='SHARADA DIGIT ONE'
 let s:d[0x111D2]='SHARADA DIGIT TWO'
@@ -20846,10 +21432,13 @@ let s:d[0x11456]='NEWA DIGIT SIX'
 let s:d[0x11457]='NEWA DIGIT SEVEN'
 let s:d[0x11458]='NEWA DIGIT EIGHT'
 let s:d[0x11459]='NEWA DIGIT NINE'
+let s:d[0x1145A]='NEWA DOUBLE COMMA'
 let s:d[0x1145B]='NEWA PLACEHOLDER MARK'
 let s:d[0x1145D]='NEWA INSERTION SIGN'
 let s:d[0x1145E]='NEWA SANDHI MARK'
 let s:d[0x1145F]='NEWA LETTER VEDIC ANUSVARA'
+let s:d[0x11460]='NEWA SIGN JIHVAMULIYA'
+let s:d[0x11461]='NEWA SIGN UPADHMANIYA'
 let s:d[0x11480]='TIRHUTA ANJI'
 let s:d[0x11481]='TIRHUTA LETTER A'
 let s:d[0x11482]='TIRHUTA LETTER AA'
@@ -21385,6 +21974,78 @@ let s:d[0x118F0]='WARANG CITI NUMBER SEVENTY'
 let s:d[0x118F1]='WARANG CITI NUMBER EIGHTY'
 let s:d[0x118F2]='WARANG CITI NUMBER NINETY'
 let s:d[0x118FF]='WARANG CITI OM'
+let s:d[0x11900]='DIVES AKURU LETTER A'
+let s:d[0x11901]='DIVES AKURU LETTER AA'
+let s:d[0x11902]='DIVES AKURU LETTER I'
+let s:d[0x11903]='DIVES AKURU LETTER II'
+let s:d[0x11904]='DIVES AKURU LETTER U'
+let s:d[0x11905]='DIVES AKURU LETTER UU'
+let s:d[0x11906]='DIVES AKURU LETTER E'
+let s:d[0x11909]='DIVES AKURU LETTER O'
+let s:d[0x1190C]='DIVES AKURU LETTER KA'
+let s:d[0x1190D]='DIVES AKURU LETTER KHA'
+let s:d[0x1190E]='DIVES AKURU LETTER GA'
+let s:d[0x1190F]='DIVES AKURU LETTER GHA'
+let s:d[0x11910]='DIVES AKURU LETTER NGA'
+let s:d[0x11911]='DIVES AKURU LETTER CA'
+let s:d[0x11912]='DIVES AKURU LETTER CHA'
+let s:d[0x11913]='DIVES AKURU LETTER JA'
+let s:d[0x11915]='DIVES AKURU LETTER NYA'
+let s:d[0x11916]='DIVES AKURU LETTER TTA'
+let s:d[0x11918]='DIVES AKURU LETTER DDA'
+let s:d[0x11919]='DIVES AKURU LETTER DDHA'
+let s:d[0x1191A]='DIVES AKURU LETTER NNA'
+let s:d[0x1191B]='DIVES AKURU LETTER TA'
+let s:d[0x1191C]='DIVES AKURU LETTER THA'
+let s:d[0x1191D]='DIVES AKURU LETTER DA'
+let s:d[0x1191E]='DIVES AKURU LETTER DHA'
+let s:d[0x1191F]='DIVES AKURU LETTER NA'
+let s:d[0x11920]='DIVES AKURU LETTER PA'
+let s:d[0x11921]='DIVES AKURU LETTER PHA'
+let s:d[0x11922]='DIVES AKURU LETTER BA'
+let s:d[0x11923]='DIVES AKURU LETTER BHA'
+let s:d[0x11924]='DIVES AKURU LETTER MA'
+let s:d[0x11925]='DIVES AKURU LETTER YA'
+let s:d[0x11926]='DIVES AKURU LETTER YYA'
+let s:d[0x11927]='DIVES AKURU LETTER RA'
+let s:d[0x11928]='DIVES AKURU LETTER LA'
+let s:d[0x11929]='DIVES AKURU LETTER VA'
+let s:d[0x1192A]='DIVES AKURU LETTER SHA'
+let s:d[0x1192B]='DIVES AKURU LETTER SSA'
+let s:d[0x1192C]='DIVES AKURU LETTER SA'
+let s:d[0x1192D]='DIVES AKURU LETTER HA'
+let s:d[0x1192E]='DIVES AKURU LETTER LLA'
+let s:d[0x1192F]='DIVES AKURU LETTER ZA'
+let s:d[0x11930]='DIVES AKURU VOWEL SIGN AA'
+let s:d[0x11931]='DIVES AKURU VOWEL SIGN I'
+let s:d[0x11932]='DIVES AKURU VOWEL SIGN II'
+let s:d[0x11933]='DIVES AKURU VOWEL SIGN U'
+let s:d[0x11934]='DIVES AKURU VOWEL SIGN UU'
+let s:d[0x11935]='DIVES AKURU VOWEL SIGN E'
+let s:d[0x11937]='DIVES AKURU VOWEL SIGN AI'
+let s:d[0x11938]='DIVES AKURU VOWEL SIGN O'
+let s:d[0x1193B]='DIVES AKURU SIGN ANUSVARA'
+let s:d[0x1193C]='DIVES AKURU SIGN CANDRABINDU'
+let s:d[0x1193D]='DIVES AKURU SIGN HALANTA'
+let s:d[0x1193E]='DIVES AKURU VIRAMA'
+let s:d[0x1193F]='DIVES AKURU PREFIXED NASAL SIGN'
+let s:d[0x11940]='DIVES AKURU MEDIAL YA'
+let s:d[0x11941]='DIVES AKURU INITIAL RA'
+let s:d[0x11942]='DIVES AKURU MEDIAL RA'
+let s:d[0x11943]='DIVES AKURU SIGN NUKTA'
+let s:d[0x11944]='DIVES AKURU DOUBLE DANDA'
+let s:d[0x11945]='DIVES AKURU GAP FILLER'
+let s:d[0x11946]='DIVES AKURU END OF TEXT MARK'
+let s:d[0x11950]='DIVES AKURU DIGIT ZERO'
+let s:d[0x11951]='DIVES AKURU DIGIT ONE'
+let s:d[0x11952]='DIVES AKURU DIGIT TWO'
+let s:d[0x11953]='DIVES AKURU DIGIT THREE'
+let s:d[0x11954]='DIVES AKURU DIGIT FOUR'
+let s:d[0x11955]='DIVES AKURU DIGIT FIVE'
+let s:d[0x11956]='DIVES AKURU DIGIT SIX'
+let s:d[0x11957]='DIVES AKURU DIGIT SEVEN'
+let s:d[0x11958]='DIVES AKURU DIGIT EIGHT'
+let s:d[0x11959]='DIVES AKURU DIGIT NINE'
 let s:d[0x119A0]='NANDINAGARI LETTER A'
 let s:d[0x119A1]='NANDINAGARI LETTER AA'
 let s:d[0x119A2]='NANDINAGARI LETTER I'
@@ -21990,6 +22651,7 @@ let s:d[0x11EF5]='MAKASAR VOWEL SIGN E'
 let s:d[0x11EF6]='MAKASAR VOWEL SIGN O'
 let s:d[0x11EF7]='MAKASAR PASSIMBANG'
 let s:d[0x11EF8]='MAKASAR END OF SECTION'
+let s:d[0x11FB0]='LISU LETTER YHA'
 let s:d[0x11FC0]='TAMIL FRACTION ONE THREE-HUNDRED-AND-TWENTIETH'
 let s:d[0x11FC1]='TAMIL FRACTION ONE ONE-HUNDRED-AND-SIXTIETH'
 let s:d[0x11FC2]='TAMIL FRACTION ONE EIGHTIETH'
@@ -25957,6 +26619,9 @@ let s:d[0x16FE0]='TANGUT ITERATION MARK'
 let s:d[0x16FE1]='NUSHU ITERATION MARK'
 let s:d[0x16FE2]='OLD CHINESE HOOK MARK'
 let s:d[0x16FE3]='OLD CHINESE ITERATION MARK'
+let s:d[0x16FE4]='KHITAN SMALL SCRIPT FILLER'
+let s:d[0x16FF0]='VIETNAMESE ALTERNATE READING MARK CA'
+let s:d[0x16FF1]='VIETNAMESE ALTERNATE READING MARK NHAY'
 let s:d[0x18800]='TANGUT COMPONENT-001'
 let s:d[0x18801]='TANGUT COMPONENT-002'
 let s:d[0x18802]='TANGUT COMPONENT-003'
@@ -26712,6 +27377,489 @@ let s:d[0x18AEF]='TANGUT COMPONENT-752'
 let s:d[0x18AF0]='TANGUT COMPONENT-753'
 let s:d[0x18AF1]='TANGUT COMPONENT-754'
 let s:d[0x18AF2]='TANGUT COMPONENT-755'
+let s:d[0x18AF3]='TANGUT COMPONENT-756'
+let s:d[0x18AF4]='TANGUT COMPONENT-757'
+let s:d[0x18AF5]='TANGUT COMPONENT-758'
+let s:d[0x18AF6]='TANGUT COMPONENT-759'
+let s:d[0x18AF7]='TANGUT COMPONENT-760'
+let s:d[0x18AF8]='TANGUT COMPONENT-761'
+let s:d[0x18AF9]='TANGUT COMPONENT-762'
+let s:d[0x18AFA]='TANGUT COMPONENT-763'
+let s:d[0x18AFB]='TANGUT COMPONENT-764'
+let s:d[0x18AFC]='TANGUT COMPONENT-765'
+let s:d[0x18AFD]='TANGUT COMPONENT-766'
+let s:d[0x18AFE]='TANGUT COMPONENT-767'
+let s:d[0x18AFF]='TANGUT COMPONENT-768'
+let s:d[0x18B00]='KHITAN SMALL SCRIPT CHARACTER-18B00'
+let s:d[0x18B01]='KHITAN SMALL SCRIPT CHARACTER-18B01'
+let s:d[0x18B02]='KHITAN SMALL SCRIPT CHARACTER-18B02'
+let s:d[0x18B03]='KHITAN SMALL SCRIPT CHARACTER-18B03'
+let s:d[0x18B04]='KHITAN SMALL SCRIPT CHARACTER-18B04'
+let s:d[0x18B05]='KHITAN SMALL SCRIPT CHARACTER-18B05'
+let s:d[0x18B06]='KHITAN SMALL SCRIPT CHARACTER-18B06'
+let s:d[0x18B07]='KHITAN SMALL SCRIPT CHARACTER-18B07'
+let s:d[0x18B08]='KHITAN SMALL SCRIPT CHARACTER-18B08'
+let s:d[0x18B09]='KHITAN SMALL SCRIPT CHARACTER-18B09'
+let s:d[0x18B0A]='KHITAN SMALL SCRIPT CHARACTER-18B0A'
+let s:d[0x18B0B]='KHITAN SMALL SCRIPT CHARACTER-18B0B'
+let s:d[0x18B0C]='KHITAN SMALL SCRIPT CHARACTER-18B0C'
+let s:d[0x18B0D]='KHITAN SMALL SCRIPT CHARACTER-18B0D'
+let s:d[0x18B0E]='KHITAN SMALL SCRIPT CHARACTER-18B0E'
+let s:d[0x18B0F]='KHITAN SMALL SCRIPT CHARACTER-18B0F'
+let s:d[0x18B10]='KHITAN SMALL SCRIPT CHARACTER-18B10'
+let s:d[0x18B11]='KHITAN SMALL SCRIPT CHARACTER-18B11'
+let s:d[0x18B12]='KHITAN SMALL SCRIPT CHARACTER-18B12'
+let s:d[0x18B13]='KHITAN SMALL SCRIPT CHARACTER-18B13'
+let s:d[0x18B14]='KHITAN SMALL SCRIPT CHARACTER-18B14'
+let s:d[0x18B15]='KHITAN SMALL SCRIPT CHARACTER-18B15'
+let s:d[0x18B16]='KHITAN SMALL SCRIPT CHARACTER-18B16'
+let s:d[0x18B17]='KHITAN SMALL SCRIPT CHARACTER-18B17'
+let s:d[0x18B18]='KHITAN SMALL SCRIPT CHARACTER-18B18'
+let s:d[0x18B19]='KHITAN SMALL SCRIPT CHARACTER-18B19'
+let s:d[0x18B1A]='KHITAN SMALL SCRIPT CHARACTER-18B1A'
+let s:d[0x18B1B]='KHITAN SMALL SCRIPT CHARACTER-18B1B'
+let s:d[0x18B1C]='KHITAN SMALL SCRIPT CHARACTER-18B1C'
+let s:d[0x18B1D]='KHITAN SMALL SCRIPT CHARACTER-18B1D'
+let s:d[0x18B1E]='KHITAN SMALL SCRIPT CHARACTER-18B1E'
+let s:d[0x18B1F]='KHITAN SMALL SCRIPT CHARACTER-18B1F'
+let s:d[0x18B20]='KHITAN SMALL SCRIPT CHARACTER-18B20'
+let s:d[0x18B21]='KHITAN SMALL SCRIPT CHARACTER-18B21'
+let s:d[0x18B22]='KHITAN SMALL SCRIPT CHARACTER-18B22'
+let s:d[0x18B23]='KHITAN SMALL SCRIPT CHARACTER-18B23'
+let s:d[0x18B24]='KHITAN SMALL SCRIPT CHARACTER-18B24'
+let s:d[0x18B25]='KHITAN SMALL SCRIPT CHARACTER-18B25'
+let s:d[0x18B26]='KHITAN SMALL SCRIPT CHARACTER-18B26'
+let s:d[0x18B27]='KHITAN SMALL SCRIPT CHARACTER-18B27'
+let s:d[0x18B28]='KHITAN SMALL SCRIPT CHARACTER-18B28'
+let s:d[0x18B29]='KHITAN SMALL SCRIPT CHARACTER-18B29'
+let s:d[0x18B2A]='KHITAN SMALL SCRIPT CHARACTER-18B2A'
+let s:d[0x18B2B]='KHITAN SMALL SCRIPT CHARACTER-18B2B'
+let s:d[0x18B2C]='KHITAN SMALL SCRIPT CHARACTER-18B2C'
+let s:d[0x18B2D]='KHITAN SMALL SCRIPT CHARACTER-18B2D'
+let s:d[0x18B2E]='KHITAN SMALL SCRIPT CHARACTER-18B2E'
+let s:d[0x18B2F]='KHITAN SMALL SCRIPT CHARACTER-18B2F'
+let s:d[0x18B30]='KHITAN SMALL SCRIPT CHARACTER-18B30'
+let s:d[0x18B31]='KHITAN SMALL SCRIPT CHARACTER-18B31'
+let s:d[0x18B32]='KHITAN SMALL SCRIPT CHARACTER-18B32'
+let s:d[0x18B33]='KHITAN SMALL SCRIPT CHARACTER-18B33'
+let s:d[0x18B34]='KHITAN SMALL SCRIPT CHARACTER-18B34'
+let s:d[0x18B35]='KHITAN SMALL SCRIPT CHARACTER-18B35'
+let s:d[0x18B36]='KHITAN SMALL SCRIPT CHARACTER-18B36'
+let s:d[0x18B37]='KHITAN SMALL SCRIPT CHARACTER-18B37'
+let s:d[0x18B38]='KHITAN SMALL SCRIPT CHARACTER-18B38'
+let s:d[0x18B39]='KHITAN SMALL SCRIPT CHARACTER-18B39'
+let s:d[0x18B3A]='KHITAN SMALL SCRIPT CHARACTER-18B3A'
+let s:d[0x18B3B]='KHITAN SMALL SCRIPT CHARACTER-18B3B'
+let s:d[0x18B3C]='KHITAN SMALL SCRIPT CHARACTER-18B3C'
+let s:d[0x18B3D]='KHITAN SMALL SCRIPT CHARACTER-18B3D'
+let s:d[0x18B3E]='KHITAN SMALL SCRIPT CHARACTER-18B3E'
+let s:d[0x18B3F]='KHITAN SMALL SCRIPT CHARACTER-18B3F'
+let s:d[0x18B40]='KHITAN SMALL SCRIPT CHARACTER-18B40'
+let s:d[0x18B41]='KHITAN SMALL SCRIPT CHARACTER-18B41'
+let s:d[0x18B42]='KHITAN SMALL SCRIPT CHARACTER-18B42'
+let s:d[0x18B43]='KHITAN SMALL SCRIPT CHARACTER-18B43'
+let s:d[0x18B44]='KHITAN SMALL SCRIPT CHARACTER-18B44'
+let s:d[0x18B45]='KHITAN SMALL SCRIPT CHARACTER-18B45'
+let s:d[0x18B46]='KHITAN SMALL SCRIPT CHARACTER-18B46'
+let s:d[0x18B47]='KHITAN SMALL SCRIPT CHARACTER-18B47'
+let s:d[0x18B48]='KHITAN SMALL SCRIPT CHARACTER-18B48'
+let s:d[0x18B49]='KHITAN SMALL SCRIPT CHARACTER-18B49'
+let s:d[0x18B4A]='KHITAN SMALL SCRIPT CHARACTER-18B4A'
+let s:d[0x18B4B]='KHITAN SMALL SCRIPT CHARACTER-18B4B'
+let s:d[0x18B4C]='KHITAN SMALL SCRIPT CHARACTER-18B4C'
+let s:d[0x18B4D]='KHITAN SMALL SCRIPT CHARACTER-18B4D'
+let s:d[0x18B4E]='KHITAN SMALL SCRIPT CHARACTER-18B4E'
+let s:d[0x18B4F]='KHITAN SMALL SCRIPT CHARACTER-18B4F'
+let s:d[0x18B50]='KHITAN SMALL SCRIPT CHARACTER-18B50'
+let s:d[0x18B51]='KHITAN SMALL SCRIPT CHARACTER-18B51'
+let s:d[0x18B52]='KHITAN SMALL SCRIPT CHARACTER-18B52'
+let s:d[0x18B53]='KHITAN SMALL SCRIPT CHARACTER-18B53'
+let s:d[0x18B54]='KHITAN SMALL SCRIPT CHARACTER-18B54'
+let s:d[0x18B55]='KHITAN SMALL SCRIPT CHARACTER-18B55'
+let s:d[0x18B56]='KHITAN SMALL SCRIPT CHARACTER-18B56'
+let s:d[0x18B57]='KHITAN SMALL SCRIPT CHARACTER-18B57'
+let s:d[0x18B58]='KHITAN SMALL SCRIPT CHARACTER-18B58'
+let s:d[0x18B59]='KHITAN SMALL SCRIPT CHARACTER-18B59'
+let s:d[0x18B5A]='KHITAN SMALL SCRIPT CHARACTER-18B5A'
+let s:d[0x18B5B]='KHITAN SMALL SCRIPT CHARACTER-18B5B'
+let s:d[0x18B5C]='KHITAN SMALL SCRIPT CHARACTER-18B5C'
+let s:d[0x18B5D]='KHITAN SMALL SCRIPT CHARACTER-18B5D'
+let s:d[0x18B5E]='KHITAN SMALL SCRIPT CHARACTER-18B5E'
+let s:d[0x18B5F]='KHITAN SMALL SCRIPT CHARACTER-18B5F'
+let s:d[0x18B60]='KHITAN SMALL SCRIPT CHARACTER-18B60'
+let s:d[0x18B61]='KHITAN SMALL SCRIPT CHARACTER-18B61'
+let s:d[0x18B62]='KHITAN SMALL SCRIPT CHARACTER-18B62'
+let s:d[0x18B63]='KHITAN SMALL SCRIPT CHARACTER-18B63'
+let s:d[0x18B64]='KHITAN SMALL SCRIPT CHARACTER-18B64'
+let s:d[0x18B65]='KHITAN SMALL SCRIPT CHARACTER-18B65'
+let s:d[0x18B66]='KHITAN SMALL SCRIPT CHARACTER-18B66'
+let s:d[0x18B67]='KHITAN SMALL SCRIPT CHARACTER-18B67'
+let s:d[0x18B68]='KHITAN SMALL SCRIPT CHARACTER-18B68'
+let s:d[0x18B69]='KHITAN SMALL SCRIPT CHARACTER-18B69'
+let s:d[0x18B6A]='KHITAN SMALL SCRIPT CHARACTER-18B6A'
+let s:d[0x18B6B]='KHITAN SMALL SCRIPT CHARACTER-18B6B'
+let s:d[0x18B6C]='KHITAN SMALL SCRIPT CHARACTER-18B6C'
+let s:d[0x18B6D]='KHITAN SMALL SCRIPT CHARACTER-18B6D'
+let s:d[0x18B6E]='KHITAN SMALL SCRIPT CHARACTER-18B6E'
+let s:d[0x18B6F]='KHITAN SMALL SCRIPT CHARACTER-18B6F'
+let s:d[0x18B70]='KHITAN SMALL SCRIPT CHARACTER-18B70'
+let s:d[0x18B71]='KHITAN SMALL SCRIPT CHARACTER-18B71'
+let s:d[0x18B72]='KHITAN SMALL SCRIPT CHARACTER-18B72'
+let s:d[0x18B73]='KHITAN SMALL SCRIPT CHARACTER-18B73'
+let s:d[0x18B74]='KHITAN SMALL SCRIPT CHARACTER-18B74'
+let s:d[0x18B75]='KHITAN SMALL SCRIPT CHARACTER-18B75'
+let s:d[0x18B76]='KHITAN SMALL SCRIPT CHARACTER-18B76'
+let s:d[0x18B77]='KHITAN SMALL SCRIPT CHARACTER-18B77'
+let s:d[0x18B78]='KHITAN SMALL SCRIPT CHARACTER-18B78'
+let s:d[0x18B79]='KHITAN SMALL SCRIPT CHARACTER-18B79'
+let s:d[0x18B7A]='KHITAN SMALL SCRIPT CHARACTER-18B7A'
+let s:d[0x18B7B]='KHITAN SMALL SCRIPT CHARACTER-18B7B'
+let s:d[0x18B7C]='KHITAN SMALL SCRIPT CHARACTER-18B7C'
+let s:d[0x18B7D]='KHITAN SMALL SCRIPT CHARACTER-18B7D'
+let s:d[0x18B7E]='KHITAN SMALL SCRIPT CHARACTER-18B7E'
+let s:d[0x18B7F]='KHITAN SMALL SCRIPT CHARACTER-18B7F'
+let s:d[0x18B80]='KHITAN SMALL SCRIPT CHARACTER-18B80'
+let s:d[0x18B81]='KHITAN SMALL SCRIPT CHARACTER-18B81'
+let s:d[0x18B82]='KHITAN SMALL SCRIPT CHARACTER-18B82'
+let s:d[0x18B83]='KHITAN SMALL SCRIPT CHARACTER-18B83'
+let s:d[0x18B84]='KHITAN SMALL SCRIPT CHARACTER-18B84'
+let s:d[0x18B85]='KHITAN SMALL SCRIPT CHARACTER-18B85'
+let s:d[0x18B86]='KHITAN SMALL SCRIPT CHARACTER-18B86'
+let s:d[0x18B87]='KHITAN SMALL SCRIPT CHARACTER-18B87'
+let s:d[0x18B88]='KHITAN SMALL SCRIPT CHARACTER-18B88'
+let s:d[0x18B89]='KHITAN SMALL SCRIPT CHARACTER-18B89'
+let s:d[0x18B8A]='KHITAN SMALL SCRIPT CHARACTER-18B8A'
+let s:d[0x18B8B]='KHITAN SMALL SCRIPT CHARACTER-18B8B'
+let s:d[0x18B8C]='KHITAN SMALL SCRIPT CHARACTER-18B8C'
+let s:d[0x18B8D]='KHITAN SMALL SCRIPT CHARACTER-18B8D'
+let s:d[0x18B8E]='KHITAN SMALL SCRIPT CHARACTER-18B8E'
+let s:d[0x18B8F]='KHITAN SMALL SCRIPT CHARACTER-18B8F'
+let s:d[0x18B90]='KHITAN SMALL SCRIPT CHARACTER-18B90'
+let s:d[0x18B91]='KHITAN SMALL SCRIPT CHARACTER-18B91'
+let s:d[0x18B92]='KHITAN SMALL SCRIPT CHARACTER-18B92'
+let s:d[0x18B93]='KHITAN SMALL SCRIPT CHARACTER-18B93'
+let s:d[0x18B94]='KHITAN SMALL SCRIPT CHARACTER-18B94'
+let s:d[0x18B95]='KHITAN SMALL SCRIPT CHARACTER-18B95'
+let s:d[0x18B96]='KHITAN SMALL SCRIPT CHARACTER-18B96'
+let s:d[0x18B97]='KHITAN SMALL SCRIPT CHARACTER-18B97'
+let s:d[0x18B98]='KHITAN SMALL SCRIPT CHARACTER-18B98'
+let s:d[0x18B99]='KHITAN SMALL SCRIPT CHARACTER-18B99'
+let s:d[0x18B9A]='KHITAN SMALL SCRIPT CHARACTER-18B9A'
+let s:d[0x18B9B]='KHITAN SMALL SCRIPT CHARACTER-18B9B'
+let s:d[0x18B9C]='KHITAN SMALL SCRIPT CHARACTER-18B9C'
+let s:d[0x18B9D]='KHITAN SMALL SCRIPT CHARACTER-18B9D'
+let s:d[0x18B9E]='KHITAN SMALL SCRIPT CHARACTER-18B9E'
+let s:d[0x18B9F]='KHITAN SMALL SCRIPT CHARACTER-18B9F'
+let s:d[0x18BA0]='KHITAN SMALL SCRIPT CHARACTER-18BA0'
+let s:d[0x18BA1]='KHITAN SMALL SCRIPT CHARACTER-18BA1'
+let s:d[0x18BA2]='KHITAN SMALL SCRIPT CHARACTER-18BA2'
+let s:d[0x18BA3]='KHITAN SMALL SCRIPT CHARACTER-18BA3'
+let s:d[0x18BA4]='KHITAN SMALL SCRIPT CHARACTER-18BA4'
+let s:d[0x18BA5]='KHITAN SMALL SCRIPT CHARACTER-18BA5'
+let s:d[0x18BA6]='KHITAN SMALL SCRIPT CHARACTER-18BA6'
+let s:d[0x18BA7]='KHITAN SMALL SCRIPT CHARACTER-18BA7'
+let s:d[0x18BA8]='KHITAN SMALL SCRIPT CHARACTER-18BA8'
+let s:d[0x18BA9]='KHITAN SMALL SCRIPT CHARACTER-18BA9'
+let s:d[0x18BAA]='KHITAN SMALL SCRIPT CHARACTER-18BAA'
+let s:d[0x18BAB]='KHITAN SMALL SCRIPT CHARACTER-18BAB'
+let s:d[0x18BAC]='KHITAN SMALL SCRIPT CHARACTER-18BAC'
+let s:d[0x18BAD]='KHITAN SMALL SCRIPT CHARACTER-18BAD'
+let s:d[0x18BAE]='KHITAN SMALL SCRIPT CHARACTER-18BAE'
+let s:d[0x18BAF]='KHITAN SMALL SCRIPT CHARACTER-18BAF'
+let s:d[0x18BB0]='KHITAN SMALL SCRIPT CHARACTER-18BB0'
+let s:d[0x18BB1]='KHITAN SMALL SCRIPT CHARACTER-18BB1'
+let s:d[0x18BB2]='KHITAN SMALL SCRIPT CHARACTER-18BB2'
+let s:d[0x18BB3]='KHITAN SMALL SCRIPT CHARACTER-18BB3'
+let s:d[0x18BB4]='KHITAN SMALL SCRIPT CHARACTER-18BB4'
+let s:d[0x18BB5]='KHITAN SMALL SCRIPT CHARACTER-18BB5'
+let s:d[0x18BB6]='KHITAN SMALL SCRIPT CHARACTER-18BB6'
+let s:d[0x18BB7]='KHITAN SMALL SCRIPT CHARACTER-18BB7'
+let s:d[0x18BB8]='KHITAN SMALL SCRIPT CHARACTER-18BB8'
+let s:d[0x18BB9]='KHITAN SMALL SCRIPT CHARACTER-18BB9'
+let s:d[0x18BBA]='KHITAN SMALL SCRIPT CHARACTER-18BBA'
+let s:d[0x18BBB]='KHITAN SMALL SCRIPT CHARACTER-18BBB'
+let s:d[0x18BBC]='KHITAN SMALL SCRIPT CHARACTER-18BBC'
+let s:d[0x18BBD]='KHITAN SMALL SCRIPT CHARACTER-18BBD'
+let s:d[0x18BBE]='KHITAN SMALL SCRIPT CHARACTER-18BBE'
+let s:d[0x18BBF]='KHITAN SMALL SCRIPT CHARACTER-18BBF'
+let s:d[0x18BC0]='KHITAN SMALL SCRIPT CHARACTER-18BC0'
+let s:d[0x18BC1]='KHITAN SMALL SCRIPT CHARACTER-18BC1'
+let s:d[0x18BC2]='KHITAN SMALL SCRIPT CHARACTER-18BC2'
+let s:d[0x18BC3]='KHITAN SMALL SCRIPT CHARACTER-18BC3'
+let s:d[0x18BC4]='KHITAN SMALL SCRIPT CHARACTER-18BC4'
+let s:d[0x18BC5]='KHITAN SMALL SCRIPT CHARACTER-18BC5'
+let s:d[0x18BC6]='KHITAN SMALL SCRIPT CHARACTER-18BC6'
+let s:d[0x18BC7]='KHITAN SMALL SCRIPT CHARACTER-18BC7'
+let s:d[0x18BC8]='KHITAN SMALL SCRIPT CHARACTER-18BC8'
+let s:d[0x18BC9]='KHITAN SMALL SCRIPT CHARACTER-18BC9'
+let s:d[0x18BCA]='KHITAN SMALL SCRIPT CHARACTER-18BCA'
+let s:d[0x18BCB]='KHITAN SMALL SCRIPT CHARACTER-18BCB'
+let s:d[0x18BCC]='KHITAN SMALL SCRIPT CHARACTER-18BCC'
+let s:d[0x18BCD]='KHITAN SMALL SCRIPT CHARACTER-18BCD'
+let s:d[0x18BCE]='KHITAN SMALL SCRIPT CHARACTER-18BCE'
+let s:d[0x18BCF]='KHITAN SMALL SCRIPT CHARACTER-18BCF'
+let s:d[0x18BD0]='KHITAN SMALL SCRIPT CHARACTER-18BD0'
+let s:d[0x18BD1]='KHITAN SMALL SCRIPT CHARACTER-18BD1'
+let s:d[0x18BD2]='KHITAN SMALL SCRIPT CHARACTER-18BD2'
+let s:d[0x18BD3]='KHITAN SMALL SCRIPT CHARACTER-18BD3'
+let s:d[0x18BD4]='KHITAN SMALL SCRIPT CHARACTER-18BD4'
+let s:d[0x18BD5]='KHITAN SMALL SCRIPT CHARACTER-18BD5'
+let s:d[0x18BD6]='KHITAN SMALL SCRIPT CHARACTER-18BD6'
+let s:d[0x18BD7]='KHITAN SMALL SCRIPT CHARACTER-18BD7'
+let s:d[0x18BD8]='KHITAN SMALL SCRIPT CHARACTER-18BD8'
+let s:d[0x18BD9]='KHITAN SMALL SCRIPT CHARACTER-18BD9'
+let s:d[0x18BDA]='KHITAN SMALL SCRIPT CHARACTER-18BDA'
+let s:d[0x18BDB]='KHITAN SMALL SCRIPT CHARACTER-18BDB'
+let s:d[0x18BDC]='KHITAN SMALL SCRIPT CHARACTER-18BDC'
+let s:d[0x18BDD]='KHITAN SMALL SCRIPT CHARACTER-18BDD'
+let s:d[0x18BDE]='KHITAN SMALL SCRIPT CHARACTER-18BDE'
+let s:d[0x18BDF]='KHITAN SMALL SCRIPT CHARACTER-18BDF'
+let s:d[0x18BE0]='KHITAN SMALL SCRIPT CHARACTER-18BE0'
+let s:d[0x18BE1]='KHITAN SMALL SCRIPT CHARACTER-18BE1'
+let s:d[0x18BE2]='KHITAN SMALL SCRIPT CHARACTER-18BE2'
+let s:d[0x18BE3]='KHITAN SMALL SCRIPT CHARACTER-18BE3'
+let s:d[0x18BE4]='KHITAN SMALL SCRIPT CHARACTER-18BE4'
+let s:d[0x18BE5]='KHITAN SMALL SCRIPT CHARACTER-18BE5'
+let s:d[0x18BE6]='KHITAN SMALL SCRIPT CHARACTER-18BE6'
+let s:d[0x18BE7]='KHITAN SMALL SCRIPT CHARACTER-18BE7'
+let s:d[0x18BE8]='KHITAN SMALL SCRIPT CHARACTER-18BE8'
+let s:d[0x18BE9]='KHITAN SMALL SCRIPT CHARACTER-18BE9'
+let s:d[0x18BEA]='KHITAN SMALL SCRIPT CHARACTER-18BEA'
+let s:d[0x18BEB]='KHITAN SMALL SCRIPT CHARACTER-18BEB'
+let s:d[0x18BEC]='KHITAN SMALL SCRIPT CHARACTER-18BEC'
+let s:d[0x18BED]='KHITAN SMALL SCRIPT CHARACTER-18BED'
+let s:d[0x18BEE]='KHITAN SMALL SCRIPT CHARACTER-18BEE'
+let s:d[0x18BEF]='KHITAN SMALL SCRIPT CHARACTER-18BEF'
+let s:d[0x18BF0]='KHITAN SMALL SCRIPT CHARACTER-18BF0'
+let s:d[0x18BF1]='KHITAN SMALL SCRIPT CHARACTER-18BF1'
+let s:d[0x18BF2]='KHITAN SMALL SCRIPT CHARACTER-18BF2'
+let s:d[0x18BF3]='KHITAN SMALL SCRIPT CHARACTER-18BF3'
+let s:d[0x18BF4]='KHITAN SMALL SCRIPT CHARACTER-18BF4'
+let s:d[0x18BF5]='KHITAN SMALL SCRIPT CHARACTER-18BF5'
+let s:d[0x18BF6]='KHITAN SMALL SCRIPT CHARACTER-18BF6'
+let s:d[0x18BF7]='KHITAN SMALL SCRIPT CHARACTER-18BF7'
+let s:d[0x18BF8]='KHITAN SMALL SCRIPT CHARACTER-18BF8'
+let s:d[0x18BF9]='KHITAN SMALL SCRIPT CHARACTER-18BF9'
+let s:d[0x18BFA]='KHITAN SMALL SCRIPT CHARACTER-18BFA'
+let s:d[0x18BFB]='KHITAN SMALL SCRIPT CHARACTER-18BFB'
+let s:d[0x18BFC]='KHITAN SMALL SCRIPT CHARACTER-18BFC'
+let s:d[0x18BFD]='KHITAN SMALL SCRIPT CHARACTER-18BFD'
+let s:d[0x18BFE]='KHITAN SMALL SCRIPT CHARACTER-18BFE'
+let s:d[0x18BFF]='KHITAN SMALL SCRIPT CHARACTER-18BFF'
+let s:d[0x18C00]='KHITAN SMALL SCRIPT CHARACTER-18C00'
+let s:d[0x18C01]='KHITAN SMALL SCRIPT CHARACTER-18C01'
+let s:d[0x18C02]='KHITAN SMALL SCRIPT CHARACTER-18C02'
+let s:d[0x18C03]='KHITAN SMALL SCRIPT CHARACTER-18C03'
+let s:d[0x18C04]='KHITAN SMALL SCRIPT CHARACTER-18C04'
+let s:d[0x18C05]='KHITAN SMALL SCRIPT CHARACTER-18C05'
+let s:d[0x18C06]='KHITAN SMALL SCRIPT CHARACTER-18C06'
+let s:d[0x18C07]='KHITAN SMALL SCRIPT CHARACTER-18C07'
+let s:d[0x18C08]='KHITAN SMALL SCRIPT CHARACTER-18C08'
+let s:d[0x18C09]='KHITAN SMALL SCRIPT CHARACTER-18C09'
+let s:d[0x18C0A]='KHITAN SMALL SCRIPT CHARACTER-18C0A'
+let s:d[0x18C0B]='KHITAN SMALL SCRIPT CHARACTER-18C0B'
+let s:d[0x18C0C]='KHITAN SMALL SCRIPT CHARACTER-18C0C'
+let s:d[0x18C0D]='KHITAN SMALL SCRIPT CHARACTER-18C0D'
+let s:d[0x18C0E]='KHITAN SMALL SCRIPT CHARACTER-18C0E'
+let s:d[0x18C0F]='KHITAN SMALL SCRIPT CHARACTER-18C0F'
+let s:d[0x18C10]='KHITAN SMALL SCRIPT CHARACTER-18C10'
+let s:d[0x18C11]='KHITAN SMALL SCRIPT CHARACTER-18C11'
+let s:d[0x18C12]='KHITAN SMALL SCRIPT CHARACTER-18C12'
+let s:d[0x18C13]='KHITAN SMALL SCRIPT CHARACTER-18C13'
+let s:d[0x18C14]='KHITAN SMALL SCRIPT CHARACTER-18C14'
+let s:d[0x18C15]='KHITAN SMALL SCRIPT CHARACTER-18C15'
+let s:d[0x18C16]='KHITAN SMALL SCRIPT CHARACTER-18C16'
+let s:d[0x18C17]='KHITAN SMALL SCRIPT CHARACTER-18C17'
+let s:d[0x18C18]='KHITAN SMALL SCRIPT CHARACTER-18C18'
+let s:d[0x18C19]='KHITAN SMALL SCRIPT CHARACTER-18C19'
+let s:d[0x18C1A]='KHITAN SMALL SCRIPT CHARACTER-18C1A'
+let s:d[0x18C1B]='KHITAN SMALL SCRIPT CHARACTER-18C1B'
+let s:d[0x18C1C]='KHITAN SMALL SCRIPT CHARACTER-18C1C'
+let s:d[0x18C1D]='KHITAN SMALL SCRIPT CHARACTER-18C1D'
+let s:d[0x18C1E]='KHITAN SMALL SCRIPT CHARACTER-18C1E'
+let s:d[0x18C1F]='KHITAN SMALL SCRIPT CHARACTER-18C1F'
+let s:d[0x18C20]='KHITAN SMALL SCRIPT CHARACTER-18C20'
+let s:d[0x18C21]='KHITAN SMALL SCRIPT CHARACTER-18C21'
+let s:d[0x18C22]='KHITAN SMALL SCRIPT CHARACTER-18C22'
+let s:d[0x18C23]='KHITAN SMALL SCRIPT CHARACTER-18C23'
+let s:d[0x18C24]='KHITAN SMALL SCRIPT CHARACTER-18C24'
+let s:d[0x18C25]='KHITAN SMALL SCRIPT CHARACTER-18C25'
+let s:d[0x18C26]='KHITAN SMALL SCRIPT CHARACTER-18C26'
+let s:d[0x18C27]='KHITAN SMALL SCRIPT CHARACTER-18C27'
+let s:d[0x18C28]='KHITAN SMALL SCRIPT CHARACTER-18C28'
+let s:d[0x18C29]='KHITAN SMALL SCRIPT CHARACTER-18C29'
+let s:d[0x18C2A]='KHITAN SMALL SCRIPT CHARACTER-18C2A'
+let s:d[0x18C2B]='KHITAN SMALL SCRIPT CHARACTER-18C2B'
+let s:d[0x18C2C]='KHITAN SMALL SCRIPT CHARACTER-18C2C'
+let s:d[0x18C2D]='KHITAN SMALL SCRIPT CHARACTER-18C2D'
+let s:d[0x18C2E]='KHITAN SMALL SCRIPT CHARACTER-18C2E'
+let s:d[0x18C2F]='KHITAN SMALL SCRIPT CHARACTER-18C2F'
+let s:d[0x18C30]='KHITAN SMALL SCRIPT CHARACTER-18C30'
+let s:d[0x18C31]='KHITAN SMALL SCRIPT CHARACTER-18C31'
+let s:d[0x18C32]='KHITAN SMALL SCRIPT CHARACTER-18C32'
+let s:d[0x18C33]='KHITAN SMALL SCRIPT CHARACTER-18C33'
+let s:d[0x18C34]='KHITAN SMALL SCRIPT CHARACTER-18C34'
+let s:d[0x18C35]='KHITAN SMALL SCRIPT CHARACTER-18C35'
+let s:d[0x18C36]='KHITAN SMALL SCRIPT CHARACTER-18C36'
+let s:d[0x18C37]='KHITAN SMALL SCRIPT CHARACTER-18C37'
+let s:d[0x18C38]='KHITAN SMALL SCRIPT CHARACTER-18C38'
+let s:d[0x18C39]='KHITAN SMALL SCRIPT CHARACTER-18C39'
+let s:d[0x18C3A]='KHITAN SMALL SCRIPT CHARACTER-18C3A'
+let s:d[0x18C3B]='KHITAN SMALL SCRIPT CHARACTER-18C3B'
+let s:d[0x18C3C]='KHITAN SMALL SCRIPT CHARACTER-18C3C'
+let s:d[0x18C3D]='KHITAN SMALL SCRIPT CHARACTER-18C3D'
+let s:d[0x18C3E]='KHITAN SMALL SCRIPT CHARACTER-18C3E'
+let s:d[0x18C3F]='KHITAN SMALL SCRIPT CHARACTER-18C3F'
+let s:d[0x18C40]='KHITAN SMALL SCRIPT CHARACTER-18C40'
+let s:d[0x18C41]='KHITAN SMALL SCRIPT CHARACTER-18C41'
+let s:d[0x18C42]='KHITAN SMALL SCRIPT CHARACTER-18C42'
+let s:d[0x18C43]='KHITAN SMALL SCRIPT CHARACTER-18C43'
+let s:d[0x18C44]='KHITAN SMALL SCRIPT CHARACTER-18C44'
+let s:d[0x18C45]='KHITAN SMALL SCRIPT CHARACTER-18C45'
+let s:d[0x18C46]='KHITAN SMALL SCRIPT CHARACTER-18C46'
+let s:d[0x18C47]='KHITAN SMALL SCRIPT CHARACTER-18C47'
+let s:d[0x18C48]='KHITAN SMALL SCRIPT CHARACTER-18C48'
+let s:d[0x18C49]='KHITAN SMALL SCRIPT CHARACTER-18C49'
+let s:d[0x18C4A]='KHITAN SMALL SCRIPT CHARACTER-18C4A'
+let s:d[0x18C4B]='KHITAN SMALL SCRIPT CHARACTER-18C4B'
+let s:d[0x18C4C]='KHITAN SMALL SCRIPT CHARACTER-18C4C'
+let s:d[0x18C4D]='KHITAN SMALL SCRIPT CHARACTER-18C4D'
+let s:d[0x18C4E]='KHITAN SMALL SCRIPT CHARACTER-18C4E'
+let s:d[0x18C4F]='KHITAN SMALL SCRIPT CHARACTER-18C4F'
+let s:d[0x18C50]='KHITAN SMALL SCRIPT CHARACTER-18C50'
+let s:d[0x18C51]='KHITAN SMALL SCRIPT CHARACTER-18C51'
+let s:d[0x18C52]='KHITAN SMALL SCRIPT CHARACTER-18C52'
+let s:d[0x18C53]='KHITAN SMALL SCRIPT CHARACTER-18C53'
+let s:d[0x18C54]='KHITAN SMALL SCRIPT CHARACTER-18C54'
+let s:d[0x18C55]='KHITAN SMALL SCRIPT CHARACTER-18C55'
+let s:d[0x18C56]='KHITAN SMALL SCRIPT CHARACTER-18C56'
+let s:d[0x18C57]='KHITAN SMALL SCRIPT CHARACTER-18C57'
+let s:d[0x18C58]='KHITAN SMALL SCRIPT CHARACTER-18C58'
+let s:d[0x18C59]='KHITAN SMALL SCRIPT CHARACTER-18C59'
+let s:d[0x18C5A]='KHITAN SMALL SCRIPT CHARACTER-18C5A'
+let s:d[0x18C5B]='KHITAN SMALL SCRIPT CHARACTER-18C5B'
+let s:d[0x18C5C]='KHITAN SMALL SCRIPT CHARACTER-18C5C'
+let s:d[0x18C5D]='KHITAN SMALL SCRIPT CHARACTER-18C5D'
+let s:d[0x18C5E]='KHITAN SMALL SCRIPT CHARACTER-18C5E'
+let s:d[0x18C5F]='KHITAN SMALL SCRIPT CHARACTER-18C5F'
+let s:d[0x18C60]='KHITAN SMALL SCRIPT CHARACTER-18C60'
+let s:d[0x18C61]='KHITAN SMALL SCRIPT CHARACTER-18C61'
+let s:d[0x18C62]='KHITAN SMALL SCRIPT CHARACTER-18C62'
+let s:d[0x18C63]='KHITAN SMALL SCRIPT CHARACTER-18C63'
+let s:d[0x18C64]='KHITAN SMALL SCRIPT CHARACTER-18C64'
+let s:d[0x18C65]='KHITAN SMALL SCRIPT CHARACTER-18C65'
+let s:d[0x18C66]='KHITAN SMALL SCRIPT CHARACTER-18C66'
+let s:d[0x18C67]='KHITAN SMALL SCRIPT CHARACTER-18C67'
+let s:d[0x18C68]='KHITAN SMALL SCRIPT CHARACTER-18C68'
+let s:d[0x18C69]='KHITAN SMALL SCRIPT CHARACTER-18C69'
+let s:d[0x18C6A]='KHITAN SMALL SCRIPT CHARACTER-18C6A'
+let s:d[0x18C6B]='KHITAN SMALL SCRIPT CHARACTER-18C6B'
+let s:d[0x18C6C]='KHITAN SMALL SCRIPT CHARACTER-18C6C'
+let s:d[0x18C6D]='KHITAN SMALL SCRIPT CHARACTER-18C6D'
+let s:d[0x18C6E]='KHITAN SMALL SCRIPT CHARACTER-18C6E'
+let s:d[0x18C6F]='KHITAN SMALL SCRIPT CHARACTER-18C6F'
+let s:d[0x18C70]='KHITAN SMALL SCRIPT CHARACTER-18C70'
+let s:d[0x18C71]='KHITAN SMALL SCRIPT CHARACTER-18C71'
+let s:d[0x18C72]='KHITAN SMALL SCRIPT CHARACTER-18C72'
+let s:d[0x18C73]='KHITAN SMALL SCRIPT CHARACTER-18C73'
+let s:d[0x18C74]='KHITAN SMALL SCRIPT CHARACTER-18C74'
+let s:d[0x18C75]='KHITAN SMALL SCRIPT CHARACTER-18C75'
+let s:d[0x18C76]='KHITAN SMALL SCRIPT CHARACTER-18C76'
+let s:d[0x18C77]='KHITAN SMALL SCRIPT CHARACTER-18C77'
+let s:d[0x18C78]='KHITAN SMALL SCRIPT CHARACTER-18C78'
+let s:d[0x18C79]='KHITAN SMALL SCRIPT CHARACTER-18C79'
+let s:d[0x18C7A]='KHITAN SMALL SCRIPT CHARACTER-18C7A'
+let s:d[0x18C7B]='KHITAN SMALL SCRIPT CHARACTER-18C7B'
+let s:d[0x18C7C]='KHITAN SMALL SCRIPT CHARACTER-18C7C'
+let s:d[0x18C7D]='KHITAN SMALL SCRIPT CHARACTER-18C7D'
+let s:d[0x18C7E]='KHITAN SMALL SCRIPT CHARACTER-18C7E'
+let s:d[0x18C7F]='KHITAN SMALL SCRIPT CHARACTER-18C7F'
+let s:d[0x18C80]='KHITAN SMALL SCRIPT CHARACTER-18C80'
+let s:d[0x18C81]='KHITAN SMALL SCRIPT CHARACTER-18C81'
+let s:d[0x18C82]='KHITAN SMALL SCRIPT CHARACTER-18C82'
+let s:d[0x18C83]='KHITAN SMALL SCRIPT CHARACTER-18C83'
+let s:d[0x18C84]='KHITAN SMALL SCRIPT CHARACTER-18C84'
+let s:d[0x18C85]='KHITAN SMALL SCRIPT CHARACTER-18C85'
+let s:d[0x18C86]='KHITAN SMALL SCRIPT CHARACTER-18C86'
+let s:d[0x18C87]='KHITAN SMALL SCRIPT CHARACTER-18C87'
+let s:d[0x18C88]='KHITAN SMALL SCRIPT CHARACTER-18C88'
+let s:d[0x18C89]='KHITAN SMALL SCRIPT CHARACTER-18C89'
+let s:d[0x18C8A]='KHITAN SMALL SCRIPT CHARACTER-18C8A'
+let s:d[0x18C8B]='KHITAN SMALL SCRIPT CHARACTER-18C8B'
+let s:d[0x18C8C]='KHITAN SMALL SCRIPT CHARACTER-18C8C'
+let s:d[0x18C8D]='KHITAN SMALL SCRIPT CHARACTER-18C8D'
+let s:d[0x18C8E]='KHITAN SMALL SCRIPT CHARACTER-18C8E'
+let s:d[0x18C8F]='KHITAN SMALL SCRIPT CHARACTER-18C8F'
+let s:d[0x18C90]='KHITAN SMALL SCRIPT CHARACTER-18C90'
+let s:d[0x18C91]='KHITAN SMALL SCRIPT CHARACTER-18C91'
+let s:d[0x18C92]='KHITAN SMALL SCRIPT CHARACTER-18C92'
+let s:d[0x18C93]='KHITAN SMALL SCRIPT CHARACTER-18C93'
+let s:d[0x18C94]='KHITAN SMALL SCRIPT CHARACTER-18C94'
+let s:d[0x18C95]='KHITAN SMALL SCRIPT CHARACTER-18C95'
+let s:d[0x18C96]='KHITAN SMALL SCRIPT CHARACTER-18C96'
+let s:d[0x18C97]='KHITAN SMALL SCRIPT CHARACTER-18C97'
+let s:d[0x18C98]='KHITAN SMALL SCRIPT CHARACTER-18C98'
+let s:d[0x18C99]='KHITAN SMALL SCRIPT CHARACTER-18C99'
+let s:d[0x18C9A]='KHITAN SMALL SCRIPT CHARACTER-18C9A'
+let s:d[0x18C9B]='KHITAN SMALL SCRIPT CHARACTER-18C9B'
+let s:d[0x18C9C]='KHITAN SMALL SCRIPT CHARACTER-18C9C'
+let s:d[0x18C9D]='KHITAN SMALL SCRIPT CHARACTER-18C9D'
+let s:d[0x18C9E]='KHITAN SMALL SCRIPT CHARACTER-18C9E'
+let s:d[0x18C9F]='KHITAN SMALL SCRIPT CHARACTER-18C9F'
+let s:d[0x18CA0]='KHITAN SMALL SCRIPT CHARACTER-18CA0'
+let s:d[0x18CA1]='KHITAN SMALL SCRIPT CHARACTER-18CA1'
+let s:d[0x18CA2]='KHITAN SMALL SCRIPT CHARACTER-18CA2'
+let s:d[0x18CA3]='KHITAN SMALL SCRIPT CHARACTER-18CA3'
+let s:d[0x18CA4]='KHITAN SMALL SCRIPT CHARACTER-18CA4'
+let s:d[0x18CA5]='KHITAN SMALL SCRIPT CHARACTER-18CA5'
+let s:d[0x18CA6]='KHITAN SMALL SCRIPT CHARACTER-18CA6'
+let s:d[0x18CA7]='KHITAN SMALL SCRIPT CHARACTER-18CA7'
+let s:d[0x18CA8]='KHITAN SMALL SCRIPT CHARACTER-18CA8'
+let s:d[0x18CA9]='KHITAN SMALL SCRIPT CHARACTER-18CA9'
+let s:d[0x18CAA]='KHITAN SMALL SCRIPT CHARACTER-18CAA'
+let s:d[0x18CAB]='KHITAN SMALL SCRIPT CHARACTER-18CAB'
+let s:d[0x18CAC]='KHITAN SMALL SCRIPT CHARACTER-18CAC'
+let s:d[0x18CAD]='KHITAN SMALL SCRIPT CHARACTER-18CAD'
+let s:d[0x18CAE]='KHITAN SMALL SCRIPT CHARACTER-18CAE'
+let s:d[0x18CAF]='KHITAN SMALL SCRIPT CHARACTER-18CAF'
+let s:d[0x18CB0]='KHITAN SMALL SCRIPT CHARACTER-18CB0'
+let s:d[0x18CB1]='KHITAN SMALL SCRIPT CHARACTER-18CB1'
+let s:d[0x18CB2]='KHITAN SMALL SCRIPT CHARACTER-18CB2'
+let s:d[0x18CB3]='KHITAN SMALL SCRIPT CHARACTER-18CB3'
+let s:d[0x18CB4]='KHITAN SMALL SCRIPT CHARACTER-18CB4'
+let s:d[0x18CB5]='KHITAN SMALL SCRIPT CHARACTER-18CB5'
+let s:d[0x18CB6]='KHITAN SMALL SCRIPT CHARACTER-18CB6'
+let s:d[0x18CB7]='KHITAN SMALL SCRIPT CHARACTER-18CB7'
+let s:d[0x18CB8]='KHITAN SMALL SCRIPT CHARACTER-18CB8'
+let s:d[0x18CB9]='KHITAN SMALL SCRIPT CHARACTER-18CB9'
+let s:d[0x18CBA]='KHITAN SMALL SCRIPT CHARACTER-18CBA'
+let s:d[0x18CBB]='KHITAN SMALL SCRIPT CHARACTER-18CBB'
+let s:d[0x18CBC]='KHITAN SMALL SCRIPT CHARACTER-18CBC'
+let s:d[0x18CBD]='KHITAN SMALL SCRIPT CHARACTER-18CBD'
+let s:d[0x18CBE]='KHITAN SMALL SCRIPT CHARACTER-18CBE'
+let s:d[0x18CBF]='KHITAN SMALL SCRIPT CHARACTER-18CBF'
+let s:d[0x18CC0]='KHITAN SMALL SCRIPT CHARACTER-18CC0'
+let s:d[0x18CC1]='KHITAN SMALL SCRIPT CHARACTER-18CC1'
+let s:d[0x18CC2]='KHITAN SMALL SCRIPT CHARACTER-18CC2'
+let s:d[0x18CC3]='KHITAN SMALL SCRIPT CHARACTER-18CC3'
+let s:d[0x18CC4]='KHITAN SMALL SCRIPT CHARACTER-18CC4'
+let s:d[0x18CC5]='KHITAN SMALL SCRIPT CHARACTER-18CC5'
+let s:d[0x18CC6]='KHITAN SMALL SCRIPT CHARACTER-18CC6'
+let s:d[0x18CC7]='KHITAN SMALL SCRIPT CHARACTER-18CC7'
+let s:d[0x18CC8]='KHITAN SMALL SCRIPT CHARACTER-18CC8'
+let s:d[0x18CC9]='KHITAN SMALL SCRIPT CHARACTER-18CC9'
+let s:d[0x18CCA]='KHITAN SMALL SCRIPT CHARACTER-18CCA'
+let s:d[0x18CCB]='KHITAN SMALL SCRIPT CHARACTER-18CCB'
+let s:d[0x18CCC]='KHITAN SMALL SCRIPT CHARACTER-18CCC'
+let s:d[0x18CCD]='KHITAN SMALL SCRIPT CHARACTER-18CCD'
+let s:d[0x18CCE]='KHITAN SMALL SCRIPT CHARACTER-18CCE'
+let s:d[0x18CCF]='KHITAN SMALL SCRIPT CHARACTER-18CCF'
+let s:d[0x18CD0]='KHITAN SMALL SCRIPT CHARACTER-18CD0'
+let s:d[0x18CD1]='KHITAN SMALL SCRIPT CHARACTER-18CD1'
+let s:d[0x18CD2]='KHITAN SMALL SCRIPT CHARACTER-18CD2'
+let s:d[0x18CD3]='KHITAN SMALL SCRIPT CHARACTER-18CD3'
+let s:d[0x18CD4]='KHITAN SMALL SCRIPT CHARACTER-18CD4'
+let s:d[0x18CD5]='KHITAN SMALL SCRIPT CHARACTER-18CD5'
 let s:d[0x1B000]='KATAKANA LETTER ARCHAIC E'
 let s:d[0x1B001]='HIRAGANA LETTER ARCHAIC YE'
 let s:d[0x1B002]='HENTAIGANA LETTER A-1'
@@ -30876,6 +32024,9 @@ let s:d[0x1F109]='DIGIT EIGHT COMMA'
 let s:d[0x1F10A]='DIGIT NINE COMMA'
 let s:d[0x1F10B]='DINGBAT CIRCLED SANS-SERIF DIGIT ZERO'
 let s:d[0x1F10C]='DINGBAT NEGATIVE CIRCLED SANS-SERIF DIGIT ZERO'
+let s:d[0x1F10D]='CIRCLED ZERO WITH SLASH'
+let s:d[0x1F10E]='CIRCLED ANTICLOCKWISE ARROW'
+let s:d[0x1F10F]='CIRCLED DOLLAR SIGN WITH OVERLAID BACKSLASH'
 let s:d[0x1F110]='PARENTHESIZED LATIN CAPITAL LETTER A'
 let s:d[0x1F111]='PARENTHESIZED LATIN CAPITAL LETTER B'
 let s:d[0x1F112]='PARENTHESIZED LATIN CAPITAL LETTER C'
@@ -30969,6 +32120,9 @@ let s:d[0x1F169]='NEGATIVE CIRCLED LATIN CAPITAL LETTER Z'
 let s:d[0x1F16A]='RAISED MC SIGN'
 let s:d[0x1F16B]='RAISED MD SIGN'
 let s:d[0x1F16C]='RAISED MR SIGN'
+let s:d[0x1F16D]='CIRCLED CC'
+let s:d[0x1F16E]='CIRCLED C WITH OVERLAID BACKSLASH'
+let s:d[0x1F16F]='CIRCLED HUMAN FIGURE'
 let s:d[0x1F170]='NEGATIVE SQUARED LATIN CAPITAL LETTER A'
 let s:d[0x1F171]='NEGATIVE SQUARED LATIN CAPITAL LETTER B'
 let s:d[0x1F172]='NEGATIVE SQUARED LATIN CAPITAL LETTER C'
@@ -31030,6 +32184,7 @@ let s:d[0x1F1A9]='SQUARED LOSSLESS'
 let s:d[0x1F1AA]='SQUARED SHV'
 let s:d[0x1F1AB]='SQUARED UHD'
 let s:d[0x1F1AC]='SQUARED VOD'
+let s:d[0x1F1AD]='MASK WORK SYMBOL'
 let s:d[0x1F1E6]='REGIONAL INDICATOR SYMBOL LETTER A'
 let s:d[0x1F1E7]='REGIONAL INDICATOR SYMBOL LETTER B'
 let s:d[0x1F1E8]='REGIONAL INDICATOR SYMBOL LETTER C'
@@ -32102,6 +33257,8 @@ let s:d[0x1F6D2]='SHOPPING TROLLEY'
 let s:d[0x1F6D3]='STUPA'
 let s:d[0x1F6D4]='PAGODA'
 let s:d[0x1F6D5]='HINDU TEMPLE'
+let s:d[0x1F6D6]='HUT'
+let s:d[0x1F6D7]='ELEVATOR'
 let s:d[0x1F6E0]='HAMMER AND WRENCH'
 let s:d[0x1F6E1]='SHIELD'
 let s:d[0x1F6E2]='OIL DRUM'
@@ -32126,6 +33283,8 @@ let s:d[0x1F6F7]='SLED'
 let s:d[0x1F6F8]='FLYING SAUCER'
 let s:d[0x1F6F9]='SKATEBOARD'
 let s:d[0x1F6FA]='AUTO RICKSHAW'
+let s:d[0x1F6FB]='PICKUP TRUCK'
+let s:d[0x1F6FC]='ROLLER SKATE'
 let s:d[0x1F700]='ALCHEMICAL SYMBOL FOR QUINTESSENCE'
 let s:d[0x1F701]='ALCHEMICAL SYMBOL FOR AIR'
 let s:d[0x1F702]='ALCHEMICAL SYMBOL FOR FIRE'
@@ -32491,6 +33650,8 @@ let s:d[0x1F8AA]='LEFTWARDS FRONT-TILTED SHADOWED WHITE ARROW'
 let s:d[0x1F8AB]='RIGHTWARDS FRONT-TILTED SHADOWED WHITE ARROW'
 let s:d[0x1F8AC]='WHITE ARROW SHAFT WIDTH ONE'
 let s:d[0x1F8AD]='WHITE ARROW SHAFT WIDTH TWO THIRDS'
+let s:d[0x1F8B0]='ARROW POINTING UPWARDS THEN NORTH WEST'
+let s:d[0x1F8B1]='ARROW POINTING RIGHTWARDS THEN CURVING SOUTH WEST'
 let s:d[0x1F900]='CIRCLED CROSS FORMEE WITH FOUR DOTS'
 let s:d[0x1F901]='CIRCLED CROSS FORMEE WITH TWO DOTS'
 let s:d[0x1F902]='CIRCLED CROSS FORMEE'
@@ -32503,6 +33664,7 @@ let s:d[0x1F908]='DOWNWARD FACING HOOK'
 let s:d[0x1F909]='DOWNWARD FACING NOTCHED HOOK'
 let s:d[0x1F90A]='DOWNWARD FACING HOOK WITH DOT'
 let s:d[0x1F90B]='DOWNWARD FACING NOTCHED HOOK WITH DOT'
+let s:d[0x1F90C]='PINCHED FINGERS'
 let s:d[0x1F90D]='WHITE HEART'
 let s:d[0x1F90E]='BROWN HEART'
 let s:d[0x1F90F]='PINCHING HAND'
@@ -32604,10 +33766,13 @@ let s:d[0x1F96E]='MOON CAKE'
 let s:d[0x1F96F]='BAGEL'
 let s:d[0x1F970]='SMILING FACE WITH SMILING EYES AND THREE HEARTS'
 let s:d[0x1F971]='YAWNING FACE'
+let s:d[0x1F972]='SMILING FACE WITH TEAR'
 let s:d[0x1F973]='FACE WITH PARTY HORN AND PARTY HAT'
 let s:d[0x1F974]='FACE WITH UNEVEN EYES AND WAVY MOUTH'
 let s:d[0x1F975]='OVERHEATED FACE'
 let s:d[0x1F976]='FREEZING FACE'
+let s:d[0x1F977]='NINJA'
+let s:d[0x1F978]='DISGUISED FACE'
 let s:d[0x1F97A]='FACE WITH PLEADING EYES'
 let s:d[0x1F97B]='SARI'
 let s:d[0x1F97C]='LAB COAT'
@@ -32649,12 +33814,17 @@ let s:d[0x1F99F]='MOSQUITO'
 let s:d[0x1F9A0]='MICROBE'
 let s:d[0x1F9A1]='BADGER'
 let s:d[0x1F9A2]='SWAN'
+let s:d[0x1F9A3]='MAMMOTH'
+let s:d[0x1F9A4]='DODO'
 let s:d[0x1F9A5]='SLOTH'
 let s:d[0x1F9A6]='OTTER'
 let s:d[0x1F9A7]='ORANGUTAN'
 let s:d[0x1F9A8]='SKUNK'
 let s:d[0x1F9A9]='FLAMINGO'
 let s:d[0x1F9AA]='OYSTER'
+let s:d[0x1F9AB]='BEAVER'
+let s:d[0x1F9AC]='BISON'
+let s:d[0x1F9AD]='SEAL'
 let s:d[0x1F9AE]='GUIDE DOG'
 let s:d[0x1F9AF]='PROBING CANE'
 let s:d[0x1F9B0]='EMOJI COMPONENT RED HAIR'
@@ -32684,6 +33854,7 @@ let s:d[0x1F9C7]='WAFFLE'
 let s:d[0x1F9C8]='BUTTER'
 let s:d[0x1F9C9]='MATE DRINK'
 let s:d[0x1F9CA]='ICE CUBE'
+let s:d[0x1F9CB]='BUBBLE TEA'
 let s:d[0x1F9CD]='STANDING PERSON'
 let s:d[0x1F9CE]='KNEELING PERSON'
 let s:d[0x1F9CF]='DEAF PERSON'
@@ -32837,18 +34008,271 @@ let s:d[0x1FA70]='BALLET SHOES'
 let s:d[0x1FA71]='ONE-PIECE SWIMSUIT'
 let s:d[0x1FA72]='BRIEFS'
 let s:d[0x1FA73]='SHORTS'
+let s:d[0x1FA74]='THONG SANDAL'
 let s:d[0x1FA78]='DROP OF BLOOD'
 let s:d[0x1FA79]='ADHESIVE BANDAGE'
 let s:d[0x1FA7A]='STETHOSCOPE'
 let s:d[0x1FA80]='YO-YO'
 let s:d[0x1FA81]='KITE'
 let s:d[0x1FA82]='PARACHUTE'
+let s:d[0x1FA83]='BOOMERANG'
+let s:d[0x1FA84]='MAGIC WAND'
+let s:d[0x1FA85]='PINATA'
+let s:d[0x1FA86]='NESTING DOLLS'
 let s:d[0x1FA90]='RINGED PLANET'
 let s:d[0x1FA91]='CHAIR'
 let s:d[0x1FA92]='RAZOR'
 let s:d[0x1FA93]='AXE'
 let s:d[0x1FA94]='DIYA LAMP'
 let s:d[0x1FA95]='BANJO'
+let s:d[0x1FA96]='MILITARY HELMET'
+let s:d[0x1FA97]='ACCORDION'
+let s:d[0x1FA98]='LONG DRUM'
+let s:d[0x1FA99]='COIN'
+let s:d[0x1FA9A]='CARPENTRY SAW'
+let s:d[0x1FA9B]='SCREWDRIVER'
+let s:d[0x1FA9C]='LADDER'
+let s:d[0x1FA9D]='HOOK'
+let s:d[0x1FA9E]='MIRROR'
+let s:d[0x1FA9F]='WINDOW'
+let s:d[0x1FAA0]='PLUNGER'
+let s:d[0x1FAA1]='SEWING NEEDLE'
+let s:d[0x1FAA2]='KNOT'
+let s:d[0x1FAA3]='BUCKET'
+let s:d[0x1FAA4]='MOUSE TRAP'
+let s:d[0x1FAA5]='TOOTHBRUSH'
+let s:d[0x1FAA6]='HEADSTONE'
+let s:d[0x1FAA7]='PLACARD'
+let s:d[0x1FAA8]='ROCK'
+let s:d[0x1FAB0]='FLY'
+let s:d[0x1FAB1]='WORM'
+let s:d[0x1FAB2]='BEETLE'
+let s:d[0x1FAB3]='COCKROACH'
+let s:d[0x1FAB4]='POTTED PLANT'
+let s:d[0x1FAB5]='WOOD'
+let s:d[0x1FAB6]='FEATHER'
+let s:d[0x1FAC0]='ANATOMICAL HEART'
+let s:d[0x1FAC1]='LUNGS'
+let s:d[0x1FAC2]='PEOPLE HUGGING'
+let s:d[0x1FAD0]='BLUEBERRIES'
+let s:d[0x1FAD1]='BELL PEPPER'
+let s:d[0x1FAD2]='OLIVE'
+let s:d[0x1FAD3]='FLATBREAD'
+let s:d[0x1FAD4]='TAMALE'
+let s:d[0x1FAD5]='FONDUE'
+let s:d[0x1FAD6]='TEAPOT'
+let s:d[0x1FB00]='BLOCK SEXTANT-1'
+let s:d[0x1FB01]='BLOCK SEXTANT-2'
+let s:d[0x1FB02]='BLOCK SEXTANT-12'
+let s:d[0x1FB03]='BLOCK SEXTANT-3'
+let s:d[0x1FB04]='BLOCK SEXTANT-13'
+let s:d[0x1FB05]='BLOCK SEXTANT-23'
+let s:d[0x1FB06]='BLOCK SEXTANT-123'
+let s:d[0x1FB07]='BLOCK SEXTANT-4'
+let s:d[0x1FB08]='BLOCK SEXTANT-14'
+let s:d[0x1FB09]='BLOCK SEXTANT-24'
+let s:d[0x1FB0A]='BLOCK SEXTANT-124'
+let s:d[0x1FB0B]='BLOCK SEXTANT-34'
+let s:d[0x1FB0C]='BLOCK SEXTANT-134'
+let s:d[0x1FB0D]='BLOCK SEXTANT-234'
+let s:d[0x1FB0E]='BLOCK SEXTANT-1234'
+let s:d[0x1FB0F]='BLOCK SEXTANT-5'
+let s:d[0x1FB10]='BLOCK SEXTANT-15'
+let s:d[0x1FB11]='BLOCK SEXTANT-25'
+let s:d[0x1FB12]='BLOCK SEXTANT-125'
+let s:d[0x1FB13]='BLOCK SEXTANT-35'
+let s:d[0x1FB14]='BLOCK SEXTANT-235'
+let s:d[0x1FB15]='BLOCK SEXTANT-1235'
+let s:d[0x1FB16]='BLOCK SEXTANT-45'
+let s:d[0x1FB17]='BLOCK SEXTANT-145'
+let s:d[0x1FB18]='BLOCK SEXTANT-245'
+let s:d[0x1FB19]='BLOCK SEXTANT-1245'
+let s:d[0x1FB1A]='BLOCK SEXTANT-345'
+let s:d[0x1FB1B]='BLOCK SEXTANT-1345'
+let s:d[0x1FB1C]='BLOCK SEXTANT-2345'
+let s:d[0x1FB1D]='BLOCK SEXTANT-12345'
+let s:d[0x1FB1E]='BLOCK SEXTANT-6'
+let s:d[0x1FB1F]='BLOCK SEXTANT-16'
+let s:d[0x1FB20]='BLOCK SEXTANT-26'
+let s:d[0x1FB21]='BLOCK SEXTANT-126'
+let s:d[0x1FB22]='BLOCK SEXTANT-36'
+let s:d[0x1FB23]='BLOCK SEXTANT-136'
+let s:d[0x1FB24]='BLOCK SEXTANT-236'
+let s:d[0x1FB25]='BLOCK SEXTANT-1236'
+let s:d[0x1FB26]='BLOCK SEXTANT-46'
+let s:d[0x1FB27]='BLOCK SEXTANT-146'
+let s:d[0x1FB28]='BLOCK SEXTANT-1246'
+let s:d[0x1FB29]='BLOCK SEXTANT-346'
+let s:d[0x1FB2A]='BLOCK SEXTANT-1346'
+let s:d[0x1FB2B]='BLOCK SEXTANT-2346'
+let s:d[0x1FB2C]='BLOCK SEXTANT-12346'
+let s:d[0x1FB2D]='BLOCK SEXTANT-56'
+let s:d[0x1FB2E]='BLOCK SEXTANT-156'
+let s:d[0x1FB2F]='BLOCK SEXTANT-256'
+let s:d[0x1FB30]='BLOCK SEXTANT-1256'
+let s:d[0x1FB31]='BLOCK SEXTANT-356'
+let s:d[0x1FB32]='BLOCK SEXTANT-1356'
+let s:d[0x1FB33]='BLOCK SEXTANT-2356'
+let s:d[0x1FB34]='BLOCK SEXTANT-12356'
+let s:d[0x1FB35]='BLOCK SEXTANT-456'
+let s:d[0x1FB36]='BLOCK SEXTANT-1456'
+let s:d[0x1FB37]='BLOCK SEXTANT-2456'
+let s:d[0x1FB38]='BLOCK SEXTANT-12456'
+let s:d[0x1FB39]='BLOCK SEXTANT-3456'
+let s:d[0x1FB3A]='BLOCK SEXTANT-13456'
+let s:d[0x1FB3B]='BLOCK SEXTANT-23456'
+let s:d[0x1FB3C]='LOWER LEFT BLOCK DIAGONAL LOWER MIDDLE LEFT TO LOWER CENTRE'
+let s:d[0x1FB3D]='LOWER LEFT BLOCK DIAGONAL LOWER MIDDLE LEFT TO LOWER RIGHT'
+let s:d[0x1FB3E]='LOWER LEFT BLOCK DIAGONAL UPPER MIDDLE LEFT TO LOWER CENTRE'
+let s:d[0x1FB3F]='LOWER LEFT BLOCK DIAGONAL UPPER MIDDLE LEFT TO LOWER RIGHT'
+let s:d[0x1FB40]='LOWER LEFT BLOCK DIAGONAL UPPER LEFT TO LOWER CENTRE'
+let s:d[0x1FB41]='LOWER RIGHT BLOCK DIAGONAL UPPER MIDDLE LEFT TO UPPER CENTRE'
+let s:d[0x1FB42]='LOWER RIGHT BLOCK DIAGONAL UPPER MIDDLE LEFT TO UPPER RIGHT'
+let s:d[0x1FB43]='LOWER RIGHT BLOCK DIAGONAL LOWER MIDDLE LEFT TO UPPER CENTRE'
+let s:d[0x1FB44]='LOWER RIGHT BLOCK DIAGONAL LOWER MIDDLE LEFT TO UPPER RIGHT'
+let s:d[0x1FB45]='LOWER RIGHT BLOCK DIAGONAL LOWER LEFT TO UPPER CENTRE'
+let s:d[0x1FB46]='LOWER RIGHT BLOCK DIAGONAL LOWER MIDDLE LEFT TO UPPER MIDDLE RIGHT'
+let s:d[0x1FB47]='LOWER RIGHT BLOCK DIAGONAL LOWER CENTRE TO LOWER MIDDLE RIGHT'
+let s:d[0x1FB48]='LOWER RIGHT BLOCK DIAGONAL LOWER LEFT TO LOWER MIDDLE RIGHT'
+let s:d[0x1FB49]='LOWER RIGHT BLOCK DIAGONAL LOWER CENTRE TO UPPER MIDDLE RIGHT'
+let s:d[0x1FB4A]='LOWER RIGHT BLOCK DIAGONAL LOWER LEFT TO UPPER MIDDLE RIGHT'
+let s:d[0x1FB4B]='LOWER RIGHT BLOCK DIAGONAL LOWER CENTRE TO UPPER RIGHT'
+let s:d[0x1FB4C]='LOWER LEFT BLOCK DIAGONAL UPPER CENTRE TO UPPER MIDDLE RIGHT'
+let s:d[0x1FB4D]='LOWER LEFT BLOCK DIAGONAL UPPER LEFT TO UPPER MIDDLE RIGHT'
+let s:d[0x1FB4E]='LOWER LEFT BLOCK DIAGONAL UPPER CENTRE TO LOWER MIDDLE RIGHT'
+let s:d[0x1FB4F]='LOWER LEFT BLOCK DIAGONAL UPPER LEFT TO LOWER MIDDLE RIGHT'
+let s:d[0x1FB50]='LOWER LEFT BLOCK DIAGONAL UPPER CENTRE TO LOWER RIGHT'
+let s:d[0x1FB51]='LOWER LEFT BLOCK DIAGONAL UPPER MIDDLE LEFT TO LOWER MIDDLE RIGHT'
+let s:d[0x1FB52]='UPPER RIGHT BLOCK DIAGONAL LOWER MIDDLE LEFT TO LOWER CENTRE'
+let s:d[0x1FB53]='UPPER RIGHT BLOCK DIAGONAL LOWER MIDDLE LEFT TO LOWER RIGHT'
+let s:d[0x1FB54]='UPPER RIGHT BLOCK DIAGONAL UPPER MIDDLE LEFT TO LOWER CENTRE'
+let s:d[0x1FB55]='UPPER RIGHT BLOCK DIAGONAL UPPER MIDDLE LEFT TO LOWER RIGHT'
+let s:d[0x1FB56]='UPPER RIGHT BLOCK DIAGONAL UPPER LEFT TO LOWER CENTRE'
+let s:d[0x1FB57]='UPPER LEFT BLOCK DIAGONAL UPPER MIDDLE LEFT TO UPPER CENTRE'
+let s:d[0x1FB58]='UPPER LEFT BLOCK DIAGONAL UPPER MIDDLE LEFT TO UPPER RIGHT'
+let s:d[0x1FB59]='UPPER LEFT BLOCK DIAGONAL LOWER MIDDLE LEFT TO UPPER CENTRE'
+let s:d[0x1FB5A]='UPPER LEFT BLOCK DIAGONAL LOWER MIDDLE LEFT TO UPPER RIGHT'
+let s:d[0x1FB5B]='UPPER LEFT BLOCK DIAGONAL LOWER LEFT TO UPPER CENTRE'
+let s:d[0x1FB5C]='UPPER LEFT BLOCK DIAGONAL LOWER MIDDLE LEFT TO UPPER MIDDLE RIGHT'
+let s:d[0x1FB5D]='UPPER LEFT BLOCK DIAGONAL LOWER CENTRE TO LOWER MIDDLE RIGHT'
+let s:d[0x1FB5E]='UPPER LEFT BLOCK DIAGONAL LOWER LEFT TO LOWER MIDDLE RIGHT'
+let s:d[0x1FB5F]='UPPER LEFT BLOCK DIAGONAL LOWER CENTRE TO UPPER MIDDLE RIGHT'
+let s:d[0x1FB60]='UPPER LEFT BLOCK DIAGONAL LOWER LEFT TO UPPER MIDDLE RIGHT'
+let s:d[0x1FB61]='UPPER LEFT BLOCK DIAGONAL LOWER CENTRE TO UPPER RIGHT'
+let s:d[0x1FB62]='UPPER RIGHT BLOCK DIAGONAL UPPER CENTRE TO UPPER MIDDLE RIGHT'
+let s:d[0x1FB63]='UPPER RIGHT BLOCK DIAGONAL UPPER LEFT TO UPPER MIDDLE RIGHT'
+let s:d[0x1FB64]='UPPER RIGHT BLOCK DIAGONAL UPPER CENTRE TO LOWER MIDDLE RIGHT'
+let s:d[0x1FB65]='UPPER RIGHT BLOCK DIAGONAL UPPER LEFT TO LOWER MIDDLE RIGHT'
+let s:d[0x1FB66]='UPPER RIGHT BLOCK DIAGONAL UPPER CENTRE TO LOWER RIGHT'
+let s:d[0x1FB67]='UPPER RIGHT BLOCK DIAGONAL UPPER MIDDLE LEFT TO LOWER MIDDLE RIGHT'
+let s:d[0x1FB68]='UPPER AND RIGHT AND LOWER TRIANGULAR THREE QUARTERS BLOCK'
+let s:d[0x1FB69]='LEFT AND LOWER AND RIGHT TRIANGULAR THREE QUARTERS BLOCK'
+let s:d[0x1FB6A]='UPPER AND LEFT AND LOWER TRIANGULAR THREE QUARTERS BLOCK'
+let s:d[0x1FB6B]='LEFT AND UPPER AND RIGHT TRIANGULAR THREE QUARTERS BLOCK'
+let s:d[0x1FB6C]='LEFT TRIANGULAR ONE QUARTER BLOCK'
+let s:d[0x1FB6D]='UPPER TRIANGULAR ONE QUARTER BLOCK'
+let s:d[0x1FB6E]='RIGHT TRIANGULAR ONE QUARTER BLOCK'
+let s:d[0x1FB6F]='LOWER TRIANGULAR ONE QUARTER BLOCK'
+let s:d[0x1FB70]='VERTICAL ONE EIGHTH BLOCK-2'
+let s:d[0x1FB71]='VERTICAL ONE EIGHTH BLOCK-3'
+let s:d[0x1FB72]='VERTICAL ONE EIGHTH BLOCK-4'
+let s:d[0x1FB73]='VERTICAL ONE EIGHTH BLOCK-5'
+let s:d[0x1FB74]='VERTICAL ONE EIGHTH BLOCK-6'
+let s:d[0x1FB75]='VERTICAL ONE EIGHTH BLOCK-7'
+let s:d[0x1FB76]='HORIZONTAL ONE EIGHTH BLOCK-2'
+let s:d[0x1FB77]='HORIZONTAL ONE EIGHTH BLOCK-3'
+let s:d[0x1FB78]='HORIZONTAL ONE EIGHTH BLOCK-4'
+let s:d[0x1FB79]='HORIZONTAL ONE EIGHTH BLOCK-5'
+let s:d[0x1FB7A]='HORIZONTAL ONE EIGHTH BLOCK-6'
+let s:d[0x1FB7B]='HORIZONTAL ONE EIGHTH BLOCK-7'
+let s:d[0x1FB7C]='LEFT AND LOWER ONE EIGHTH BLOCK'
+let s:d[0x1FB7D]='LEFT AND UPPER ONE EIGHTH BLOCK'
+let s:d[0x1FB7E]='RIGHT AND UPPER ONE EIGHTH BLOCK'
+let s:d[0x1FB7F]='RIGHT AND LOWER ONE EIGHTH BLOCK'
+let s:d[0x1FB80]='UPPER AND LOWER ONE EIGHTH BLOCK'
+let s:d[0x1FB81]='HORIZONTAL ONE EIGHTH BLOCK-1358'
+let s:d[0x1FB82]='UPPER ONE QUARTER BLOCK'
+let s:d[0x1FB83]='UPPER THREE EIGHTHS BLOCK'
+let s:d[0x1FB84]='UPPER FIVE EIGHTHS BLOCK'
+let s:d[0x1FB85]='UPPER THREE QUARTERS BLOCK'
+let s:d[0x1FB86]='UPPER SEVEN EIGHTHS BLOCK'
+let s:d[0x1FB87]='RIGHT ONE QUARTER BLOCK'
+let s:d[0x1FB88]='RIGHT THREE EIGHTHS BLOCK'
+let s:d[0x1FB89]='RIGHT FIVE EIGHTHS BLOCK'
+let s:d[0x1FB8A]='RIGHT THREE QUARTERS BLOCK'
+let s:d[0x1FB8B]='RIGHT SEVEN EIGHTHS BLOCK'
+let s:d[0x1FB8C]='LEFT HALF MEDIUM SHADE'
+let s:d[0x1FB8D]='RIGHT HALF MEDIUM SHADE'
+let s:d[0x1FB8E]='UPPER HALF MEDIUM SHADE'
+let s:d[0x1FB8F]='LOWER HALF MEDIUM SHADE'
+let s:d[0x1FB90]='INVERSE MEDIUM SHADE'
+let s:d[0x1FB91]='UPPER HALF BLOCK AND LOWER HALF INVERSE MEDIUM SHADE'
+let s:d[0x1FB92]='UPPER HALF INVERSE MEDIUM SHADE AND LOWER HALF BLOCK'
+let s:d[0x1FB94]='LEFT HALF INVERSE MEDIUM SHADE AND RIGHT HALF BLOCK'
+let s:d[0x1FB95]='CHECKER BOARD FILL'
+let s:d[0x1FB96]='INVERSE CHECKER BOARD FILL'
+let s:d[0x1FB97]='HEAVY HORIZONTAL FILL'
+let s:d[0x1FB98]='UPPER LEFT TO LOWER RIGHT FILL'
+let s:d[0x1FB99]='UPPER RIGHT TO LOWER LEFT FILL'
+let s:d[0x1FB9A]='UPPER AND LOWER TRIANGULAR HALF BLOCK'
+let s:d[0x1FB9B]='LEFT AND RIGHT TRIANGULAR HALF BLOCK'
+let s:d[0x1FB9C]='UPPER LEFT TRIANGULAR MEDIUM SHADE'
+let s:d[0x1FB9D]='UPPER RIGHT TRIANGULAR MEDIUM SHADE'
+let s:d[0x1FB9E]='LOWER RIGHT TRIANGULAR MEDIUM SHADE'
+let s:d[0x1FB9F]='LOWER LEFT TRIANGULAR MEDIUM SHADE'
+let s:d[0x1FBA0]='BOX DRAWINGS LIGHT DIAGONAL UPPER CENTRE TO MIDDLE LEFT'
+let s:d[0x1FBA1]='BOX DRAWINGS LIGHT DIAGONAL UPPER CENTRE TO MIDDLE RIGHT'
+let s:d[0x1FBA2]='BOX DRAWINGS LIGHT DIAGONAL MIDDLE LEFT TO LOWER CENTRE'
+let s:d[0x1FBA3]='BOX DRAWINGS LIGHT DIAGONAL MIDDLE RIGHT TO LOWER CENTRE'
+let s:d[0x1FBA4]='BOX DRAWINGS LIGHT DIAGONAL UPPER CENTRE TO MIDDLE LEFT TO LOWER CENTRE'
+let s:d[0x1FBA5]='BOX DRAWINGS LIGHT DIAGONAL UPPER CENTRE TO MIDDLE RIGHT TO LOWER CENTRE'
+let s:d[0x1FBA6]='BOX DRAWINGS LIGHT DIAGONAL MIDDLE LEFT TO LOWER CENTRE TO MIDDLE RIGHT'
+let s:d[0x1FBA7]='BOX DRAWINGS LIGHT DIAGONAL MIDDLE LEFT TO UPPER CENTRE TO MIDDLE RIGHT'
+let s:d[0x1FBA8]='BOX DRAWINGS LIGHT DIAGONAL UPPER CENTRE TO MIDDLE LEFT AND MIDDLE RIGHT TO LOWER CENTRE'
+let s:d[0x1FBA9]='BOX DRAWINGS LIGHT DIAGONAL UPPER CENTRE TO MIDDLE RIGHT AND MIDDLE LEFT TO LOWER CENTRE'
+let s:d[0x1FBAA]='BOX DRAWINGS LIGHT DIAGONAL UPPER CENTRE TO MIDDLE RIGHT TO LOWER CENTRE TO MIDDLE LEFT'
+let s:d[0x1FBAB]='BOX DRAWINGS LIGHT DIAGONAL UPPER CENTRE TO MIDDLE LEFT TO LOWER CENTRE TO MIDDLE RIGHT'
+let s:d[0x1FBAC]='BOX DRAWINGS LIGHT DIAGONAL MIDDLE LEFT TO UPPER CENTRE TO MIDDLE RIGHT TO LOWER CENTRE'
+let s:d[0x1FBAD]='BOX DRAWINGS LIGHT DIAGONAL MIDDLE RIGHT TO UPPER CENTRE TO MIDDLE LEFT TO LOWER CENTRE'
+let s:d[0x1FBAE]='BOX DRAWINGS LIGHT DIAGONAL DIAMOND'
+let s:d[0x1FBAF]='BOX DRAWINGS LIGHT HORIZONTAL WITH VERTICAL STROKE'
+let s:d[0x1FBB0]='ARROWHEAD-SHAPED POINTER'
+let s:d[0x1FBB1]='INVERSE CHECK MARK'
+let s:d[0x1FBB2]='LEFT HALF RUNNING MAN'
+let s:d[0x1FBB3]='RIGHT HALF RUNNING MAN'
+let s:d[0x1FBB4]='INVERSE DOWNWARDS ARROW WITH TIP LEFTWARDS'
+let s:d[0x1FBB5]='LEFTWARDS ARROW AND UPPER AND LOWER ONE EIGHTH BLOCK'
+let s:d[0x1FBB6]='RIGHTWARDS ARROW AND UPPER AND LOWER ONE EIGHTH BLOCK'
+let s:d[0x1FBB7]='DOWNWARDS ARROW AND RIGHT ONE EIGHTH BLOCK'
+let s:d[0x1FBB8]='UPWARDS ARROW AND RIGHT ONE EIGHTH BLOCK'
+let s:d[0x1FBB9]='LEFT HALF FOLDER'
+let s:d[0x1FBBA]='RIGHT HALF FOLDER'
+let s:d[0x1FBBB]='VOIDED GREEK CROSS'
+let s:d[0x1FBBC]='RIGHT OPEN SQUARED DOT'
+let s:d[0x1FBBD]='NEGATIVE DIAGONAL CROSS'
+let s:d[0x1FBBE]='NEGATIVE DIAGONAL MIDDLE RIGHT TO LOWER CENTRE'
+let s:d[0x1FBBF]='NEGATIVE DIAGONAL DIAMOND'
+let s:d[0x1FBC0]='WHITE HEAVY SALTIRE WITH ROUNDED CORNERS'
+let s:d[0x1FBC1]='LEFT THIRD WHITE RIGHT POINTING INDEX'
+let s:d[0x1FBC2]='MIDDLE THIRD WHITE RIGHT POINTING INDEX'
+let s:d[0x1FBC3]='RIGHT THIRD WHITE RIGHT POINTING INDEX'
+let s:d[0x1FBC4]='NEGATIVE SQUARED QUESTION MARK'
+let s:d[0x1FBC5]='STICK FIGURE'
+let s:d[0x1FBC6]='STICK FIGURE WITH ARMS RAISED'
+let s:d[0x1FBC7]='STICK FIGURE LEANING LEFT'
+let s:d[0x1FBC8]='STICK FIGURE LEANING RIGHT'
+let s:d[0x1FBC9]='STICK FIGURE WITH DRESS'
+let s:d[0x1FBCA]='WHITE UP-POINTING CHEVRON'
+let s:d[0x1FBF0]='SEGMENTED DIGIT ZERO'
+let s:d[0x1FBF1]='SEGMENTED DIGIT ONE'
+let s:d[0x1FBF2]='SEGMENTED DIGIT TWO'
+let s:d[0x1FBF3]='SEGMENTED DIGIT THREE'
+let s:d[0x1FBF4]='SEGMENTED DIGIT FOUR'
+let s:d[0x1FBF5]='SEGMENTED DIGIT FIVE'
+let s:d[0x1FBF6]='SEGMENTED DIGIT SIX'
+let s:d[0x1FBF7]='SEGMENTED DIGIT SEVEN'
+let s:d[0x1FBF8]='SEGMENTED DIGIT EIGHT'
+let s:d[0x1FBF9]='SEGMENTED DIGIT NINE'
 let s:d[0x2F800]='CJK COMPATIBILITY IDEOGRAPH-2F800'
 let s:d[0x2F801]='CJK COMPATIBILITY IDEOGRAPH-2F801'
 let s:d[0x2F802]='CJK COMPATIBILITY IDEOGRAPH-2F802'
@@ -33730,19 +35154,21 @@ let s:d[0xE01EE]='VARIATION SELECTOR-255'
 let s:d[0xE01EF]='VARIATION SELECTOR-256'
 
 let s:ranges = [
-      \ [0x3400, 0x4DB5, '<CJK Ideograph Extension A>'],
-      \ [0x4E00, 0x9FEF, '<CJK Ideograph>'],
+      \ [0x3400, 0x4DBF, '<CJK Ideograph Extension A>'],
+      \ [0x4E00, 0x9FFC, '<CJK Ideograph>'],
       \ [0xAC00, 0xD7A3, '<Hangul Syllable>'],
       \ [0xD800, 0xDB7F, '<Non Private Use High Surrogate>'],
       \ [0xDB80, 0xDBFF, '<Private Use High Surrogate>'],
       \ [0xDC00, 0xDFFF, '<Low Surrogate>'],
       \ [0xE000, 0xF8FF, '<Private Use>'],
       \ [0x17000, 0x187F7, '<Tangut Ideograph>'],
-      \ [0x20000, 0x2A6D6, '<CJK Ideograph Extension B>'],
+      \ [0x18D00, 0x18D08, '<Tangut Ideograph Supplement>'],
+      \ [0x20000, 0x2A6DD, '<CJK Ideograph Extension B>'],
       \ [0x2A700, 0x2B734, '<CJK Ideograph Extension C>'],
       \ [0x2B740, 0x2B81D, '<CJK Ideograph Extension D>'],
       \ [0x2B820, 0x2CEA1, '<CJK Ideograph Extension E>'],
       \ [0x2CEB0, 0x2EBE0, '<CJK Ideograph Extension F>'],
+      \ [0x30000, 0x3134A, '<CJK Ideograph Extension G>'],
       \ [0xF0000, 0xFFFFD, '<Plane 15 Private Use>'],
       \ [0x100000, 0x10FFFD, '<Plane 16 Private Use>'],
       \ ]
