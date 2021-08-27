@@ -37,9 +37,6 @@ update = git_subtree_update --squash --prefix=.vim/bundle/SkyBison https://githu
 [sleuth]
 update = git_subtree_update --squash --prefix=.vim/bundle/sleuth https://github.com/tpope/vim-sleuth.git master
 
-[sneak]
-update = git_subtree_update --squash --prefix=.vim/bundle/sneak https://github.com/justinmk/vim-sneak master
-
 [surround]
 update = git_subtree_update --squash --prefix=.vim/bundle/surround https://github.com/tpope/vim-surround.git master
 
