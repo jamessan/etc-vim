@@ -43,5 +43,8 @@ update = git_subtree_update --squash --prefix=.vim/bundle/surround https://githu
 [tabular]
 update = git_subtree_update --squash --prefix=.vim/bundle/tabular https://github.com/godlygeek/tabular.git master
 
+[tokyonight]
+update = git_subtree_update --squash --prefix=.vim/bundle/tokyonight https://github.com/folke/tokyonight.nvim.git main
+
 [unstack]
 update = git_subtree_update --squash --prefix=.vim/bundle/unstack https://github.com/mattboehm/vim-unstack.git master
