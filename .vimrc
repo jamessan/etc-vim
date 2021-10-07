@@ -63,8 +63,13 @@ if exists('+termguicolors') && hostname() !~ 'cec\.lab\.emc\.com'
 endif
 
 if &t_Co >= 88
-    let g:jellybeans_use_term_italics = 1
-    colorscheme jellybeans
+    if has('nvim-0.5')
+        let g:tokyonight_style = 'night'
+        colorscheme tokyonight
+    else
+        let g:jellybeans_use_term_italics = 1
+        colorscheme jellybeans
+    endif
 elseif !has('nvim')
     set background=dark
 end
