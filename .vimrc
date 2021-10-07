@@ -205,6 +205,7 @@ let g:signify_vcs_list = filter([ 'git', 'hg', 'svn', 'bzr' ], 'executable(v:val
 let g:signify_sign_add = "\u00A0"
 let g:signify_sign_change = "\u00A0"
 let g:signify_sign_delete = "\u00A0"
+let g:signify_sign_show_count = v:false
 
 " securemodelines
 let g:secure_modelines_allowed_items = [
