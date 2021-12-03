@@ -409,6 +409,7 @@
 !/.vim/bundle/neomake/tests/ft_clojure.vader
 !/.vim/bundle/neomake/tests/ft_css.vader
 !/.vim/bundle/neomake/tests/ft_cs.vader
+!/.vim/bundle/neomake/tests/ft_dockerfile.vader
 !/.vim/bundle/neomake/tests/ft_elixir.vader
 !/.vim/bundle/neomake/tests/ft_elm.vader
 !/.vim/bundle/neomake/tests/ft_erlang.vader
