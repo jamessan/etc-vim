@@ -13,6 +13,9 @@ update = git_subtree_update --squash --prefix=.vim/bundle/grepper https://github
 [jellybeans]
 update = git_subtree_update --squash --prefix=.vim/bundle/jellybeans https://github.com/nanotech/jellybeans.vim.git master
 
+[lspconfig]
+update = git_subtree_update --squash --prefix=.vim/bundle/lspconfig https://github.com/neovim/nvim-lspconfig master
+
 [neomake]
 update = git_subtree_update --squash --prefix=.vim/bundle/neomake https://github.com/neomake/neomake.git master
 
