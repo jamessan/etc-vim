@@ -1,12 +1,27 @@
 " sleuth.vim - Heuristically set buffer options
 " Maintainer:   Tim Pope <http://tpo.pe/>
-" Version:      1.2
+" Version:      1.3
 " GetLatestVimScripts: 4375 1 :AutoInstall: sleuth.vim
+
+if exists("#polyglot-sleuth")
+  autocmd! polyglot-sleuth
+  augroup! polyglot-sleuth
+  unlet! g:loaded_sleuth
+  let s:polyglot = 1
+endif
 
 if exists("g:loaded_sleuth") || v:version < 700 || &cp
   finish
 endif
 let g:loaded_sleuth = 1
+lockvar g:loaded_sleuth
+
+function! s:Warn(msg) abort
+  echohl WarningMsg
+  echo a:msg
+  echohl NONE
+  return ''
+endfunction
 
 if exists('+shellslash')
   function! s:Slash(path) abort
@@ -19,22 +34,28 @@ else
 endif
 
 function! s:Guess(source, detected, lines) abort
-  let has_heredocs = &filetype =~# '^\%(perl\|php\|ruby\|[cz]\=sh\)$'
+  let has_heredocs = a:detected.filetype =~# '^\%(perl\|php\|ruby\|[cz]\=sh\|bash\)$'
   let options = {}
   let heuristics = {'spaces': 0, 'hard': 0, 'soft': 0, 'checked': 0, 'indents': {}}
-  let tabstop = get(a:detected.options, 'tabstop', [8])[0]
+  let tabstop = get(a:detected.options, 'tabstop', get(a:detected.defaults, 'tabstop', [8]))[0]
   let softtab = repeat(' ', tabstop)
   let waiting_on = ''
   let prev_indent = -1
+  let prev_line = ''
 
   for line in a:lines
     if len(waiting_on)
       if line =~# waiting_on
         let waiting_on = ''
         let prev_indent = -1
+        let prev_line = ''
       endif
       continue
     elseif line =~# '^\s*$'
+      continue
+    elseif a:detected.filetype ==# 'python' && prev_line[-1:-1] =~# '[[\({]'
+      let prev_indent = -1
+      let prev_line = ''
       continue
     elseif line =~# '^=\w' && line !~# '^=\%(end\|cut\)\>'
       let waiting_on = '^=\%(end\|cut\)\>'
@@ -48,7 +69,7 @@ function! s:Guess(source, detected, lines) abort
       let waiting_on = '-->'
     elseif line =~# '^[^"]*"""[^"]*$'
       let waiting_on = '^[^"]*"""[^"]*$'
-    elseif &filetype ==# 'go' && line =~# '^[^`]*`[^`]*$'
+    elseif a:detected.filetype ==# 'go' && line =~# '^[^`]*`[^`]*$'
       let waiting_on = '^[^`]*`[^`]*$'
     elseif has_heredocs
       let waiting_on = matchstr(line, '<<\s*\([''"]\=\)\zs\w\+\ze\1[^''"`<>]*$')
@@ -68,6 +89,7 @@ function! s:Guess(source, detected, lines) abort
     endif
     let increment = prev_indent < 0 ? 0 : indent - prev_indent
     let prev_indent = indent
+    let prev_line = line
     if increment > 1 && (increment < 4 || increment % 4 == 0)
       if has_key(heuristics.indents, increment)
         let heuristics.indents[increment] += 1
@@ -89,9 +111,11 @@ function! s:Guess(source, detected, lines) abort
     endif
   endfor
 
+  let a:detected.heuristics[a:source] = heuristics
+
   let max_frequency = 0
   for [shiftwidth, frequency] in items(heuristics.indents)
-    if frequency > max_frequency
+    if frequency > max_frequency || frequency == max_frequency && +shiftwidth < get(options, 'shiftwidth')
       let options.shiftwidth = +shiftwidth
       let max_frequency = frequency
     endif
@@ -110,7 +134,8 @@ function! s:Guess(source, detected, lines) abort
     if heuristics.hard || has_key(a:detected.options, 'tabstop') ||
           \ stridx(join(a:lines, "\n"), "\t") >= 0
       let options.tabstop = tabstop
-    elseif !&g:shiftwidth && has_key(options, 'shiftwidth')
+    elseif !&g:shiftwidth && has_key(options, 'shiftwidth') &&
+          \ !has_key(a:detected.options, 'shiftwidth')
       let options.tabstop = options.shiftwidth
       let options.shiftwidth = 0
     endif
@@ -127,35 +152,6 @@ function! s:Capture(cmd) abort
   return capture
 endfunction
 
-function! s:PatternsFor(type) abort
-  if a:type ==# ''
-    return []
-  endif
-  if !exists('s:patterns')
-    let capture = s:Capture('autocmd BufRead')
-    let patterns = {
-          \ 'c': ['*.c', '*.h'],
-          \ 'cpp': ['*.cpp', '*.h'],
-          \ 'html': ['*.html'],
-          \ 'sh': ['*.sh'],
-          \ 'vim': ['vimrc', '.vimrc', '_vimrc'],
-          \ }
-    let setfpattern = '\s\+\%(setf\%[iletype]\s\+\|set\%[local]\s\+\%(ft\|filetype\)=\|call SetFileTypeSH(["'']\%(ba\|k\)\=\%(sh\)\@=\)'
-    for line in split(capture, "\n")
-      let match = matchlist(line, '^\s*\(\S\+\)\='.setfpattern.'\(\w\+\)')
-      if !empty(match)
-        call extend(patterns, {match[2]: []}, 'keep')
-        call extend(patterns[match[2]], [match[1] ==# '' ? last : match[1]])
-      endif
-      let last = matchstr(line, '\S.*')
-    endfor
-    let patterns.markdown = []
-    call map(patterns, 'sort(v:val)')
-    let s:patterns = patterns
-  endif
-  return copy(get(s:patterns, a:type, []))
-endfunction
-
 let s:modeline_numbers = {
       \ 'shiftwidth': 'shiftwidth', 'sw': 'shiftwidth',
       \ 'tabstop': 'tabstop', 'ts': 'tabstop',
@@ -165,7 +161,23 @@ let s:modeline_booleans = {
       \ 'expandtab': 'expandtab', 'et': 'expandtab',
       \ 'fixendofline': 'fixendofline', 'fixeol': 'fixendofline',
       \ }
-function! s:ModelineOptions(source) abort
+function! s:ParseOptions(declarations, into, ...) abort
+  for option in a:declarations
+    if has_key(s:modeline_booleans, matchstr(option, '^\%(no\)\=\zs\w\+$'))
+      let a:into[s:modeline_booleans[matchstr(option, '^\%(no\)\=\zs\w\+')]] = [option !~# '^no'] + a:000
+    elseif has_key(s:modeline_numbers, matchstr(option, '^\w\+\ze=[1-9]\d*$'))
+      let a:into[s:modeline_numbers[matchstr(option, '^\w\+')]] = [str2nr(matchstr(option, '\d\+$'))] + a:000
+    elseif option =~# '^\%(ft\|filetype\)=[[:alnum:]._-]*$'
+      let a:into.filetype = [matchstr(option, '=\zs.*')] + a:000
+    endif
+    if option ==# 'nomodeline' || option ==# 'noml'
+      return 1
+    endif
+  endfor
+  return 0
+endfunction
+
+function! s:ModelineOptions() abort
   let options = {}
   if !&l:modeline && (&g:modeline || s:Capture('setlocal') =~# '\\\@<![[:space:]]nomodeline\>')
     return options
@@ -177,15 +189,11 @@ function! s:ModelineOptions(source) abort
     let lnums = range(1, line('$'))
   endif
   for lnum in lnums
-    for option in split(matchstr(getline(lnum), '\%(\S\@<!vim\=\|\s\@<=ex\):\s*\(set\= \zs[^:]\+\|\zs.*\S\)'), '[[:space:]:]\+')
-      if has_key(s:modeline_booleans, matchstr(option, '^\%(no\)\=\zs\w\+$'))
-        let options[s:modeline_booleans[matchstr(option, '^\%(no\)\=\zs\w\+')]] = [option !~# '^no', a:source, lnum]
-      elseif has_key(s:modeline_numbers, matchstr(option, '^\w\+\ze=[1-9]\d*$'))
-        let options[s:modeline_numbers[matchstr(option, '^\w\+')]] = [str2nr(matchstr(option, '\d\+$')), a:source, lnum]
-      elseif option ==# 'nomodeline' || option ==# 'noml'
-        return options
-      endif
-    endfor
+    if s:ParseOptions(split(matchstr(getline(lnum),
+          \ '\%(\S\@<!vim\=\|\s\@<=ex\):\s*\(set\= \zs[^:]\+\|\zs.*\S\)'),
+          \ '[[:space:]:]\+'), options, 'modeline', lnum)
+      break
+    endif
   endfor
   return options
 endfunction
@@ -250,23 +258,30 @@ endfunction
 
 let s:editorconfig_cache = {}
 function! s:DetectEditorConfig(absolute_path, ...) abort
+  if empty(a:absolute_path)
+    return [{}, '']
+  endif
   let root = ''
   let tail = a:0 ? '/' . a:1 : '/.editorconfig'
   let dir = fnamemodify(a:absolute_path, ':h')
   let previous_dir = ''
   let sections = []
+  let overrides = get(g:, 'sleuth_editorconfig_overrides', {})
   while dir !=# previous_dir && dir !~# '^//\%([^/]\+/\=\)\=$'
-    let read_from = dir . tail
-    let ftime = getftime(read_from)
-    let [cachetime; config] = get(s:editorconfig_cache, read_from, [-1, {}, []])
+    let read_from = get(overrides, dir . tail, get(overrides, dir, dir . tail))
+    if type(read_from) == type('') && read_from !=# dir . tail && read_from !~# '^/\|^\a\+:\|^$'
+      let read_from = simplify(dir . '/' . read_from)
+    endif
+    let ftime = type(read_from) == type('') ? getftime(read_from) : -1
+    let [cachetime; econfig] = get(s:editorconfig_cache, read_from, [-1, {}, []])
     if ftime != cachetime
-      let config = s:ReadEditorConfig(read_from)
-      let s:editorconfig_cache[read_from] = [ftime] + config
+      let econfig = s:ReadEditorConfig(read_from)
+      let s:editorconfig_cache[read_from] = [ftime] + econfig
       lockvar! s:editorconfig_cache[read_from]
       unlockvar s:editorconfig_cache[read_from]
     endif
-    call extend(sections, config[1], 'keep')
-    if get(config[0], 'root', [''])[0] ==? 'true'
+    call extend(sections, econfig[1], 'keep')
+    if get(econfig[0], 'root', [''])[0] ==? 'true'
       let root = dir
       break
     endif
@@ -283,6 +298,20 @@ function! s:DetectEditorConfig(absolute_path, ...) abort
 
   return [config, root]
 endfunction
+
+let s:editorconfig_bomb = {
+      \ 'utf-8':     0,
+      \ 'utf-8-bom': 1,
+      \ 'utf-16be':  1,
+      \ 'utf-16le':  1,
+      \ 'latin1':    0,
+      \ }
+
+let s:editorconfig_fileformat = {
+      \ 'cr':   'mac',
+      \ 'crlf': 'dos',
+      \ 'lf':   'unix',
+      \ }
 
 function! s:EditorConfigToOptions(pairs) abort
   let options = {}
@@ -316,7 +345,24 @@ function! s:EditorConfigToOptions(pairs) abort
   endif
 
   if get(pairs, 'insert_final_newline', '') =~? '^true$\|^false$'
-    let options.fixendofline = [pairs.insert_final_newline ==? 'true'] + sources.insert_final_newline
+    let options.endofline = [pairs.insert_final_newline ==? 'true'] + sources.insert_final_newline
+    let options.fixendofline = copy(options.endofline)
+  endif
+
+  let eol = tolower(get(pairs, 'end_of_line', ''))
+  if has_key(s:editorconfig_fileformat, eol)
+    let options.fileformat = [s:editorconfig_fileformat[eol]] + sources.end_of_line
+  endif
+
+  let charset = tolower(get(pairs, 'charset', ''))
+  if has_key(s:editorconfig_bomb, charset)
+    let options.bomb = [s:editorconfig_bomb[charset]] + sources.charset
+    let options.fileencoding = [substitute(charset, '\C-bom$', '', '')] + sources.charset
+  endif
+
+  let filetype = tolower(get(pairs, 'vim_filetype', 'unset'))
+  if filetype !=# 'unset' && filetype =~# '^[.a-z0-9_-]*$'
+    let options.filetype = [substitute(filetype, '^\.\+\|\.\+$', '', 'g')] + sources.vim_filetype
   endif
 
   return options
@@ -326,68 +372,136 @@ function! s:Ready(detected) abort
   return has_key(a:detected.options, 'expandtab') && has_key(a:detected.options, 'shiftwidth')
 endfunction
 
-function! s:Apply(detected) abort
-  let options = copy(a:detected.options)
+let s:booleans = {'expandtab': 1, 'fixendofline': 1, 'endofline': 1, 'bomb': 1}
+let s:safe_options = ['expandtab', 'shiftwidth', 'tabstop', 'textwidth', 'fixendofline']
+let s:all_options = s:safe_options + ['endofline', 'fileformat', 'fileencoding', 'bomb']
+let s:short_options = {
+      \ 'expandtab': 'et', 'shiftwidth': 'sw', 'tabstop': 'ts',
+      \ 'textwidth': 'tw', 'fixendofline': 'fixeol',
+      \ 'endofline': 'eol', 'fileformat': 'ff', 'fileencoding': 'fenc'}
+
+function! s:Apply(detected, permitted_options) abort
+  let options = extend(copy(a:detected.defaults), a:detected.options)
+  if get(a:detected.defaults, 'shiftwidth', [1])[0] == 0 && get(options, 'shiftwidth', [0])[0] != 0 && !has_key(a:detected.declared, 'tabstop')
+    let options.tabstop = options.shiftwidth
+    let options.shiftwidth = a:detected.defaults.shiftwidth
+  endif
+  if has_key(options, 'shiftwidth') && !has_key(options, 'expandtab')
+    let options.expandtab = [stridx(join(getline(1, 256), "\n"), "\t") == -1, a:detected.bufname]
+  endif
   if !exists('*shiftwidth') && !get(options, 'shiftwidth', [1])[0]
-    let options.shiftwidth = get(options, 'tabstop', [&tabstop])[0] + options.shiftwidth[1:-1]
+    let options.shiftwidth = [get(options, 'tabstop', [&tabstop])[0]] + options.shiftwidth[1:-1]
   endif
   let msg = ''
-  for option in sort(keys(options))
-    if exists('&' . option)
-      let value = options[option]
-      call setbufvar('', '&'.option, value[0])
-      if has_key(s:modeline_booleans, option)
-        let setting = (value[0] ? '' : 'no') . option
+  let cmd = 'setlocal'
+  for option in a:permitted_options
+    if !exists('&' . option) || !has_key(options, option) ||
+          \ !&l:modifiable && index(s:safe_options, option) == -1
+      continue
+    endif
+    let value = options[option]
+    if has_key(s:booleans, option)
+      let setting = (value[0] ? '' : 'no') . option
+    else
+      let setting = option . '=' . value[0]
+    endif
+    if getbufvar('', '&' . option) !=# value[0] || index(s:safe_options, option) >= 0
+      let cmd .= ' ' . setting
+    endif
+    if !&verbose
+      if has_key(s:booleans, option)
+        let msg .= ' ' . (value[0] ? '' : 'no') . get(s:short_options, option, option)
       else
-        let setting = option . '=' . value[0]
+        let msg .= ' ' . get(s:short_options, option, option) . '=' . value[0]
       endif
-      if !&verbose
-        let msg .= ' ' . setting
-        continue
-      endif
-      if len(value) > 1
-        let file = value[1] ==# a:detected.bufname ? '%' : fnamemodify(value[1], ':~:.')
-        if len(value) > 2
-          let file .= ' line ' . value[2]
+      continue
+    endif
+    if len(value) > 1
+      if value[1] ==# a:detected.bufname
+        let file = '%'
+      else
+        let file = value[1] =~# '/' ? fnamemodify(value[1], ':~:.') : value[1]
+        if file !=# value[1] && file[0:0] !=# '~'
+          let file = './' . file
         endif
-        echo printf(':setlocal %-13s " from %s', setting, file)
-      else
-        echo ':setlocal ' . setting
       endif
+      if len(value) > 2
+        let file .= ' line ' . value[2]
+      endif
+      echo printf(':setlocal %-21s " from %s', setting, file)
+    else
+      echo ':setlocal ' . setting
     endif
   endfor
   if !&verbose && !empty(msg)
     echo ':setlocal' . msg
   endif
-  if !s:Ready(a:detected)
-    echohl WarningMsg
-    echo ':Sleuth failed to detect indent settings'
-    echohl NONE
+  if has_key(options, 'shiftwidth')
+    let cmd .= ' softtabstop=' . (exists('*shiftwidth') ? -1 : options.shiftwidth[0])
+  else
+    call s:Warn(':Sleuth failed to detect indent settings')
   endif
+  return cmd ==# 'setlocal' ? '' : cmd
 endfunction
 
-let s:mandated = {
-      \ 'yaml': {'expandtab': [1]},
-      \ }
-
-function! s:Detect() abort
-  let file = s:Slash(@%)
-  let actual_path = !empty(file) && &l:buftype =~# '^\%(nowrite\|acwrite\)\=$'
-  if actual_path && file !~# '^$\|^\a\+:\|^/'
-    let file = s:Slash(getcwd()) . '/' . file
-  endif
+function! s:UserOptions(ft, name) abort
+  let source = 'g:sleuth_' . a:ft . '_' . a:name
+  let val = get(g:, source[2 : -1])
   let options = {}
-  let detected = {'bufname': file, 'options': options}
-  let pre = substitute(matchstr(file, '^\a\a\+\ze:'), '^\a', '\u&', 'g')
+  if type(val) == type('')
+    call s:ParseOptions(split(substitute(val, '\S\@<![=+]\S\@=', 'ft=', 'g'), '[[:space:]:,]\+'), options, source)
+    if has_key(options, 'filetype')
+      call extend(options, s:UserOptions(remove(options, 'filetype')[0], a:name), 'keep')
+    endif
+    if has_key(options, 'tabstop')
+      call extend(options, {'shiftwidth': [0, source], 'expandtab': [0, source]}, 'keep')
+    elseif has_key(options, 'shiftwidth')
+      call extend(options, {'expandtab': [1, source]}, 'keep')
+    endif
+  elseif type(val) == type([])
+    call s:ParseOptions(val, options, source)
+  else
+    return {}
+  endif
+  call filter(options, 'index(s:safe_options, v:key) >= 0')
+  return options
+endfunction
+
+function! s:DetectDeclared() abort
+  let detected = {'bufname': s:Slash(@%), 'declared': {}}
+  let actual_path = &l:buftype =~# '^\%(nowrite\|acwrite\)\=$'
+  if actual_path && detected.bufname !~# '^$\|^\a\+:\|^/'
+    let detected.bufname = s:Slash(getcwd()) . '/' . detected.bufname
+  endif
+  let detected.path = actual_path ? detected.bufname : ''
+  let pre = substitute(matchstr(detected.path, '^\a\a\+\ze:'), '^\a', '\u&', 'g')
   if len(pre) && exists('*' . pre . 'Real')
-    let file = s:Slash(call(pre . 'Real', [file]))
+    let detected.path = s:Slash(call(pre . 'Real', [detected.path]))
   endif
 
-  let declared = copy(get(s:mandated, &filetype, {}))
-  let [detected.editorconfig, detected.root] = actual_path ? s:DetectEditorConfig(file) : [{}, '']
-  call extend(declared, s:EditorConfigToOptions(detected.editorconfig))
-  call extend(declared, s:ModelineOptions(file))
-  call extend(options, declared)
+  let [detected.editorconfig, detected.root] = s:DetectEditorConfig(detected.path)
+  call extend(detected.declared, s:EditorConfigToOptions(detected.editorconfig))
+  call extend(detected.declared, s:ModelineOptions())
+  return detected
+endfunction
+
+function! s:DetectHeuristics(into) abort
+  let detected = a:into
+  let filetype = split(&l:filetype, '\.', 1)[0]
+  if get(detected, 'filetype', '*') ==# filetype
+    return detected
+  endif
+  let detected.filetype = filetype
+  let options = copy(detected.declared)
+  let detected.options = options
+  let detected.heuristics = {}
+  if has_key(detected, 'patterns')
+    call remove(detected, 'patterns')
+  endif
+  let detected.defaults = s:UserOptions(filetype, 'defaults')
+  if empty(filetype) || !get(b:, 'sleuth_automatic', 1) || empty(get(b:, 'sleuth_heuristics', get(g:, 'sleuth_' . filetype . '_heuristics', get(g:, 'sleuth_heuristics', 1))))
+    return detected
+  endif
   if s:Ready(detected)
     return detected
   endif
@@ -396,24 +510,34 @@ function! s:Detect() abort
   call s:Guess(detected.bufname, detected, lines)
   if s:Ready(detected)
     return detected
+  elseif get(options, 'shiftwidth', [4])[0] < 4 && stridx(join(lines, "\n"), "\t") == -1
+    let options.expandtab = [1, detected.bufname]
+    return detected
   endif
-  let dir = actual_path ? fnamemodify(file, ':h') : ''
+  let dir = len(detected.path) ? fnamemodify(detected.path, ':h') : ''
   let root = len(detected.root) ? detected.root : dir ==# s:Slash(expand('~')) ? dir : fnamemodify(dir, ':h')
   if detected.bufname =~# '^\a\a\+:' || root ==# '.' || !isdirectory(root)
     let dir = ''
   endif
   let c = get(b:, 'sleuth_neighbor_limit', get(g:, 'sleuth_neighbor_limit', 8))
-  let patterns = c > 0 && len(dir) ? s:PatternsFor(&filetype) : []
-  call filter(patterns, 'v:val !~# "/"')
-  while c > 0 && dir !~# '^$\|^//[^/]*$' && dir !=# fnamemodify(dir, ':h')
-    let last_pattern = ''
-    for pattern in patterns
-      if pattern ==# last_pattern
-        continue
+  if c <= 0 || empty(dir)
+    let detected.patterns = []
+  elseif type(get(g:, 'sleuth_' . detected.filetype . '_globs')) == type([])
+    let detected.patterns = get(g:, 'sleuth_' . detected.filetype . '_globs')
+  else
+    let detected.patterns = ['*' . matchstr(detected.bufname, '/\@<!\.[^][{}*?$~\`./]\+$')]
+    if detected.patterns ==# ['*']
+      let detected.patterns = [matchstr(detected.bufname, '/\zs[^][{}*?$~\`/]\+\ze/\=$')]
+      let dir = fnamemodify(dir, ':h')
+      if empty(detected.patterns[0])
+        let detected.patterns = []
       endif
-      let last_pattern = pattern
+    endif
+  endif
+  while c > 0 && dir !~# '^$\|^//[^/]*$' && dir !=# fnamemodify(dir, ':h')
+    for pattern in detected.patterns
       for neighbor in split(glob(dir.'/'.pattern), "\n")[0:7]
-        if neighbor !=# file && filereadable(neighbor)
+        if neighbor !=# detected.path && filereadable(neighbor)
           call s:Guess(neighbor, detected, readfile(neighbor, '', 256))
           let c -= 1
         endif
@@ -433,29 +557,58 @@ function! s:Detect() abort
     endif
     let dir = fnamemodify(dir, ':h')
   endwhile
-  if has_key(options, 'shiftwidth')
-    let options.expandtab = [1]
-  else
-    let detected.options = declared
+  if !has_key(options, 'shiftwidth')
+    let detected.options = copy(detected.declared)
   endif
   return detected
 endfunction
 
-function! s:Sleuth() abort
+function! s:Init(redetect, unsafe, do_filetype) abort
+  if !a:redetect && exists('b:sleuth.defaults')
+    let detected = b:sleuth
+  endif
+  unlet! b:sleuth
   if &l:buftype =~# '^\%(quickfix\|help\|terminal\|prompt\|popup\)$'
-    echohl WarningMsg
-    echo ':Sleuth disabled for buftype=' . &l:buftype
-    echohl NONE
-    return
+    return s:Warn(':Sleuth disabled for buftype=' . &l:buftype)
   endif
   if &l:filetype ==# 'netrw'
-    echohl WarningMsg
-    echo ':Sleuth disabled for filetype=' . &l:filetype
-    echohl NONE
-    return
+    return s:Warn(':Sleuth disabled for filetype=' . &l:filetype)
   endif
-  let detected = s:Detect()
-  call s:Apply(detected)
+  if &l:binary
+    return s:Warn(':Sleuth disabled for binary files')
+  endif
+  if !exists('detected')
+    let detected = s:DetectDeclared()
+  endif
+  let setfiletype = ''
+  if a:do_filetype && has_key(detected.declared, 'filetype')
+    let filetype = detected.declared.filetype[0]
+    if filetype !=# &l:filetype || empty(filetype)
+      let setfiletype = 'setlocal filetype=' . filetype
+    else
+      let setfiletype = 'setfiletype ' . filetype
+    endif
+  endif
+  exe setfiletype
+  call s:DetectHeuristics(detected)
+  let cmd = s:Apply(detected, (a:do_filetype ? ['filetype'] : []) + (a:unsafe ? s:all_options : s:safe_options))
+  let b:sleuth = detected
+  if exists('s:polyglot')
+    call s:Warn('Charlatan :Sleuth implementation in vim-polyglot has been found and disabled.')
+    call s:Warn('To get rid of this message, uninstall vim-polyglot, or disable the')
+    call s:Warn('corresponding feature in your vimrc:')
+    call s:Warn('        let g:polyglot_disabled = ["autoindent"]')
+  endif
+  return cmd
+endfunction
+
+function! s:AutoInit() abort
+  silent return s:Init(1, 1, 1)
+endfunction
+
+function! s:Sleuth(line1, line2, range, bang, mods, args) abort
+  let safe = a:bang || expand("<sfile>") =~# '\%(^\|\.\.\)FileType '
+  return s:Init(!a:bang, !safe, !safe)
 endfunction
 
 setglobal smarttab
@@ -486,10 +639,15 @@ endfunction
 
 augroup sleuth
   autocmd!
+  autocmd BufNewFile,BufReadPost * nested
+        \ if get(g:, 'sleuth_automatic', 1)
+        \ | exe s:AutoInit() | endif
+  autocmd BufFilePost * nested
+        \ if (@% !~# '^!' || exists('b:sleuth')) && get(g:, 'sleuth_automatic', 1)
+        \ | exe s:AutoInit() | endif
   autocmd FileType * nested
-        \ if get(b:, 'sleuth_automatic', get(g:, 'sleuth_automatic', 1))
-        \ | silent call s:Sleuth() | endif
+        \ if exists('b:sleuth') | silent exe s:Init(0, 0, 0) | endif
   autocmd User Flags call Hoist('buffer', 5, 'SleuthIndicator')
 augroup END
 
-command! -bar -bang Sleuth call s:Sleuth()
+command! -bar -bang Sleuth exe s:Sleuth(<line1>, <count>, +"<range>", <bang>0, "<mods>", <q-args>)
