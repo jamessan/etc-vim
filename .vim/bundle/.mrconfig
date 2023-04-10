@@ -31,9 +31,6 @@ update = git_subtree_update --squash --prefix=.vim/bundle/securemodelines https:
 [signify]
 update = git_subtree_update --squash --prefix=.vim/bundle/signify https://github.com/mhinz/vim-signify.git master
 
-[SkyBison]
-update = git_subtree_update --squash --prefix=.vim/bundle/SkyBison https://github.com/paradigm/SkyBison.git master
-
 [sleuth]
 update = git_subtree_update --squash --prefix=.vim/bundle/sleuth https://github.com/tpope/vim-sleuth.git master
 

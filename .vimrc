@@ -366,12 +366,6 @@ nnoremap <C-l> :nohlsearch<CR><C-l>
 cnoremap <C-p> <Up>
 cnoremap <C-n> <Down>
 
-" SkyBison
-nnoremap <Leader>e :<C-u>call SkyBison('e ')<CR>
-nnoremap <Leader>b 2:<C-u>call SkyBison('b ')<CR>
-nnoremap <Leader>tj 2:<C-u>call SkyBison('tj ')<CR>
-nnoremap <Leader>h 2:<C-u>call SkyBison('h ')<CR>
-
 nnoremap <Leader>dp :call <SID>DiffPreview()<CR>
 nnoremap <Leader>si :echo <SID>SynInfo()<CR>
 if exists('*synstack')
