@@ -22,8 +22,6 @@ if has('autocmd')
         autocmd!
         autocmd FileType help nnoremap <buffer> <Enter> <C-]>
 
-        autocmd BufRead,BufNewFile,VimEnter * call jamessan#cscope#setup_db()
-
         autocmd ColorScheme * hi link NeomakeError ErrorMsg | hi link NeomakeWarning WarningMsg
         autocmd ColorScheme * hi link NeomakeErrorSign ErrorMsg | hi link NeomakeWarningSign WarningMsg
 
@@ -183,8 +181,6 @@ set noshiftround
 set cpoptions+=n " When 'wrap' is enabled, the 'number' column is used to
                  " display wrapped text
 set autoindent
-" Prompt for the tag if it's ambiguous
-set cscopetag
 set tags=.git/tags;.git,.bzr/tags;.bzr,./tags;,tags
 
 if has('nvim-0.5')
