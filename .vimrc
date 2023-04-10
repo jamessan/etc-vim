@@ -220,6 +220,12 @@ for _, lsp in ipairs({ "rust_analyzer", "clangd" }) do
         on_attach = on_attach,
     }
 end
+
+if vim.fn.executable('pylsp') then
+    nvim_lsp.pylsp.setup {
+        on_attach = on_attach,
+    }
+end
 EOF
 else
     " Not compatible with Vim or older nvim
