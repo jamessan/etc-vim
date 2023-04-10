@@ -22,9 +22,6 @@ if has('autocmd')
         autocmd!
         autocmd FileType help nnoremap <buffer> <Enter> <C-]>
 
-        autocmd ColorScheme * hi link NeomakeError ErrorMsg | hi link NeomakeWarning WarningMsg
-        autocmd ColorScheme * hi link NeomakeErrorSign ErrorMsg | hi link NeomakeWarningSign WarningMsg
-
         if exists('##TermOpen')
             autocmd TermOpen * setlocal nolist
         endif
@@ -277,25 +274,6 @@ let g:secure_modelines_allowed_items = [
             \ "spell",
             \ "spelllang"
             \ ]
-
-" Neomake
-let g:neomake_c_lint_maker = {
-            \ 'exe': 'make',
-            \ 'args': ['clint', 'LINT_FILE=%'],
-            \ 'postprocess': function('jamessan#neomake#make_post'),
-            \ 'errorformat': '%f:%l: %m',
-            \ 'append_file': 0,
-            \ }
-let g:neomake_clint_maker = {
-            \ 'exe': 'make',
-            \ 'args': ['clint'],
-            \ 'postprocess': function('jamessan#neomake#make_post'),
-            \ 'errorformat': '%f:%l: %m',
-            \ }
-let g:neomake_cpp_lint_maker = g:neomake_c_lint_maker
-let g:neomake_make_maker = {
-            \ 'postprocess': function('jamessan#neomake#make_post'),
-            \}
 
 nmap gs <plug>(GrepperOperator)
 xmap gs <plug>(GrepperOperator)
