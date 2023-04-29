@@ -1,6 +1,5 @@
-local config = require("tokyonight.config")
-local colors = require("tokyonight.colors").setup(config)
-local util = require("tokyonight.util")
+local colors = require("tokyonight.colors").setup({ transform = true })
+local config = require("tokyonight.config").options
 
 local tokyonight = {}
 
@@ -30,26 +29,18 @@ tokyonight.replace = {
   b = { bg = colors.fg_gutter, fg = colors.red },
 }
 
+tokyonight.terminal = {
+  a = {bg = colors.green1, fg = colors.black },
+  b = {bg = colors.fg_gutter, fg=colors.green1 },
+}
+
 tokyonight.inactive = {
   a = { bg = colors.bg_statusline, fg = colors.blue },
   b = { bg = colors.bg_statusline, fg = colors.fg_gutter, gui = "bold" },
   c = { bg = colors.bg_statusline, fg = colors.fg_gutter },
 }
 
-if vim.o.background == "light" then
-  for _, mode in pairs(tokyonight) do
-    for _, section in pairs(mode) do
-      if section.bg then
-        section.bg = util.getColor(section.bg)
-      end
-      if section.fg then
-        section.fg = util.getColor(section.fg)
-      end
-    end
-  end
-end
-
-if vim.g.tokyonight_lualine_bold then
+if config.lualine_bold then
   for _, mode in pairs(tokyonight) do
     mode.a.gui = "bold"
   end
