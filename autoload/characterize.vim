@@ -33,10 +33,10 @@ function! characterize#digraphs(...) abort
   return a:0 ? get(s:digraphs, a:1, []) : s:digraphs
 endfunction
 
-function! characterize#html_entity(nr) abort
+function! characterize#html_entities(nr) abort
   let char = get(s:html_entities, a:nr, '')
   if !empty(char)
-    return '&' . char . ';'
+    return char
   else
     return ''
   endif
@@ -48,7 +48,7 @@ endfunction
 
 function! characterize#description(nr, ...) abort
   for [first, last, name] in s:ranges
-    if a:nr > first && a:nr < last
+    if a:nr >= first && a:nr <= last
       return name
     endif
   endfor
@@ -56,69 +56,1519 @@ function! characterize#description(nr, ...) abort
 endfunction
 
 let s:html_entities = {
-      \  160:    'nbsp',  161:   'iexcl',  162:    'cent',  163:   'pound',
-      \  164:  'curren',  165:     'yen',  166:  'brvbar',  167:    'sect',
-      \  168:     'uml',  169:    'copy',  170:    'ordf',  171:   'laquo',
-      \  172:     'not',  173:     'shy',  174:     'reg',  175:    'macr',
-      \  176:     'deg',  177:  'plusmn',  178:    'sup2',  179:    'sup3',
-      \  180:   'acute',  181:   'micro',  182:    'para',  183:  'middot',
-      \  184:   'cedil',  185:    'sup1',  186:    'ordm',  187:   'raquo',
-      \  188:  'frac14',  189:  'frac12',  190:  'frac34',  191:  'iquest',
-      \  192:  'Agrave',  193:  'Aacute',  194:   'Acirc',  195:  'Atilde',
-      \  196:    'Auml',  197:   'Aring',  198:   'AElig',  199:  'Ccedil',
-      \  200:  'Egrave',  201:  'Eacute',  202:   'Ecirc',  203:    'Euml',
-      \  204:  'Igrave',  205:  'Iacute',  206:   'Icirc',  207:    'Iuml',
-      \  208:     'ETH',  209:  'Ntilde',  210:  'Ograve',  211:  'Oacute',
-      \  212:   'Ocirc',  213:  'Otilde',  214:    'Ouml',  215:   'times',
-      \  216:  'Oslash',  217:  'Ugrave',  218:  'Uacute',  219:   'Ucirc',
-      \  220:    'Uuml',  221:  'Yacute',  222:   'THORN',  223:   'szlig',
-      \  224:  'agrave',  225:  'aacute',  226:   'acirc',  227:  'atilde',
-      \  228:    'auml',  229:   'aring',  230:   'aelig',  231:  'ccedil',
-      \  232:  'egrave',  233:  'eacute',  234:   'ecirc',  235:    'euml',
-      \  236:  'igrave',  237:  'iacute',  238:   'icirc',  239:    'iuml',
-      \  240:     'eth',  241:  'ntilde',  242:  'ograve',  243:  'oacute',
-      \  244:   'ocirc',  245:  'otilde',  246:    'ouml',  247:  'divide',
-      \  248:  'oslash',  249:  'ugrave',  250:  'uacute',  251:   'ucirc',
-      \  252:    'uuml',  253:  'yacute',  254:   'thorn',  255:    'yuml',
-      \  338:   'OElig',  339:   'oelig',  352:  'Scaron',  353:  'scaron',
-      \  376:    'Yuml',  710:    'circ',  732:   'tilde', 8194:    'ensp',
-      \ 8195:    'emsp', 8201:  'thinsp', 8204:    'zwnj', 8205:     'zwj',
-      \ 8206:     'lrm', 8207:     'rlm', 8211:   'ndash', 8212:   'mdash',
-      \ 8216:   'lsquo', 8217:   'rsquo', 8218:   'sbquo', 8220:   'ldquo',
-      \ 8221:   'rdquo', 8222:   'bdquo', 8224:  'dagger', 8225:  'Dagger',
-      \ 8240:  'permil', 8249:  'lsaquo', 8250:  'rsaquo', 8364:    'euro',
-      \  402:    'fnof',  913:   'Alpha',  914:    'Beta',  915:   'Gamma',
-      \  916:   'Delta',  917: 'Epsilon',  918:    'Zeta',  919:     'Eta',
-      \  920:   'Theta',  921:    'Iota',  922:   'Kappa',  923:  'Lambda',
-      \  924:      'Mu',  925:      'Nu',  926:      'Xi',  927: 'Omicron',
-      \  928:      'Pi',  929:     'Rho',  931:   'Sigma',  932:     'Tau',
-      \  933: 'Upsilon',  934:     'Phi',  935:     'Chi',  936:     'Psi',
-      \  937:   'Omega',  945:   'alpha',  946:    'beta',  947:   'gamma',
-      \  948:   'delta',  949: 'epsilon',  950:    'zeta',  951:     'eta',
-      \  952:   'theta',  953:    'iota',  954:   'kappa',  955:  'lambda',
-      \  956:      'mu',  957:      'nu',  958:      'xi',  959: 'omicron',
-      \  960:      'pi',  961:     'rho',  962:  'sigmaf',  963:   'sigma',
-      \  964:     'tau',  965: 'upsilon',  966:     'phi',  967:     'chi',
-      \  968:     'psi',  969:   'omega',  977:'thetasym',  978:   'upsih',
-      \  982:     'piv', 8226:    'bull', 8230:  'hellip', 8242:   'prime',
-      \ 8243:   'Prime', 8254:   'oline', 8260:   'frasl', 8472:  'weierp',
-      \ 8465:   'image', 8476:    'real', 8482:   'trade', 8501: 'alefsym',
-      \ 8592:    'larr', 8593:    'uarr', 8594:    'rarr', 8595:    'darr',
-      \ 8596:    'harr', 8629:   'crarr', 8656:    'lArr', 8657:    'uArr',
-      \ 8658:    'rArr', 8659:    'dArr', 8660:    'hArr', 8704:  'forall',
-      \ 8706:    'part', 8707:   'exist', 8709:   'empty', 8711:   'nabla',
-      \ 8712:    'isin', 8713:   'notin', 8715:      'ni', 8719:    'prod',
-      \ 8721:     'sum', 8722:   'minus', 8727:  'lowast', 8730:   'radic',
-      \ 8733:    'prop', 8734:   'infin', 8736:     'ang', 8743:     'and',
-      \ 8744:      'or', 8745:     'cap', 8746:     'cup', 8747:     'int',
-      \ 8756:  'there4', 8764:     'sim', 8773:    'cong', 8776:   'asymp',
-      \ 8800:      'ne', 8801:   'equiv', 8804:      'le', 8805:      'ge',
-      \ 8834:     'sub', 8835:     'sup', 8836:    'nsub', 8838:    'sube',
-      \ 8839:    'supe', 8853:   'oplus', 8855:  'otimes', 8869:    'perp',
-      \ 8901:    'sdot', 8968:   'lceil', 8969:   'rceil', 8970:  'lfloor',
-      \ 8971:  'rfloor', 9001:    'lang', 9002:    'rang', 9674:     'loz',
-      \ 9824:  'spades', 9827:   'clubs', 9829:  'hearts', 9830:   'diams',
-      \   38:     'amp',   39:    'apos',   60:      'lt',   62:      'gt'}
+      \ "\u0009": '&Tab;',
+      \ "\u000a": '&NewLine;',
+      \ "\u0021": '&excl;',
+      \ "\u0022": '&quot; &QUOT;',
+      \ "\u0023": '&num;',
+      \ "\u0024": '&dollar;',
+      \ "\u0025": '&percnt;',
+      \ "\u0026": '&amp; &AMP;',
+      \ "\u0027": '&apos;',
+      \ "\u0028": '&lpar;',
+      \ "\u0029": '&rpar;',
+      \ "\u002a": '&ast; &midast;',
+      \ "\u002b": '&plus;',
+      \ "\u002c": '&comma;',
+      \ "\u002e": '&period;',
+      \ "\u002f": '&sol;',
+      \ "\u003a": '&colon;',
+      \ "\u003b": '&semi;',
+      \ "\u003c": '&lt; &LT;',
+      \ "\u003c\u20d2": '&nvlt;',
+      \ "\u003d": '&equals;',
+      \ "\u003d\u20e5": '&bne;',
+      \ "\u003e": '&gt; &GT;',
+      \ "\u003e\u20d2": '&nvgt;',
+      \ "\u003f": '&quest;',
+      \ "\u0040": '&commat;',
+      \ "\u005b": '&lbrack; &lsqb;',
+      \ "\u005c": '&bsol;',
+      \ "\u005d": '&rbrack; &rsqb;',
+      \ "\u005e": '&Hat;',
+      \ "\u005f": '&lowbar; &UnderBar;',
+      \ "\u0060": '&DiacriticalGrave; &grave;',
+      \ "\u0066\u006a": '&fjlig;',
+      \ "\u007b": '&lbrace; &lcub;',
+      \ "\u007c": '&verbar; &vert; &VerticalLine;',
+      \ "\u007d": '&rbrace; &rcub;',
+      \ "\u00a0": '&nbsp; &NonBreakingSpace;',
+      \ "\u00a1": '&iexcl;',
+      \ "\u00a2": '&cent;',
+      \ "\u00a3": '&pound;',
+      \ "\u00a4": '&curren;',
+      \ "\u00a5": '&yen;',
+      \ "\u00a6": '&brvbar;',
+      \ "\u00a7": '&sect;',
+      \ "\u00a8": '&uml; &die; &Dot; &DoubleDot;',
+      \ "\u00a9": '&copy; &COPY;',
+      \ "\u00aa": '&ordf;',
+      \ "\u00ab": '&laquo;',
+      \ "\u00ac": '&not;',
+      \ "\u00ad": '&shy;',
+      \ "\u00ae": '&reg; &circledR; &REG;',
+      \ "\u00af": '&macr; &strns;',
+      \ "\u00b0": '&deg;',
+      \ "\u00b1": '&plusmn; &PlusMinus; &pm;',
+      \ "\u00b2": '&sup2;',
+      \ "\u00b3": '&sup3;',
+      \ "\u00b4": '&acute; &DiacriticalAcute;',
+      \ "\u00b5": '&micro;',
+      \ "\u00b6": '&para;',
+      \ "\u00b7": '&middot; &CenterDot; &centerdot;',
+      \ "\u00b8": '&cedil; &Cedilla;',
+      \ "\u00b9": '&sup1;',
+      \ "\u00ba": '&ordm;',
+      \ "\u00bb": '&raquo;',
+      \ "\u00bc": '&frac14;',
+      \ "\u00bd": '&frac12; &half;',
+      \ "\u00be": '&frac34;',
+      \ "\u00bf": '&iquest;',
+      \ "\u00c0": '&Agrave;',
+      \ "\u00c1": '&Aacute;',
+      \ "\u00c2": '&Acirc;',
+      \ "\u00c3": '&Atilde;',
+      \ "\u00c4": '&Auml;',
+      \ "\u00c5": '&Aring; &angst;',
+      \ "\u00c6": '&AElig;',
+      \ "\u00c7": '&Ccedil;',
+      \ "\u00c8": '&Egrave;',
+      \ "\u00c9": '&Eacute;',
+      \ "\u00ca": '&Ecirc;',
+      \ "\u00cb": '&Euml;',
+      \ "\u00cc": '&Igrave;',
+      \ "\u00cd": '&Iacute;',
+      \ "\u00ce": '&Icirc;',
+      \ "\u00cf": '&Iuml;',
+      \ "\u00d0": '&ETH;',
+      \ "\u00d1": '&Ntilde;',
+      \ "\u00d2": '&Ograve;',
+      \ "\u00d3": '&Oacute;',
+      \ "\u00d4": '&Ocirc;',
+      \ "\u00d5": '&Otilde;',
+      \ "\u00d6": '&Ouml;',
+      \ "\u00d7": '&times;',
+      \ "\u00d8": '&Oslash;',
+      \ "\u00d9": '&Ugrave;',
+      \ "\u00da": '&Uacute;',
+      \ "\u00db": '&Ucirc;',
+      \ "\u00dc": '&Uuml;',
+      \ "\u00dd": '&Yacute;',
+      \ "\u00de": '&THORN;',
+      \ "\u00df": '&szlig;',
+      \ "\u00e0": '&agrave;',
+      \ "\u00e1": '&aacute;',
+      \ "\u00e2": '&acirc;',
+      \ "\u00e3": '&atilde;',
+      \ "\u00e4": '&auml;',
+      \ "\u00e5": '&aring;',
+      \ "\u00e6": '&aelig;',
+      \ "\u00e7": '&ccedil;',
+      \ "\u00e8": '&egrave;',
+      \ "\u00e9": '&eacute;',
+      \ "\u00ea": '&ecirc;',
+      \ "\u00eb": '&euml;',
+      \ "\u00ec": '&igrave;',
+      \ "\u00ed": '&iacute;',
+      \ "\u00ee": '&icirc;',
+      \ "\u00ef": '&iuml;',
+      \ "\u00f0": '&eth;',
+      \ "\u00f1": '&ntilde;',
+      \ "\u00f2": '&ograve;',
+      \ "\u00f3": '&oacute;',
+      \ "\u00f4": '&ocirc;',
+      \ "\u00f5": '&otilde;',
+      \ "\u00f6": '&ouml;',
+      \ "\u00f7": '&divide; &div;',
+      \ "\u00f8": '&oslash;',
+      \ "\u00f9": '&ugrave;',
+      \ "\u00fa": '&uacute;',
+      \ "\u00fb": '&ucirc;',
+      \ "\u00fc": '&uuml;',
+      \ "\u00fd": '&yacute;',
+      \ "\u00fe": '&thorn;',
+      \ "\u00ff": '&yuml;',
+      \ "\u0100": '&Amacr;',
+      \ "\u0101": '&amacr;',
+      \ "\u0102": '&Abreve;',
+      \ "\u0103": '&abreve;',
+      \ "\u0104": '&Aogon;',
+      \ "\u0105": '&aogon;',
+      \ "\u0106": '&Cacute;',
+      \ "\u0107": '&cacute;',
+      \ "\u0108": '&Ccirc;',
+      \ "\u0109": '&ccirc;',
+      \ "\u010a": '&Cdot;',
+      \ "\u010b": '&cdot;',
+      \ "\u010c": '&Ccaron;',
+      \ "\u010d": '&ccaron;',
+      \ "\u010e": '&Dcaron;',
+      \ "\u010f": '&dcaron;',
+      \ "\u0110": '&Dstrok;',
+      \ "\u0111": '&dstrok;',
+      \ "\u0112": '&Emacr;',
+      \ "\u0113": '&emacr;',
+      \ "\u0116": '&Edot;',
+      \ "\u0117": '&edot;',
+      \ "\u0118": '&Eogon;',
+      \ "\u0119": '&eogon;',
+      \ "\u011a": '&Ecaron;',
+      \ "\u011b": '&ecaron;',
+      \ "\u011c": '&Gcirc;',
+      \ "\u011d": '&gcirc;',
+      \ "\u011e": '&Gbreve;',
+      \ "\u011f": '&gbreve;',
+      \ "\u0120": '&Gdot;',
+      \ "\u0121": '&gdot;',
+      \ "\u0122": '&Gcedil;',
+      \ "\u0124": '&Hcirc;',
+      \ "\u0125": '&hcirc;',
+      \ "\u0126": '&Hstrok;',
+      \ "\u0127": '&hstrok;',
+      \ "\u0128": '&Itilde;',
+      \ "\u0129": '&itilde;',
+      \ "\u012a": '&Imacr;',
+      \ "\u012b": '&imacr;',
+      \ "\u012e": '&Iogon;',
+      \ "\u012f": '&iogon;',
+      \ "\u0130": '&Idot;',
+      \ "\u0131": '&imath; &inodot;',
+      \ "\u0132": '&IJlig;',
+      \ "\u0133": '&ijlig;',
+      \ "\u0134": '&Jcirc;',
+      \ "\u0135": '&jcirc;',
+      \ "\u0136": '&Kcedil;',
+      \ "\u0137": '&kcedil;',
+      \ "\u0138": '&kgreen;',
+      \ "\u0139": '&Lacute;',
+      \ "\u013a": '&lacute;',
+      \ "\u013b": '&Lcedil;',
+      \ "\u013c": '&lcedil;',
+      \ "\u013d": '&Lcaron;',
+      \ "\u013e": '&lcaron;',
+      \ "\u013f": '&Lmidot;',
+      \ "\u0140": '&lmidot;',
+      \ "\u0141": '&Lstrok;',
+      \ "\u0142": '&lstrok;',
+      \ "\u0143": '&Nacute;',
+      \ "\u0144": '&nacute;',
+      \ "\u0145": '&Ncedil;',
+      \ "\u0146": '&ncedil;',
+      \ "\u0147": '&Ncaron;',
+      \ "\u0148": '&ncaron;',
+      \ "\u0149": '&napos;',
+      \ "\u014a": '&ENG;',
+      \ "\u014b": '&eng;',
+      \ "\u014c": '&Omacr;',
+      \ "\u014d": '&omacr;',
+      \ "\u0150": '&Odblac;',
+      \ "\u0151": '&odblac;',
+      \ "\u0152": '&OElig;',
+      \ "\u0153": '&oelig;',
+      \ "\u0154": '&Racute;',
+      \ "\u0155": '&racute;',
+      \ "\u0156": '&Rcedil;',
+      \ "\u0157": '&rcedil;',
+      \ "\u0158": '&Rcaron;',
+      \ "\u0159": '&rcaron;',
+      \ "\u015a": '&Sacute;',
+      \ "\u015b": '&sacute;',
+      \ "\u015c": '&Scirc;',
+      \ "\u015d": '&scirc;',
+      \ "\u015e": '&Scedil;',
+      \ "\u015f": '&scedil;',
+      \ "\u0160": '&Scaron;',
+      \ "\u0161": '&scaron;',
+      \ "\u0162": '&Tcedil;',
+      \ "\u0163": '&tcedil;',
+      \ "\u0164": '&Tcaron;',
+      \ "\u0165": '&tcaron;',
+      \ "\u0166": '&Tstrok;',
+      \ "\u0167": '&tstrok;',
+      \ "\u0168": '&Utilde;',
+      \ "\u0169": '&utilde;',
+      \ "\u016a": '&Umacr;',
+      \ "\u016b": '&umacr;',
+      \ "\u016c": '&Ubreve;',
+      \ "\u016d": '&ubreve;',
+      \ "\u016e": '&Uring;',
+      \ "\u016f": '&uring;',
+      \ "\u0170": '&Udblac;',
+      \ "\u0171": '&udblac;',
+      \ "\u0172": '&Uogon;',
+      \ "\u0173": '&uogon;',
+      \ "\u0174": '&Wcirc;',
+      \ "\u0175": '&wcirc;',
+      \ "\u0176": '&Ycirc;',
+      \ "\u0177": '&ycirc;',
+      \ "\u0178": '&Yuml;',
+      \ "\u0179": '&Zacute;',
+      \ "\u017a": '&zacute;',
+      \ "\u017b": '&Zdot;',
+      \ "\u017c": '&zdot;',
+      \ "\u017d": '&Zcaron;',
+      \ "\u017e": '&zcaron;',
+      \ "\u0192": '&fnof;',
+      \ "\u01b5": '&imped;',
+      \ "\u01f5": '&gacute;',
+      \ "\u0237": '&jmath;',
+      \ "\u02c6": '&circ;',
+      \ "\u02c7": '&caron; &Hacek;',
+      \ "\u02d8": '&Breve; &breve;',
+      \ "\u02d9": '&DiacriticalDot; &dot;',
+      \ "\u02da": '&ring;',
+      \ "\u02db": '&ogon;',
+      \ "\u02dc": '&tilde; &DiacriticalTilde;',
+      \ "\u02dd": '&dblac; &DiacriticalDoubleAcute;',
+      \ "\u0311": '&DownBreve;',
+      \ "\u0391": '&Alpha;',
+      \ "\u0392": '&Beta;',
+      \ "\u0393": '&Gamma;',
+      \ "\u0394": '&Delta;',
+      \ "\u0395": '&Epsilon;',
+      \ "\u0396": '&Zeta;',
+      \ "\u0397": '&Eta;',
+      \ "\u0398": '&Theta;',
+      \ "\u0399": '&Iota;',
+      \ "\u039a": '&Kappa;',
+      \ "\u039b": '&Lambda;',
+      \ "\u039c": '&Mu;',
+      \ "\u039d": '&Nu;',
+      \ "\u039e": '&Xi;',
+      \ "\u039f": '&Omicron;',
+      \ "\u03a0": '&Pi;',
+      \ "\u03a1": '&Rho;',
+      \ "\u03a3": '&Sigma;',
+      \ "\u03a4": '&Tau;',
+      \ "\u03a5": '&Upsilon;',
+      \ "\u03a6": '&Phi;',
+      \ "\u03a7": '&Chi;',
+      \ "\u03a8": '&Psi;',
+      \ "\u03a9": '&Omega; &ohm;',
+      \ "\u03b1": '&alpha;',
+      \ "\u03b2": '&beta;',
+      \ "\u03b3": '&gamma;',
+      \ "\u03b4": '&delta;',
+      \ "\u03b5": '&epsilon; &epsi;',
+      \ "\u03b6": '&zeta;',
+      \ "\u03b7": '&eta;',
+      \ "\u03b8": '&theta;',
+      \ "\u03b9": '&iota;',
+      \ "\u03ba": '&kappa;',
+      \ "\u03bb": '&lambda;',
+      \ "\u03bc": '&mu;',
+      \ "\u03bd": '&nu;',
+      \ "\u03be": '&xi;',
+      \ "\u03bf": '&omicron;',
+      \ "\u03c0": '&pi;',
+      \ "\u03c1": '&rho;',
+      \ "\u03c2": '&sigmaf; &sigmav; &varsigma;',
+      \ "\u03c3": '&sigma;',
+      \ "\u03c4": '&tau;',
+      \ "\u03c5": '&upsilon; &upsi;',
+      \ "\u03c6": '&phi;',
+      \ "\u03c7": '&chi;',
+      \ "\u03c8": '&psi;',
+      \ "\u03c9": '&omega;',
+      \ "\u03d1": '&thetasym; &thetav; &vartheta;',
+      \ "\u03d2": '&upsih; &Upsi;',
+      \ "\u03d5": '&phiv; &straightphi; &varphi;',
+      \ "\u03d6": '&piv; &varpi;',
+      \ "\u03dc": '&Gammad;',
+      \ "\u03dd": '&digamma; &gammad;',
+      \ "\u03f0": '&kappav; &varkappa;',
+      \ "\u03f1": '&rhov; &varrho;',
+      \ "\u03f5": '&epsiv; &straightepsilon; &varepsilon;',
+      \ "\u03f6": '&backepsilon; &bepsi;',
+      \ "\u0401": '&IOcy;',
+      \ "\u0402": '&DJcy;',
+      \ "\u0403": '&GJcy;',
+      \ "\u0404": '&Jukcy;',
+      \ "\u0405": '&DScy;',
+      \ "\u0406": '&Iukcy;',
+      \ "\u0407": '&YIcy;',
+      \ "\u0408": '&Jsercy;',
+      \ "\u0409": '&LJcy;',
+      \ "\u040a": '&NJcy;',
+      \ "\u040b": '&TSHcy;',
+      \ "\u040c": '&KJcy;',
+      \ "\u040e": '&Ubrcy;',
+      \ "\u040f": '&DZcy;',
+      \ "\u0410": '&Acy;',
+      \ "\u0411": '&Bcy;',
+      \ "\u0412": '&Vcy;',
+      \ "\u0413": '&Gcy;',
+      \ "\u0414": '&Dcy;',
+      \ "\u0415": '&IEcy;',
+      \ "\u0416": '&ZHcy;',
+      \ "\u0417": '&Zcy;',
+      \ "\u0418": '&Icy;',
+      \ "\u0419": '&Jcy;',
+      \ "\u041a": '&Kcy;',
+      \ "\u041b": '&Lcy;',
+      \ "\u041c": '&Mcy;',
+      \ "\u041d": '&Ncy;',
+      \ "\u041e": '&Ocy;',
+      \ "\u041f": '&Pcy;',
+      \ "\u0420": '&Rcy;',
+      \ "\u0421": '&Scy;',
+      \ "\u0422": '&Tcy;',
+      \ "\u0423": '&Ucy;',
+      \ "\u0424": '&Fcy;',
+      \ "\u0425": '&KHcy;',
+      \ "\u0426": '&TScy;',
+      \ "\u0427": '&CHcy;',
+      \ "\u0428": '&SHcy;',
+      \ "\u0429": '&SHCHcy;',
+      \ "\u042a": '&HARDcy;',
+      \ "\u042b": '&Ycy;',
+      \ "\u042c": '&SOFTcy;',
+      \ "\u042d": '&Ecy;',
+      \ "\u042e": '&YUcy;',
+      \ "\u042f": '&YAcy;',
+      \ "\u0430": '&acy;',
+      \ "\u0431": '&bcy;',
+      \ "\u0432": '&vcy;',
+      \ "\u0433": '&gcy;',
+      \ "\u0434": '&dcy;',
+      \ "\u0435": '&iecy;',
+      \ "\u0436": '&zhcy;',
+      \ "\u0437": '&zcy;',
+      \ "\u0438": '&icy;',
+      \ "\u0439": '&jcy;',
+      \ "\u043a": '&kcy;',
+      \ "\u043b": '&lcy;',
+      \ "\u043c": '&mcy;',
+      \ "\u043d": '&ncy;',
+      \ "\u043e": '&ocy;',
+      \ "\u043f": '&pcy;',
+      \ "\u0440": '&rcy;',
+      \ "\u0441": '&scy;',
+      \ "\u0442": '&tcy;',
+      \ "\u0443": '&ucy;',
+      \ "\u0444": '&fcy;',
+      \ "\u0445": '&khcy;',
+      \ "\u0446": '&tscy;',
+      \ "\u0447": '&chcy;',
+      \ "\u0448": '&shcy;',
+      \ "\u0449": '&shchcy;',
+      \ "\u044a": '&hardcy;',
+      \ "\u044b": '&ycy;',
+      \ "\u044c": '&softcy;',
+      \ "\u044d": '&ecy;',
+      \ "\u044e": '&yucy;',
+      \ "\u044f": '&yacy;',
+      \ "\u0451": '&iocy;',
+      \ "\u0452": '&djcy;',
+      \ "\u0453": '&gjcy;',
+      \ "\u0454": '&jukcy;',
+      \ "\u0455": '&dscy;',
+      \ "\u0456": '&iukcy;',
+      \ "\u0457": '&yicy;',
+      \ "\u0458": '&jsercy;',
+      \ "\u0459": '&ljcy;',
+      \ "\u045a": '&njcy;',
+      \ "\u045b": '&tshcy;',
+      \ "\u045c": '&kjcy;',
+      \ "\u045e": '&ubrcy;',
+      \ "\u045f": '&dzcy;',
+      \ "\u2002": '&ensp;',
+      \ "\u2003": '&emsp;',
+      \ "\u2004": '&emsp13;',
+      \ "\u2005": '&emsp14;',
+      \ "\u2007": '&numsp;',
+      \ "\u2008": '&puncsp;',
+      \ "\u2009": '&thinsp; &ThinSpace;',
+      \ "\u200a": '&hairsp; &VeryThinSpace;',
+      \ "\u200b": '&NegativeMediumSpace; &NegativeThickSpace; &NegativeThinSpace; &NegativeVeryThinSpace; &ZeroWidthSpace;',
+      \ "\u200c": '&zwnj;',
+      \ "\u200d": '&zwj;',
+      \ "\u200e": '&lrm;',
+      \ "\u200f": '&rlm;',
+      \ "\u2010": '&dash; &hyphen;',
+      \ "\u2013": '&ndash;',
+      \ "\u2014": '&mdash;',
+      \ "\u2015": '&horbar;',
+      \ "\u2016": '&Verbar; &Vert;',
+      \ "\u2018": '&lsquo; &OpenCurlyQuote;',
+      \ "\u2019": '&rsquo; &CloseCurlyQuote; &rsquor;',
+      \ "\u201a": '&sbquo; &lsquor;',
+      \ "\u201c": '&ldquo; &OpenCurlyDoubleQuote;',
+      \ "\u201d": '&rdquo; &CloseCurlyDoubleQuote; &rdquor;',
+      \ "\u201e": '&bdquo; &ldquor;',
+      \ "\u2020": '&dagger;',
+      \ "\u2021": '&Dagger; &ddagger;',
+      \ "\u2022": '&bull; &bullet;',
+      \ "\u2025": '&nldr;',
+      \ "\u2026": '&hellip; &mldr;',
+      \ "\u2030": '&permil;',
+      \ "\u2031": '&pertenk;',
+      \ "\u2032": '&prime;',
+      \ "\u2033": '&Prime;',
+      \ "\u2034": '&tprime;',
+      \ "\u2035": '&backprime; &bprime;',
+      \ "\u2039": '&lsaquo;',
+      \ "\u203a": '&rsaquo;',
+      \ "\u203e": '&oline; &OverBar;',
+      \ "\u2041": '&caret;',
+      \ "\u2043": '&hybull;',
+      \ "\u2044": '&frasl;',
+      \ "\u204f": '&bsemi;',
+      \ "\u2057": '&qprime;',
+      \ "\u205f": '&MediumSpace;',
+      \ "\u205f\u200a": '&ThickSpace;',
+      \ "\u2060": '&NoBreak;',
+      \ "\u2061": '&af; &ApplyFunction;',
+      \ "\u2062": '&InvisibleTimes; &it;',
+      \ "\u2063": '&ic; &InvisibleComma;',
+      \ "\u20ac": '&euro;',
+      \ "\u20db": '&tdot; &TripleDot;',
+      \ "\u20dc": '&DotDot;',
+      \ "\u2102": '&complexes; &Copf;',
+      \ "\u2105": '&incare;',
+      \ "\u210a": '&gscr;',
+      \ "\u210b": '&hamilt; &HilbertSpace; &Hscr;',
+      \ "\u210c": '&Hfr; &Poincareplane;',
+      \ "\u210d": '&Hopf; &quaternions;',
+      \ "\u210e": '&planckh;',
+      \ "\u210f": '&hbar; &hslash; &planck; &plankv;',
+      \ "\u2110": '&imagline; &Iscr;',
+      \ "\u2111": '&image; &Ifr; &Im; &imagpart;',
+      \ "\u2112": '&lagran; &Laplacetrf; &Lscr;',
+      \ "\u2113": '&ell;',
+      \ "\u2115": '&naturals; &Nopf;',
+      \ "\u2116": '&numero;',
+      \ "\u2117": '&copysr;',
+      \ "\u2118": '&weierp; &wp;',
+      \ "\u2119": '&Popf; &primes;',
+      \ "\u211a": '&Qopf; &rationals;',
+      \ "\u211b": '&realine; &Rscr;',
+      \ "\u211c": '&real; &Re; &realpart; &Rfr;',
+      \ "\u211d": '&reals; &Ropf;',
+      \ "\u211e": '&rx;',
+      \ "\u2122": '&trade; &TRADE;',
+      \ "\u2124": '&integers; &Zopf;',
+      \ "\u2127": '&mho;',
+      \ "\u2128": '&zeetrf; &Zfr;',
+      \ "\u2129": '&iiota;',
+      \ "\u212c": '&bernou; &Bernoullis; &Bscr;',
+      \ "\u212d": '&Cayleys; &Cfr;',
+      \ "\u212f": '&escr;',
+      \ "\u2130": '&Escr; &expectation;',
+      \ "\u2131": '&Fouriertrf; &Fscr;',
+      \ "\u2133": '&Mellintrf; &Mscr; &phmmat;',
+      \ "\u2134": '&order; &orderof; &oscr;',
+      \ "\u2135": '&alefsym; &aleph;',
+      \ "\u2136": '&beth;',
+      \ "\u2137": '&gimel;',
+      \ "\u2138": '&daleth;',
+      \ "\u2145": '&CapitalDifferentialD; &DD;',
+      \ "\u2146": '&dd; &DifferentialD;',
+      \ "\u2147": '&ee; &ExponentialE; &exponentiale;',
+      \ "\u2148": '&ii; &ImaginaryI;',
+      \ "\u2153": '&frac13;',
+      \ "\u2154": '&frac23;',
+      \ "\u2155": '&frac15;',
+      \ "\u2156": '&frac25;',
+      \ "\u2157": '&frac35;',
+      \ "\u2158": '&frac45;',
+      \ "\u2159": '&frac16;',
+      \ "\u215a": '&frac56;',
+      \ "\u215b": '&frac18;',
+      \ "\u215c": '&frac38;',
+      \ "\u215d": '&frac58;',
+      \ "\u215e": '&frac78;',
+      \ "\u2190": '&larr; &LeftArrow; &leftarrow; &ShortLeftArrow; &slarr;',
+      \ "\u2191": '&uarr; &ShortUpArrow; &UpArrow; &uparrow;',
+      \ "\u2192": '&rarr; &RightArrow; &rightarrow; &ShortRightArrow; &srarr;',
+      \ "\u2193": '&darr; &DownArrow; &downarrow; &ShortDownArrow;',
+      \ "\u2194": '&harr; &LeftRightArrow; &leftrightarrow;',
+      \ "\u2195": '&UpDownArrow; &updownarrow; &varr;',
+      \ "\u2196": '&nwarr; &nwarrow; &UpperLeftArrow;',
+      \ "\u2197": '&nearr; &nearrow; &UpperRightArrow;',
+      \ "\u2198": '&LowerRightArrow; &searr; &searrow;',
+      \ "\u2199": '&LowerLeftArrow; &swarr; &swarrow;',
+      \ "\u219a": '&nlarr; &nleftarrow;',
+      \ "\u219b": '&nrarr; &nrightarrow;',
+      \ "\u219d": '&rarrw; &rightsquigarrow;',
+      \ "\u219d\u0338": '&nrarrw;',
+      \ "\u219e": '&Larr; &twoheadleftarrow;',
+      \ "\u219f": '&Uarr;',
+      \ "\u21a0": '&Rarr; &twoheadrightarrow;',
+      \ "\u21a1": '&Darr;',
+      \ "\u21a2": '&larrtl; &leftarrowtail;',
+      \ "\u21a3": '&rarrtl; &rightarrowtail;',
+      \ "\u21a4": '&LeftTeeArrow; &mapstoleft;',
+      \ "\u21a5": '&mapstoup; &UpTeeArrow;',
+      \ "\u21a6": '&map; &mapsto; &RightTeeArrow;',
+      \ "\u21a7": '&DownTeeArrow; &mapstodown;',
+      \ "\u21a9": '&hookleftarrow; &larrhk;',
+      \ "\u21aa": '&hookrightarrow; &rarrhk;',
+      \ "\u21ab": '&larrlp; &looparrowleft;',
+      \ "\u21ac": '&looparrowright; &rarrlp;',
+      \ "\u21ad": '&harrw; &leftrightsquigarrow;',
+      \ "\u21ae": '&nharr; &nleftrightarrow;',
+      \ "\u21b0": '&Lsh; &lsh;',
+      \ "\u21b1": '&Rsh; &rsh;',
+      \ "\u21b2": '&ldsh;',
+      \ "\u21b3": '&rdsh;',
+      \ "\u21b5": '&crarr;',
+      \ "\u21b6": '&cularr; &curvearrowleft;',
+      \ "\u21b7": '&curarr; &curvearrowright;',
+      \ "\u21ba": '&circlearrowleft; &olarr;',
+      \ "\u21bb": '&circlearrowright; &orarr;',
+      \ "\u21bc": '&leftharpoonup; &LeftVector; &lharu;',
+      \ "\u21bd": '&DownLeftVector; &leftharpoondown; &lhard;',
+      \ "\u21be": '&RightUpVector; &uharr; &upharpoonright;',
+      \ "\u21bf": '&LeftUpVector; &uharl; &upharpoonleft;',
+      \ "\u21c0": '&rharu; &rightharpoonup; &RightVector;',
+      \ "\u21c1": '&DownRightVector; &rhard; &rightharpoondown;',
+      \ "\u21c2": '&dharr; &downharpoonright; &RightDownVector;',
+      \ "\u21c3": '&dharl; &downharpoonleft; &LeftDownVector;',
+      \ "\u21c4": '&RightArrowLeftArrow; &rightleftarrows; &rlarr;',
+      \ "\u21c5": '&udarr; &UpArrowDownArrow;',
+      \ "\u21c6": '&LeftArrowRightArrow; &leftrightarrows; &lrarr;',
+      \ "\u21c7": '&leftleftarrows; &llarr;',
+      \ "\u21c8": '&upuparrows; &uuarr;',
+      \ "\u21c9": '&rightrightarrows; &rrarr;',
+      \ "\u21ca": '&ddarr; &downdownarrows;',
+      \ "\u21cb": '&leftrightharpoons; &lrhar; &ReverseEquilibrium;',
+      \ "\u21cc": '&Equilibrium; &rightleftharpoons; &rlhar;',
+      \ "\u21cd": '&nlArr; &nLeftarrow;',
+      \ "\u21ce": '&nhArr; &nLeftrightarrow;',
+      \ "\u21cf": '&nrArr; &nRightarrow;',
+      \ "\u21d0": '&lArr; &DoubleLeftArrow; &Leftarrow;',
+      \ "\u21d1": '&uArr; &DoubleUpArrow; &Uparrow;',
+      \ "\u21d2": '&rArr; &DoubleRightArrow; &Implies; &Rightarrow;',
+      \ "\u21d3": '&dArr; &DoubleDownArrow; &Downarrow;',
+      \ "\u21d4": '&hArr; &DoubleLeftRightArrow; &iff; &Leftrightarrow;',
+      \ "\u21d5": '&DoubleUpDownArrow; &Updownarrow; &vArr;',
+      \ "\u21d6": '&nwArr;',
+      \ "\u21d7": '&neArr;',
+      \ "\u21d8": '&seArr;',
+      \ "\u21d9": '&swArr;',
+      \ "\u21da": '&lAarr; &Lleftarrow;',
+      \ "\u21db": '&rAarr; &Rrightarrow;',
+      \ "\u21dd": '&zigrarr;',
+      \ "\u21e4": '&larrb; &LeftArrowBar;',
+      \ "\u21e5": '&rarrb; &RightArrowBar;',
+      \ "\u21f5": '&DownArrowUpArrow; &duarr;',
+      \ "\u21fd": '&loarr;',
+      \ "\u21fe": '&roarr;',
+      \ "\u21ff": '&hoarr;',
+      \ "\u2200": '&forall; &ForAll;',
+      \ "\u2201": '&comp; &complement;',
+      \ "\u2202": '&part; &PartialD;',
+      \ "\u2202\u0338": '&npart;',
+      \ "\u2203": '&exist; &Exists;',
+      \ "\u2204": '&nexist; &nexists; &NotExists;',
+      \ "\u2205": '&empty; &emptyset; &emptyv; &varnothing;',
+      \ "\u2207": '&nabla; &Del;',
+      \ "\u2208": '&isin; &Element; &in; &isinv;',
+      \ "\u2209": '&notin; &NotElement; &notinva;',
+      \ "\u220b": '&ni; &niv; &ReverseElement; &SuchThat;',
+      \ "\u220c": '&notni; &notniva; &NotReverseElement;',
+      \ "\u220f": '&prod; &Product;',
+      \ "\u2210": '&coprod; &Coproduct;',
+      \ "\u2211": '&sum; &Sum;',
+      \ "\u2212": '&minus;',
+      \ "\u2213": '&MinusPlus; &mnplus; &mp;',
+      \ "\u2214": '&dotplus; &plusdo;',
+      \ "\u2216": '&Backslash; &setminus; &setmn; &smallsetminus; &ssetmn;',
+      \ "\u2217": '&lowast;',
+      \ "\u2218": '&compfn; &SmallCircle;',
+      \ "\u221a": '&radic; &Sqrt;',
+      \ "\u221d": '&prop; &Proportional; &propto; &varpropto; &vprop;',
+      \ "\u221e": '&infin;',
+      \ "\u221f": '&angrt;',
+      \ "\u2220": '&ang; &angle;',
+      \ "\u2220\u20d2": '&nang;',
+      \ "\u2221": '&angmsd; &measuredangle;',
+      \ "\u2222": '&angsph;',
+      \ "\u2223": '&mid; &shortmid; &smid; &VerticalBar;',
+      \ "\u2224": '&nmid; &NotVerticalBar; &nshortmid; &nsmid;',
+      \ "\u2225": '&DoubleVerticalBar; &par; &parallel; &shortparallel; &spar;',
+      \ "\u2226": '&NotDoubleVerticalBar; &npar; &nparallel; &nshortparallel; &nspar;',
+      \ "\u2227": '&and; &wedge;',
+      \ "\u2228": '&or; &vee;',
+      \ "\u2229": '&cap;',
+      \ "\u2229\ufe00": '&caps;',
+      \ "\u222a": '&cup;',
+      \ "\u222a\ufe00": '&cups;',
+      \ "\u222b": '&int; &Integral;',
+      \ "\u222c": '&Int;',
+      \ "\u222d": '&iiint; &tint;',
+      \ "\u222e": '&conint; &ContourIntegral; &oint;',
+      \ "\u222f": '&Conint; &DoubleContourIntegral;',
+      \ "\u2230": '&Cconint;',
+      \ "\u2231": '&cwint;',
+      \ "\u2232": '&ClockwiseContourIntegral; &cwconint;',
+      \ "\u2233": '&awconint; &CounterClockwiseContourIntegral;',
+      \ "\u2234": '&there4; &Therefore; &therefore;',
+      \ "\u2235": '&becaus; &Because; &because;',
+      \ "\u2236": '&ratio;',
+      \ "\u2237": '&Colon; &Proportion;',
+      \ "\u2238": '&dotminus; &minusd;',
+      \ "\u223a": '&mDDot;',
+      \ "\u223b": '&homtht;',
+      \ "\u223c": '&sim; &thicksim; &thksim; &Tilde;',
+      \ "\u223c\u20d2": '&nvsim;',
+      \ "\u223d": '&backsim; &bsim;',
+      \ "\u223d\u0331": '&race;',
+      \ "\u223e": '&ac; &mstpos;',
+      \ "\u223e\u0333": '&acE;',
+      \ "\u223f": '&acd;',
+      \ "\u2240": '&VerticalTilde; &wr; &wreath;',
+      \ "\u2241": '&NotTilde; &nsim;',
+      \ "\u2242": '&eqsim; &EqualTilde; &esim;',
+      \ "\u2242\u0338": '&nesim; &NotEqualTilde;',
+      \ "\u2243": '&sime; &simeq; &TildeEqual;',
+      \ "\u2244": '&NotTildeEqual; &nsime; &nsimeq;',
+      \ "\u2245": '&cong; &TildeFullEqual;',
+      \ "\u2246": '&simne;',
+      \ "\u2247": '&ncong; &NotTildeFullEqual;',
+      \ "\u2248": '&asymp; &ap; &approx; &thickapprox; &thkap; &TildeTilde;',
+      \ "\u2249": '&nap; &napprox; &NotTildeTilde;',
+      \ "\u224a": '&ape; &approxeq;',
+      \ "\u224b": '&apid;',
+      \ "\u224b\u0338": '&napid;',
+      \ "\u224c": '&backcong; &bcong;',
+      \ "\u224d": '&asympeq; &CupCap;',
+      \ "\u224d\u20d2": '&nvap;',
+      \ "\u224e": '&bump; &Bumpeq; &HumpDownHump;',
+      \ "\u224e\u0338": '&nbump; &NotHumpDownHump;',
+      \ "\u224f": '&bumpe; &bumpeq; &HumpEqual;',
+      \ "\u224f\u0338": '&nbumpe; &NotHumpEqual;',
+      \ "\u2250": '&doteq; &DotEqual; &esdot;',
+      \ "\u2250\u0338": '&nedot;',
+      \ "\u2251": '&doteqdot; &eDot;',
+      \ "\u2252": '&efDot; &fallingdotseq;',
+      \ "\u2253": '&erDot; &risingdotseq;',
+      \ "\u2254": '&Assign; &colone; &coloneq;',
+      \ "\u2255": '&ecolon; &eqcolon;',
+      \ "\u2256": '&ecir; &eqcirc;',
+      \ "\u2257": '&circeq; &cire;',
+      \ "\u2259": '&wedgeq;',
+      \ "\u225a": '&veeeq;',
+      \ "\u225c": '&triangleq; &trie;',
+      \ "\u225f": '&equest; &questeq;',
+      \ "\u2260": '&ne; &NotEqual;',
+      \ "\u2261": '&equiv; &Congruent;',
+      \ "\u2261\u20e5": '&bnequiv;',
+      \ "\u2262": '&nequiv; &NotCongruent;',
+      \ "\u2264": '&le; &leq;',
+      \ "\u2264\u20d2": '&nvle;',
+      \ "\u2265": '&ge; &geq; &GreaterEqual;',
+      \ "\u2265\u20d2": '&nvge;',
+      \ "\u2266": '&lE; &leqq; &LessFullEqual;',
+      \ "\u2266\u0338": '&nlE; &nleqq;',
+      \ "\u2267": '&gE; &geqq; &GreaterFullEqual;',
+      \ "\u2267\u0338": '&ngE; &ngeqq; &NotGreaterFullEqual;',
+      \ "\u2268": '&lnE; &lneqq;',
+      \ "\u2268\ufe00": '&lvertneqq; &lvnE;',
+      \ "\u2269": '&gnE; &gneqq;',
+      \ "\u2269\ufe00": '&gvertneqq; &gvnE;',
+      \ "\u226a": '&ll; &Lt; &NestedLessLess;',
+      \ "\u226a\u0338": '&nLtv; &NotLessLess;',
+      \ "\u226a\u20d2": '&nLt;',
+      \ "\u226b": '&gg; &Gt; &NestedGreaterGreater;',
+      \ "\u226b\u0338": '&nGtv; &NotGreaterGreater;',
+      \ "\u226b\u20d2": '&nGt;',
+      \ "\u226c": '&between; &twixt;',
+      \ "\u226d": '&NotCupCap;',
+      \ "\u226e": '&nless; &nlt; &NotLess;',
+      \ "\u226f": '&ngt; &ngtr; &NotGreater;',
+      \ "\u2270": '&nle; &nleq; &NotLessEqual;',
+      \ "\u2271": '&nge; &ngeq; &NotGreaterEqual;',
+      \ "\u2272": '&lesssim; &LessTilde; &lsim;',
+      \ "\u2273": '&GreaterTilde; &gsim; &gtrsim;',
+      \ "\u2274": '&nlsim; &NotLessTilde;',
+      \ "\u2275": '&ngsim; &NotGreaterTilde;',
+      \ "\u2276": '&LessGreater; &lessgtr; &lg;',
+      \ "\u2277": '&gl; &GreaterLess; &gtrless;',
+      \ "\u2278": '&NotLessGreater; &ntlg;',
+      \ "\u2279": '&NotGreaterLess; &ntgl;',
+      \ "\u227a": '&pr; &prec; &Precedes;',
+      \ "\u227b": '&sc; &succ; &Succeeds;',
+      \ "\u227c": '&prcue; &preccurlyeq; &PrecedesSlantEqual;',
+      \ "\u227d": '&sccue; &succcurlyeq; &SucceedsSlantEqual;',
+      \ "\u227e": '&PrecedesTilde; &precsim; &prsim;',
+      \ "\u227f": '&scsim; &SucceedsTilde; &succsim;',
+      \ "\u227f\u0338": '&NotSucceedsTilde;',
+      \ "\u2280": '&NotPrecedes; &npr; &nprec;',
+      \ "\u2281": '&NotSucceeds; &nsc; &nsucc;',
+      \ "\u2282": '&sub; &subset;',
+      \ "\u2282\u20d2": '&NotSubset; &nsubset; &vnsub;',
+      \ "\u2283": '&sup; &Superset; &supset;',
+      \ "\u2283\u20d2": '&NotSuperset; &nsupset; &vnsup;',
+      \ "\u2284": '&nsub;',
+      \ "\u2285": '&nsup;',
+      \ "\u2286": '&sube; &subseteq; &SubsetEqual;',
+      \ "\u2287": '&supe; &SupersetEqual; &supseteq;',
+      \ "\u2288": '&NotSubsetEqual; &nsube; &nsubseteq;',
+      \ "\u2289": '&NotSupersetEqual; &nsupe; &nsupseteq;',
+      \ "\u228a": '&subne; &subsetneq;',
+      \ "\u228a\ufe00": '&varsubsetneq; &vsubne;',
+      \ "\u228b": '&supne; &supsetneq;',
+      \ "\u228b\ufe00": '&varsupsetneq; &vsupne;',
+      \ "\u228d": '&cupdot;',
+      \ "\u228e": '&UnionPlus; &uplus;',
+      \ "\u228f": '&sqsub; &sqsubset; &SquareSubset;',
+      \ "\u228f\u0338": '&NotSquareSubset;',
+      \ "\u2290": '&sqsup; &sqsupset; &SquareSuperset;',
+      \ "\u2290\u0338": '&NotSquareSuperset;',
+      \ "\u2291": '&sqsube; &sqsubseteq; &SquareSubsetEqual;',
+      \ "\u2292": '&sqsupe; &sqsupseteq; &SquareSupersetEqual;',
+      \ "\u2293": '&sqcap; &SquareIntersection;',
+      \ "\u2293\ufe00": '&sqcaps;',
+      \ "\u2294": '&sqcup; &SquareUnion;',
+      \ "\u2294\ufe00": '&sqcups;',
+      \ "\u2295": '&oplus; &CirclePlus;',
+      \ "\u2296": '&CircleMinus; &ominus;',
+      \ "\u2297": '&otimes; &CircleTimes;',
+      \ "\u2298": '&osol;',
+      \ "\u2299": '&CircleDot; &odot;',
+      \ "\u229a": '&circledcirc; &ocir;',
+      \ "\u229b": '&circledast; &oast;',
+      \ "\u229d": '&circleddash; &odash;',
+      \ "\u229e": '&boxplus; &plusb;',
+      \ "\u229f": '&boxminus; &minusb;',
+      \ "\u22a0": '&boxtimes; &timesb;',
+      \ "\u22a1": '&dotsquare; &sdotb;',
+      \ "\u22a2": '&RightTee; &vdash;',
+      \ "\u22a3": '&dashv; &LeftTee;',
+      \ "\u22a4": '&DownTee; &top;',
+      \ "\u22a5": '&perp; &bot; &bottom; &UpTee;',
+      \ "\u22a7": '&models;',
+      \ "\u22a8": '&DoubleRightTee; &vDash;',
+      \ "\u22a9": '&Vdash;',
+      \ "\u22aa": '&Vvdash;',
+      \ "\u22ab": '&VDash;',
+      \ "\u22ac": '&nvdash;',
+      \ "\u22ad": '&nvDash;',
+      \ "\u22ae": '&nVdash;',
+      \ "\u22af": '&nVDash;',
+      \ "\u22b0": '&prurel;',
+      \ "\u22b2": '&LeftTriangle; &vartriangleleft; &vltri;',
+      \ "\u22b3": '&RightTriangle; &vartriangleright; &vrtri;',
+      \ "\u22b4": '&LeftTriangleEqual; &ltrie; &trianglelefteq;',
+      \ "\u22b4\u20d2": '&nvltrie;',
+      \ "\u22b5": '&RightTriangleEqual; &rtrie; &trianglerighteq;',
+      \ "\u22b5\u20d2": '&nvrtrie;',
+      \ "\u22b6": '&origof;',
+      \ "\u22b7": '&imof;',
+      \ "\u22b8": '&multimap; &mumap;',
+      \ "\u22b9": '&hercon;',
+      \ "\u22ba": '&intcal; &intercal;',
+      \ "\u22bb": '&veebar;',
+      \ "\u22bd": '&barvee;',
+      \ "\u22be": '&angrtvb;',
+      \ "\u22bf": '&lrtri;',
+      \ "\u22c0": '&bigwedge; &Wedge; &xwedge;',
+      \ "\u22c1": '&bigvee; &Vee; &xvee;',
+      \ "\u22c2": '&bigcap; &Intersection; &xcap;',
+      \ "\u22c3": '&bigcup; &Union; &xcup;',
+      \ "\u22c4": '&diam; &Diamond; &diamond;',
+      \ "\u22c5": '&sdot;',
+      \ "\u22c6": '&sstarf; &Star;',
+      \ "\u22c7": '&divideontimes; &divonx;',
+      \ "\u22c8": '&bowtie;',
+      \ "\u22c9": '&ltimes;',
+      \ "\u22ca": '&rtimes;',
+      \ "\u22cb": '&leftthreetimes; &lthree;',
+      \ "\u22cc": '&rightthreetimes; &rthree;',
+      \ "\u22cd": '&backsimeq; &bsime;',
+      \ "\u22ce": '&curlyvee; &cuvee;',
+      \ "\u22cf": '&curlywedge; &cuwed;',
+      \ "\u22d0": '&Sub; &Subset;',
+      \ "\u22d1": '&Sup; &Supset;',
+      \ "\u22d2": '&Cap;',
+      \ "\u22d3": '&Cup;',
+      \ "\u22d4": '&fork; &pitchfork;',
+      \ "\u22d5": '&epar;',
+      \ "\u22d6": '&lessdot; &ltdot;',
+      \ "\u22d7": '&gtdot; &gtrdot;',
+      \ "\u22d8": '&Ll;',
+      \ "\u22d8\u0338": '&nLl;',
+      \ "\u22d9": '&Gg; &ggg;',
+      \ "\u22d9\u0338": '&nGg;',
+      \ "\u22da": '&leg; &lesseqgtr; &LessEqualGreater;',
+      \ "\u22da\ufe00": '&lesg;',
+      \ "\u22db": '&gel; &GreaterEqualLess; &gtreqless;',
+      \ "\u22db\ufe00": '&gesl;',
+      \ "\u22de": '&cuepr; &curlyeqprec;',
+      \ "\u22df": '&cuesc; &curlyeqsucc;',
+      \ "\u22e0": '&NotPrecedesSlantEqual; &nprcue;',
+      \ "\u22e1": '&NotSucceedsSlantEqual; &nsccue;',
+      \ "\u22e2": '&NotSquareSubsetEqual; &nsqsube;',
+      \ "\u22e3": '&NotSquareSupersetEqual; &nsqsupe;',
+      \ "\u22e6": '&lnsim;',
+      \ "\u22e7": '&gnsim;',
+      \ "\u22e8": '&precnsim; &prnsim;',
+      \ "\u22e9": '&scnsim; &succnsim;',
+      \ "\u22ea": '&nltri; &NotLeftTriangle; &ntriangleleft;',
+      \ "\u22eb": '&NotRightTriangle; &nrtri; &ntriangleright;',
+      \ "\u22ec": '&nltrie; &NotLeftTriangleEqual; &ntrianglelefteq;',
+      \ "\u22ed": '&NotRightTriangleEqual; &nrtrie; &ntrianglerighteq;',
+      \ "\u22ee": '&vellip;',
+      \ "\u22ef": '&ctdot;',
+      \ "\u22f0": '&utdot;',
+      \ "\u22f1": '&dtdot;',
+      \ "\u22f2": '&disin;',
+      \ "\u22f3": '&isinsv;',
+      \ "\u22f4": '&isins;',
+      \ "\u22f5": '&isindot;',
+      \ "\u22f5\u0338": '&notindot;',
+      \ "\u22f6": '&notinvc;',
+      \ "\u22f7": '&notinvb;',
+      \ "\u22f9": '&isinE;',
+      \ "\u22f9\u0338": '&notinE;',
+      \ "\u22fa": '&nisd;',
+      \ "\u22fb": '&xnis;',
+      \ "\u22fc": '&nis;',
+      \ "\u22fd": '&notnivc;',
+      \ "\u22fe": '&notnivb;',
+      \ "\u2305": '&barwed; &barwedge;',
+      \ "\u2306": '&Barwed; &doublebarwedge;',
+      \ "\u2308": '&lceil; &LeftCeiling;',
+      \ "\u2309": '&rceil; &RightCeiling;',
+      \ "\u230a": '&lfloor; &LeftFloor;',
+      \ "\u230b": '&rfloor; &RightFloor;',
+      \ "\u230c": '&drcrop;',
+      \ "\u230d": '&dlcrop;',
+      \ "\u230e": '&urcrop;',
+      \ "\u230f": '&ulcrop;',
+      \ "\u2310": '&bnot;',
+      \ "\u2312": '&profline;',
+      \ "\u2313": '&profsurf;',
+      \ "\u2315": '&telrec;',
+      \ "\u2316": '&target;',
+      \ "\u231c": '&ulcorn; &ulcorner;',
+      \ "\u231d": '&urcorn; &urcorner;',
+      \ "\u231e": '&dlcorn; &llcorner;',
+      \ "\u231f": '&drcorn; &lrcorner;',
+      \ "\u2322": '&frown; &sfrown;',
+      \ "\u2323": '&smile; &ssmile;',
+      \ "\u2329": '&lang;',
+      \ "\u232a": '&rang;',
+      \ "\u232d": '&cylcty;',
+      \ "\u232e": '&profalar;',
+      \ "\u2336": '&topbot;',
+      \ "\u233d": '&ovbar;',
+      \ "\u233f": '&solbar;',
+      \ "\u237c": '&angzarr;',
+      \ "\u23b0": '&lmoust; &lmoustache;',
+      \ "\u23b1": '&rmoust; &rmoustache;',
+      \ "\u23b4": '&OverBracket; &tbrk;',
+      \ "\u23b5": '&bbrk; &UnderBracket;',
+      \ "\u23b6": '&bbrktbrk;',
+      \ "\u23dc": '&OverParenthesis;',
+      \ "\u23dd": '&UnderParenthesis;',
+      \ "\u23de": '&OverBrace;',
+      \ "\u23df": '&UnderBrace;',
+      \ "\u23e2": '&trpezium;',
+      \ "\u23e7": '&elinters;',
+      \ "\u2423": '&blank;',
+      \ "\u24c8": '&circledS; &oS;',
+      \ "\u2500": '&boxh; &HorizontalLine;',
+      \ "\u2502": '&boxv;',
+      \ "\u250c": '&boxdr;',
+      \ "\u2510": '&boxdl;',
+      \ "\u2514": '&boxur;',
+      \ "\u2518": '&boxul;',
+      \ "\u251c": '&boxvr;',
+      \ "\u2524": '&boxvl;',
+      \ "\u252c": '&boxhd;',
+      \ "\u2534": '&boxhu;',
+      \ "\u253c": '&boxvh;',
+      \ "\u2550": '&boxH;',
+      \ "\u2551": '&boxV;',
+      \ "\u2552": '&boxdR;',
+      \ "\u2553": '&boxDr;',
+      \ "\u2554": '&boxDR;',
+      \ "\u2555": '&boxdL;',
+      \ "\u2556": '&boxDl;',
+      \ "\u2557": '&boxDL;',
+      \ "\u2558": '&boxuR;',
+      \ "\u2559": '&boxUr;',
+      \ "\u255a": '&boxUR;',
+      \ "\u255b": '&boxuL;',
+      \ "\u255c": '&boxUl;',
+      \ "\u255d": '&boxUL;',
+      \ "\u255e": '&boxvR;',
+      \ "\u255f": '&boxVr;',
+      \ "\u2560": '&boxVR;',
+      \ "\u2561": '&boxvL;',
+      \ "\u2562": '&boxVl;',
+      \ "\u2563": '&boxVL;',
+      \ "\u2564": '&boxHd;',
+      \ "\u2565": '&boxhD;',
+      \ "\u2566": '&boxHD;',
+      \ "\u2567": '&boxHu;',
+      \ "\u2568": '&boxhU;',
+      \ "\u2569": '&boxHU;',
+      \ "\u256a": '&boxvH;',
+      \ "\u256b": '&boxVh;',
+      \ "\u256c": '&boxVH;',
+      \ "\u2580": '&uhblk;',
+      \ "\u2584": '&lhblk;',
+      \ "\u2588": '&block;',
+      \ "\u2591": '&blk14;',
+      \ "\u2592": '&blk12;',
+      \ "\u2593": '&blk34;',
+      \ "\u25a1": '&squ; &Square; &square;',
+      \ "\u25aa": '&blacksquare; &FilledVerySmallSquare; &squarf; &squf;',
+      \ "\u25ab": '&EmptyVerySmallSquare;',
+      \ "\u25ad": '&rect;',
+      \ "\u25ae": '&marker;',
+      \ "\u25b1": '&fltns;',
+      \ "\u25b3": '&bigtriangleup; &xutri;',
+      \ "\u25b4": '&blacktriangle; &utrif;',
+      \ "\u25b5": '&triangle; &utri;',
+      \ "\u25b8": '&blacktriangleright; &rtrif;',
+      \ "\u25b9": '&rtri; &triangleright;',
+      \ "\u25bd": '&bigtriangledown; &xdtri;',
+      \ "\u25be": '&blacktriangledown; &dtrif;',
+      \ "\u25bf": '&dtri; &triangledown;',
+      \ "\u25c2": '&blacktriangleleft; &ltrif;',
+      \ "\u25c3": '&ltri; &triangleleft;',
+      \ "\u25ca": '&loz; &lozenge;',
+      \ "\u25cb": '&cir;',
+      \ "\u25ec": '&tridot;',
+      \ "\u25ef": '&bigcirc; &xcirc;',
+      \ "\u25f8": '&ultri;',
+      \ "\u25f9": '&urtri;',
+      \ "\u25fa": '&lltri;',
+      \ "\u25fb": '&EmptySmallSquare;',
+      \ "\u25fc": '&FilledSmallSquare;',
+      \ "\u2605": '&bigstar; &starf;',
+      \ "\u2606": '&star;',
+      \ "\u260e": '&phone;',
+      \ "\u2640": '&female;',
+      \ "\u2642": '&male;',
+      \ "\u2660": '&spades; &spadesuit;',
+      \ "\u2663": '&clubs; &clubsuit;',
+      \ "\u2665": '&hearts; &heartsuit;',
+      \ "\u2666": '&diams; &diamondsuit;',
+      \ "\u266a": '&sung;',
+      \ "\u266d": '&flat;',
+      \ "\u266e": '&natur; &natural;',
+      \ "\u266f": '&sharp;',
+      \ "\u2713": '&check; &checkmark;',
+      \ "\u2717": '&cross;',
+      \ "\u2720": '&malt; &maltese;',
+      \ "\u2736": '&sext;',
+      \ "\u2758": '&VerticalSeparator;',
+      \ "\u2772": '&lbbrk;',
+      \ "\u2773": '&rbbrk;',
+      \ "\u27c8": '&bsolhsub;',
+      \ "\u27c9": '&suphsol;',
+      \ "\u27e6": '&LeftDoubleBracket; &lobrk;',
+      \ "\u27e7": '&RightDoubleBracket; &robrk;',
+      \ "\u27e8": '&langle; &LeftAngleBracket;',
+      \ "\u27e9": '&rangle; &RightAngleBracket;',
+      \ "\u27ea": '&Lang;',
+      \ "\u27eb": '&Rang;',
+      \ "\u27ec": '&loang;',
+      \ "\u27ed": '&roang;',
+      \ "\u27f5": '&LongLeftArrow; &longleftarrow; &xlarr;',
+      \ "\u27f6": '&LongRightArrow; &longrightarrow; &xrarr;',
+      \ "\u27f7": '&LongLeftRightArrow; &longleftrightarrow; &xharr;',
+      \ "\u27f8": '&DoubleLongLeftArrow; &Longleftarrow; &xlArr;',
+      \ "\u27f9": '&DoubleLongRightArrow; &Longrightarrow; &xrArr;',
+      \ "\u27fa": '&DoubleLongLeftRightArrow; &Longleftrightarrow; &xhArr;',
+      \ "\u27fc": '&longmapsto; &xmap;',
+      \ "\u27ff": '&dzigrarr;',
+      \ "\u2902": '&nvlArr;',
+      \ "\u2903": '&nvrArr;',
+      \ "\u2904": '&nvHarr;',
+      \ "\u2905": '&Map;',
+      \ "\u290c": '&lbarr;',
+      \ "\u290d": '&bkarow; &rbarr;',
+      \ "\u290e": '&lBarr;',
+      \ "\u290f": '&dbkarow; &rBarr;',
+      \ "\u2910": '&drbkarow; &RBarr;',
+      \ "\u2911": '&DDotrahd;',
+      \ "\u2912": '&UpArrowBar;',
+      \ "\u2913": '&DownArrowBar;',
+      \ "\u2916": '&Rarrtl;',
+      \ "\u2919": '&latail;',
+      \ "\u291a": '&ratail;',
+      \ "\u291b": '&lAtail;',
+      \ "\u291c": '&rAtail;',
+      \ "\u291d": '&larrfs;',
+      \ "\u291e": '&rarrfs;',
+      \ "\u291f": '&larrbfs;',
+      \ "\u2920": '&rarrbfs;',
+      \ "\u2923": '&nwarhk;',
+      \ "\u2924": '&nearhk;',
+      \ "\u2925": '&hksearow; &searhk;',
+      \ "\u2926": '&hkswarow; &swarhk;',
+      \ "\u2927": '&nwnear;',
+      \ "\u2928": '&nesear; &toea;',
+      \ "\u2929": '&seswar; &tosa;',
+      \ "\u292a": '&swnwar;',
+      \ "\u2933": '&rarrc;',
+      \ "\u2933\u0338": '&nrarrc;',
+      \ "\u2935": '&cudarrr;',
+      \ "\u2936": '&ldca;',
+      \ "\u2937": '&rdca;',
+      \ "\u2938": '&cudarrl;',
+      \ "\u2939": '&larrpl;',
+      \ "\u293c": '&curarrm;',
+      \ "\u293d": '&cularrp;',
+      \ "\u2945": '&rarrpl;',
+      \ "\u2948": '&harrcir;',
+      \ "\u2949": '&Uarrocir;',
+      \ "\u294a": '&lurdshar;',
+      \ "\u294b": '&ldrushar;',
+      \ "\u294e": '&LeftRightVector;',
+      \ "\u294f": '&RightUpDownVector;',
+      \ "\u2950": '&DownLeftRightVector;',
+      \ "\u2951": '&LeftUpDownVector;',
+      \ "\u2952": '&LeftVectorBar;',
+      \ "\u2953": '&RightVectorBar;',
+      \ "\u2954": '&RightUpVectorBar;',
+      \ "\u2955": '&RightDownVectorBar;',
+      \ "\u2956": '&DownLeftVectorBar;',
+      \ "\u2957": '&DownRightVectorBar;',
+      \ "\u2958": '&LeftUpVectorBar;',
+      \ "\u2959": '&LeftDownVectorBar;',
+      \ "\u295a": '&LeftTeeVector;',
+      \ "\u295b": '&RightTeeVector;',
+      \ "\u295c": '&RightUpTeeVector;',
+      \ "\u295d": '&RightDownTeeVector;',
+      \ "\u295e": '&DownLeftTeeVector;',
+      \ "\u295f": '&DownRightTeeVector;',
+      \ "\u2960": '&LeftUpTeeVector;',
+      \ "\u2961": '&LeftDownTeeVector;',
+      \ "\u2962": '&lHar;',
+      \ "\u2963": '&uHar;',
+      \ "\u2964": '&rHar;',
+      \ "\u2965": '&dHar;',
+      \ "\u2966": '&luruhar;',
+      \ "\u2967": '&ldrdhar;',
+      \ "\u2968": '&ruluhar;',
+      \ "\u2969": '&rdldhar;',
+      \ "\u296a": '&lharul;',
+      \ "\u296b": '&llhard;',
+      \ "\u296c": '&rharul;',
+      \ "\u296d": '&lrhard;',
+      \ "\u296e": '&udhar; &UpEquilibrium;',
+      \ "\u296f": '&duhar; &ReverseUpEquilibrium;',
+      \ "\u2970": '&RoundImplies;',
+      \ "\u2971": '&erarr;',
+      \ "\u2972": '&simrarr;',
+      \ "\u2973": '&larrsim;',
+      \ "\u2974": '&rarrsim;',
+      \ "\u2975": '&rarrap;',
+      \ "\u2976": '&ltlarr;',
+      \ "\u2978": '&gtrarr;',
+      \ "\u2979": '&subrarr;',
+      \ "\u297b": '&suplarr;',
+      \ "\u297c": '&lfisht;',
+      \ "\u297d": '&rfisht;',
+      \ "\u297e": '&ufisht;',
+      \ "\u297f": '&dfisht;',
+      \ "\u2985": '&lopar;',
+      \ "\u2986": '&ropar;',
+      \ "\u298b": '&lbrke;',
+      \ "\u298c": '&rbrke;',
+      \ "\u298d": '&lbrkslu;',
+      \ "\u298e": '&rbrksld;',
+      \ "\u298f": '&lbrksld;',
+      \ "\u2990": '&rbrkslu;',
+      \ "\u2991": '&langd;',
+      \ "\u2992": '&rangd;',
+      \ "\u2993": '&lparlt;',
+      \ "\u2994": '&rpargt;',
+      \ "\u2995": '&gtlPar;',
+      \ "\u2996": '&ltrPar;',
+      \ "\u299a": '&vzigzag;',
+      \ "\u299c": '&vangrt;',
+      \ "\u299d": '&angrtvbd;',
+      \ "\u29a4": '&ange;',
+      \ "\u29a5": '&range;',
+      \ "\u29a6": '&dwangle;',
+      \ "\u29a7": '&uwangle;',
+      \ "\u29a8": '&angmsdaa;',
+      \ "\u29a9": '&angmsdab;',
+      \ "\u29aa": '&angmsdac;',
+      \ "\u29ab": '&angmsdad;',
+      \ "\u29ac": '&angmsdae;',
+      \ "\u29ad": '&angmsdaf;',
+      \ "\u29ae": '&angmsdag;',
+      \ "\u29af": '&angmsdah;',
+      \ "\u29b0": '&bemptyv;',
+      \ "\u29b1": '&demptyv;',
+      \ "\u29b2": '&cemptyv;',
+      \ "\u29b3": '&raemptyv;',
+      \ "\u29b4": '&laemptyv;',
+      \ "\u29b5": '&ohbar;',
+      \ "\u29b6": '&omid;',
+      \ "\u29b7": '&opar;',
+      \ "\u29b9": '&operp;',
+      \ "\u29bb": '&olcross;',
+      \ "\u29bc": '&odsold;',
+      \ "\u29be": '&olcir;',
+      \ "\u29bf": '&ofcir;',
+      \ "\u29c0": '&olt;',
+      \ "\u29c1": '&ogt;',
+      \ "\u29c2": '&cirscir;',
+      \ "\u29c3": '&cirE;',
+      \ "\u29c4": '&solb;',
+      \ "\u29c5": '&bsolb;',
+      \ "\u29c9": '&boxbox;',
+      \ "\u29cd": '&trisb;',
+      \ "\u29ce": '&rtriltri;',
+      \ "\u29cf": '&LeftTriangleBar;',
+      \ "\u29cf\u0338": '&NotLeftTriangleBar;',
+      \ "\u29d0": '&RightTriangleBar;',
+      \ "\u29d0\u0338": '&NotRightTriangleBar;',
+      \ "\u29dc": '&iinfin;',
+      \ "\u29dd": '&infintie;',
+      \ "\u29de": '&nvinfin;',
+      \ "\u29e3": '&eparsl;',
+      \ "\u29e4": '&smeparsl;',
+      \ "\u29e5": '&eqvparsl;',
+      \ "\u29eb": '&blacklozenge; &lozf;',
+      \ "\u29f4": '&RuleDelayed;',
+      \ "\u29f6": '&dsol;',
+      \ "\u2a00": '&bigodot; &xodot;',
+      \ "\u2a01": '&bigoplus; &xoplus;',
+      \ "\u2a02": '&bigotimes; &xotime;',
+      \ "\u2a04": '&biguplus; &xuplus;',
+      \ "\u2a06": '&bigsqcup; &xsqcup;',
+      \ "\u2a0c": '&iiiint; &qint;',
+      \ "\u2a0d": '&fpartint;',
+      \ "\u2a10": '&cirfnint;',
+      \ "\u2a11": '&awint;',
+      \ "\u2a12": '&rppolint;',
+      \ "\u2a13": '&scpolint;',
+      \ "\u2a14": '&npolint;',
+      \ "\u2a15": '&pointint;',
+      \ "\u2a16": '&quatint;',
+      \ "\u2a17": '&intlarhk;',
+      \ "\u2a22": '&pluscir;',
+      \ "\u2a23": '&plusacir;',
+      \ "\u2a24": '&simplus;',
+      \ "\u2a25": '&plusdu;',
+      \ "\u2a26": '&plussim;',
+      \ "\u2a27": '&plustwo;',
+      \ "\u2a29": '&mcomma;',
+      \ "\u2a2a": '&minusdu;',
+      \ "\u2a2d": '&loplus;',
+      \ "\u2a2e": '&roplus;',
+      \ "\u2a2f": '&Cross;',
+      \ "\u2a30": '&timesd;',
+      \ "\u2a31": '&timesbar;',
+      \ "\u2a33": '&smashp;',
+      \ "\u2a34": '&lotimes;',
+      \ "\u2a35": '&rotimes;',
+      \ "\u2a36": '&otimesas;',
+      \ "\u2a37": '&Otimes;',
+      \ "\u2a38": '&odiv;',
+      \ "\u2a39": '&triplus;',
+      \ "\u2a3a": '&triminus;',
+      \ "\u2a3b": '&tritime;',
+      \ "\u2a3c": '&intprod; &iprod;',
+      \ "\u2a3f": '&amalg;',
+      \ "\u2a40": '&capdot;',
+      \ "\u2a42": '&ncup;',
+      \ "\u2a43": '&ncap;',
+      \ "\u2a44": '&capand;',
+      \ "\u2a45": '&cupor;',
+      \ "\u2a46": '&cupcap;',
+      \ "\u2a47": '&capcup;',
+      \ "\u2a48": '&cupbrcap;',
+      \ "\u2a49": '&capbrcup;',
+      \ "\u2a4a": '&cupcup;',
+      \ "\u2a4b": '&capcap;',
+      \ "\u2a4c": '&ccups;',
+      \ "\u2a4d": '&ccaps;',
+      \ "\u2a50": '&ccupssm;',
+      \ "\u2a53": '&And;',
+      \ "\u2a54": '&Or;',
+      \ "\u2a55": '&andand;',
+      \ "\u2a56": '&oror;',
+      \ "\u2a57": '&orslope;',
+      \ "\u2a58": '&andslope;',
+      \ "\u2a5a": '&andv;',
+      \ "\u2a5b": '&orv;',
+      \ "\u2a5c": '&andd;',
+      \ "\u2a5d": '&ord;',
+      \ "\u2a5f": '&wedbar;',
+      \ "\u2a66": '&sdote;',
+      \ "\u2a6a": '&simdot;',
+      \ "\u2a6d": '&congdot;',
+      \ "\u2a6d\u0338": '&ncongdot;',
+      \ "\u2a6e": '&easter;',
+      \ "\u2a6f": '&apacir;',
+      \ "\u2a70": '&apE;',
+      \ "\u2a70\u0338": '&napE;',
+      \ "\u2a71": '&eplus;',
+      \ "\u2a72": '&pluse;',
+      \ "\u2a73": '&Esim;',
+      \ "\u2a74": '&Colone;',
+      \ "\u2a75": '&Equal;',
+      \ "\u2a77": '&ddotseq; &eDDot;',
+      \ "\u2a78": '&equivDD;',
+      \ "\u2a79": '&ltcir;',
+      \ "\u2a7a": '&gtcir;',
+      \ "\u2a7b": '&ltquest;',
+      \ "\u2a7c": '&gtquest;',
+      \ "\u2a7d": '&leqslant; &les; &LessSlantEqual;',
+      \ "\u2a7d\u0338": '&nleqslant; &nles; &NotLessSlantEqual;',
+      \ "\u2a7e": '&geqslant; &ges; &GreaterSlantEqual;',
+      \ "\u2a7e\u0338": '&ngeqslant; &nges; &NotGreaterSlantEqual;',
+      \ "\u2a7f": '&lesdot;',
+      \ "\u2a80": '&gesdot;',
+      \ "\u2a81": '&lesdoto;',
+      \ "\u2a82": '&gesdoto;',
+      \ "\u2a83": '&lesdotor;',
+      \ "\u2a84": '&gesdotol;',
+      \ "\u2a85": '&lap; &lessapprox;',
+      \ "\u2a86": '&gap; &gtrapprox;',
+      \ "\u2a87": '&lne; &lneq;',
+      \ "\u2a88": '&gne; &gneq;',
+      \ "\u2a89": '&lnap; &lnapprox;',
+      \ "\u2a8a": '&gnap; &gnapprox;',
+      \ "\u2a8b": '&lEg; &lesseqqgtr;',
+      \ "\u2a8c": '&gEl; &gtreqqless;',
+      \ "\u2a8d": '&lsime;',
+      \ "\u2a8e": '&gsime;',
+      \ "\u2a8f": '&lsimg;',
+      \ "\u2a90": '&gsiml;',
+      \ "\u2a91": '&lgE;',
+      \ "\u2a92": '&glE;',
+      \ "\u2a93": '&lesges;',
+      \ "\u2a94": '&gesles;',
+      \ "\u2a95": '&els; &eqslantless;',
+      \ "\u2a96": '&egs; &eqslantgtr;',
+      \ "\u2a97": '&elsdot;',
+      \ "\u2a98": '&egsdot;',
+      \ "\u2a99": '&el;',
+      \ "\u2a9a": '&eg;',
+      \ "\u2a9d": '&siml;',
+      \ "\u2a9e": '&simg;',
+      \ "\u2a9f": '&simlE;',
+      \ "\u2aa0": '&simgE;',
+      \ "\u2aa1": '&LessLess;',
+      \ "\u2aa1\u0338": '&NotNestedLessLess;',
+      \ "\u2aa2": '&GreaterGreater;',
+      \ "\u2aa2\u0338": '&NotNestedGreaterGreater;',
+      \ "\u2aa4": '&glj;',
+      \ "\u2aa5": '&gla;',
+      \ "\u2aa6": '&ltcc;',
+      \ "\u2aa7": '&gtcc;',
+      \ "\u2aa8": '&lescc;',
+      \ "\u2aa9": '&gescc;',
+      \ "\u2aaa": '&smt;',
+      \ "\u2aab": '&lat;',
+      \ "\u2aac": '&smte;',
+      \ "\u2aac\ufe00": '&smtes;',
+      \ "\u2aad": '&late;',
+      \ "\u2aad\ufe00": '&lates;',
+      \ "\u2aae": '&bumpE;',
+      \ "\u2aaf": '&pre; &PrecedesEqual; &preceq;',
+      \ "\u2aaf\u0338": '&NotPrecedesEqual; &npre; &npreceq;',
+      \ "\u2ab0": '&sce; &SucceedsEqual; &succeq;',
+      \ "\u2ab0\u0338": '&NotSucceedsEqual; &nsce; &nsucceq;',
+      \ "\u2ab3": '&prE;',
+      \ "\u2ab4": '&scE;',
+      \ "\u2ab5": '&precneqq; &prnE;',
+      \ "\u2ab6": '&scnE; &succneqq;',
+      \ "\u2ab7": '&prap; &precapprox;',
+      \ "\u2ab8": '&scap; &succapprox;',
+      \ "\u2ab9": '&precnapprox; &prnap;',
+      \ "\u2aba": '&scnap; &succnapprox;',
+      \ "\u2abb": '&Pr;',
+      \ "\u2abc": '&Sc;',
+      \ "\u2abd": '&subdot;',
+      \ "\u2abe": '&supdot;',
+      \ "\u2abf": '&subplus;',
+      \ "\u2ac0": '&supplus;',
+      \ "\u2ac1": '&submult;',
+      \ "\u2ac2": '&supmult;',
+      \ "\u2ac3": '&subedot;',
+      \ "\u2ac4": '&supedot;',
+      \ "\u2ac5": '&subE; &subseteqq;',
+      \ "\u2ac5\u0338": '&nsubE; &nsubseteqq;',
+      \ "\u2ac6": '&supE; &supseteqq;',
+      \ "\u2ac6\u0338": '&nsupE; &nsupseteqq;',
+      \ "\u2ac7": '&subsim;',
+      \ "\u2ac8": '&supsim;',
+      \ "\u2acb": '&subnE; &subsetneqq;',
+      \ "\u2acb\ufe00": '&varsubsetneqq; &vsubnE;',
+      \ "\u2acc": '&supnE; &supsetneqq;',
+      \ "\u2acc\ufe00": '&varsupsetneqq; &vsupnE;',
+      \ "\u2acf": '&csub;',
+      \ "\u2ad0": '&csup;',
+      \ "\u2ad1": '&csube;',
+      \ "\u2ad2": '&csupe;',
+      \ "\u2ad3": '&subsup;',
+      \ "\u2ad4": '&supsub;',
+      \ "\u2ad5": '&subsub;',
+      \ "\u2ad6": '&supsup;',
+      \ "\u2ad7": '&suphsub;',
+      \ "\u2ad8": '&supdsub;',
+      \ "\u2ad9": '&forkv;',
+      \ "\u2ada": '&topfork;',
+      \ "\u2adb": '&mlcp;',
+      \ "\u2ae4": '&Dashv; &DoubleLeftTee;',
+      \ "\u2ae6": '&Vdashl;',
+      \ "\u2ae7": '&Barv;',
+      \ "\u2ae8": '&vBar;',
+      \ "\u2ae9": '&vBarv;',
+      \ "\u2aeb": '&Vbar;',
+      \ "\u2aec": '&Not;',
+      \ "\u2aed": '&bNot;',
+      \ "\u2aee": '&rnmid;',
+      \ "\u2aef": '&cirmid;',
+      \ "\u2af0": '&midcir;',
+      \ "\u2af1": '&topcir;',
+      \ "\u2af2": '&nhpar;',
+      \ "\u2af3": '&parsim;',
+      \ "\u2afd": '&parsl;',
+      \ "\u2afd\u20e5": '&nparsl;',
+      \ "\ufb00": '&fflig;',
+      \ "\ufb01": '&filig;',
+      \ "\ufb02": '&fllig;',
+      \ "\ufb03": '&ffilig;',
+      \ "\ufb04": '&ffllig;',
+      \ "\U1d49c": '&Ascr;',
+      \ "\U1d49e": '&Cscr;',
+      \ "\U1d49f": '&Dscr;',
+      \ "\U1d4a2": '&Gscr;',
+      \ "\U1d4a5": '&Jscr;',
+      \ "\U1d4a6": '&Kscr;',
+      \ "\U1d4a9": '&Nscr;',
+      \ "\U1d4aa": '&Oscr;',
+      \ "\U1d4ab": '&Pscr;',
+      \ "\U1d4ac": '&Qscr;',
+      \ "\U1d4ae": '&Sscr;',
+      \ "\U1d4af": '&Tscr;',
+      \ "\U1d4b0": '&Uscr;',
+      \ "\U1d4b1": '&Vscr;',
+      \ "\U1d4b2": '&Wscr;',
+      \ "\U1d4b3": '&Xscr;',
+      \ "\U1d4b4": '&Yscr;',
+      \ "\U1d4b5": '&Zscr;',
+      \ "\U1d4b6": '&ascr;',
+      \ "\U1d4b7": '&bscr;',
+      \ "\U1d4b8": '&cscr;',
+      \ "\U1d4b9": '&dscr;',
+      \ "\U1d4bb": '&fscr;',
+      \ "\U1d4bd": '&hscr;',
+      \ "\U1d4be": '&iscr;',
+      \ "\U1d4bf": '&jscr;',
+      \ "\U1d4c0": '&kscr;',
+      \ "\U1d4c1": '&lscr;',
+      \ "\U1d4c2": '&mscr;',
+      \ "\U1d4c3": '&nscr;',
+      \ "\U1d4c5": '&pscr;',
+      \ "\U1d4c6": '&qscr;',
+      \ "\U1d4c7": '&rscr;',
+      \ "\U1d4c8": '&sscr;',
+      \ "\U1d4c9": '&tscr;',
+      \ "\U1d4ca": '&uscr;',
+      \ "\U1d4cb": '&vscr;',
+      \ "\U1d4cc": '&wscr;',
+      \ "\U1d4cd": '&xscr;',
+      \ "\U1d4ce": '&yscr;',
+      \ "\U1d4cf": '&zscr;',
+      \ "\U1d504": '&Afr;',
+      \ "\U1d505": '&Bfr;',
+      \ "\U1d507": '&Dfr;',
+      \ "\U1d508": '&Efr;',
+      \ "\U1d509": '&Ffr;',
+      \ "\U1d50a": '&Gfr;',
+      \ "\U1d50d": '&Jfr;',
+      \ "\U1d50e": '&Kfr;',
+      \ "\U1d50f": '&Lfr;',
+      \ "\U1d510": '&Mfr;',
+      \ "\U1d511": '&Nfr;',
+      \ "\U1d512": '&Ofr;',
+      \ "\U1d513": '&Pfr;',
+      \ "\U1d514": '&Qfr;',
+      \ "\U1d516": '&Sfr;',
+      \ "\U1d517": '&Tfr;',
+      \ "\U1d518": '&Ufr;',
+      \ "\U1d519": '&Vfr;',
+      \ "\U1d51a": '&Wfr;',
+      \ "\U1d51b": '&Xfr;',
+      \ "\U1d51c": '&Yfr;',
+      \ "\U1d51e": '&afr;',
+      \ "\U1d51f": '&bfr;',
+      \ "\U1d520": '&cfr;',
+      \ "\U1d521": '&dfr;',
+      \ "\U1d522": '&efr;',
+      \ "\U1d523": '&ffr;',
+      \ "\U1d524": '&gfr;',
+      \ "\U1d525": '&hfr;',
+      \ "\U1d526": '&ifr;',
+      \ "\U1d527": '&jfr;',
+      \ "\U1d528": '&kfr;',
+      \ "\U1d529": '&lfr;',
+      \ "\U1d52a": '&mfr;',
+      \ "\U1d52b": '&nfr;',
+      \ "\U1d52c": '&ofr;',
+      \ "\U1d52d": '&pfr;',
+      \ "\U1d52e": '&qfr;',
+      \ "\U1d52f": '&rfr;',
+      \ "\U1d530": '&sfr;',
+      \ "\U1d531": '&tfr;',
+      \ "\U1d532": '&ufr;',
+      \ "\U1d533": '&vfr;',
+      \ "\U1d534": '&wfr;',
+      \ "\U1d535": '&xfr;',
+      \ "\U1d536": '&yfr;',
+      \ "\U1d537": '&zfr;',
+      \ "\U1d538": '&Aopf;',
+      \ "\U1d539": '&Bopf;',
+      \ "\U1d53b": '&Dopf;',
+      \ "\U1d53c": '&Eopf;',
+      \ "\U1d53d": '&Fopf;',
+      \ "\U1d53e": '&Gopf;',
+      \ "\U1d540": '&Iopf;',
+      \ "\U1d541": '&Jopf;',
+      \ "\U1d542": '&Kopf;',
+      \ "\U1d543": '&Lopf;',
+      \ "\U1d544": '&Mopf;',
+      \ "\U1d546": '&Oopf;',
+      \ "\U1d54a": '&Sopf;',
+      \ "\U1d54b": '&Topf;',
+      \ "\U1d54c": '&Uopf;',
+      \ "\U1d54d": '&Vopf;',
+      \ "\U1d54e": '&Wopf;',
+      \ "\U1d54f": '&Xopf;',
+      \ "\U1d550": '&Yopf;',
+      \ "\U1d552": '&aopf;',
+      \ "\U1d553": '&bopf;',
+      \ "\U1d554": '&copf;',
+      \ "\U1d555": '&dopf;',
+      \ "\U1d556": '&eopf;',
+      \ "\U1d557": '&fopf;',
+      \ "\U1d558": '&gopf;',
+      \ "\U1d559": '&hopf;',
+      \ "\U1d55a": '&iopf;',
+      \ "\U1d55b": '&jopf;',
+      \ "\U1d55c": '&kopf;',
+      \ "\U1d55d": '&lopf;',
+      \ "\U1d55e": '&mopf;',
+      \ "\U1d55f": '&nopf;',
+      \ "\U1d560": '&oopf;',
+      \ "\U1d561": '&popf;',
+      \ "\U1d562": '&qopf;',
+      \ "\U1d563": '&ropf;',
+      \ "\U1d564": '&sopf;',
+      \ "\U1d565": '&topf;',
+      \ "\U1d566": '&uopf;',
+      \ "\U1d567": '&vopf;',
+      \ "\U1d568": '&wopf;',
+      \ "\U1d569": '&xopf;',
+      \ "\U1d56a": '&yopf;',
+      \ "\U1d56b": '&zopf;'}
 
 let s:emojis = {
       \ 0x00a9: [':copyright:'],
@@ -4422,6 +5872,7 @@ let s:d[0x0CEE]='KANNADA DIGIT EIGHT'
 let s:d[0x0CEF]='KANNADA DIGIT NINE'
 let s:d[0x0CF1]='KANNADA SIGN JIHVAMULIYA'
 let s:d[0x0CF2]='KANNADA SIGN UPADHMANIYA'
+let s:d[0x0CF3]='KANNADA SIGN COMBINING ANUSVARA ABOVE RIGHT'
 let s:d[0x0D00]='MALAYALAM SIGN COMBINING ANUSVARA ABOVE'
 let s:d[0x0D01]='MALAYALAM SIGN CANDRABINDU'
 let s:d[0x0D02]='MALAYALAM SIGN ANUSVARA'
@@ -4786,6 +6237,7 @@ let s:d[0x0ECA]='LAO TONE MAI TI'
 let s:d[0x0ECB]='LAO TONE MAI CATAWA'
 let s:d[0x0ECC]='LAO CANCELLATION MARK'
 let s:d[0x0ECD]='LAO NIGGAHITA'
+let s:d[0x0ECE]='LAO YAMAKKAN'
 let s:d[0x0ED0]='LAO DIGIT ZERO'
 let s:d[0x0ED1]='LAO DIGIT ONE'
 let s:d[0x0ED2]='LAO DIGIT TWO'
@@ -20826,6 +22278,9 @@ let s:d[0x10EAC]='YEZIDI COMBINING MADDA MARK'
 let s:d[0x10EAD]='YEZIDI HYPHENATION MARK'
 let s:d[0x10EB0]='YEZIDI LETTER LAM WITH DOT ABOVE'
 let s:d[0x10EB1]='YEZIDI LETTER YOT WITH CIRCUMFLEX ABOVE'
+let s:d[0x10EFD]='ARABIC SMALL LOW WORD SAKTA'
+let s:d[0x10EFE]='ARABIC SMALL LOW WORD QASR'
+let s:d[0x10EFF]='ARABIC SMALL LOW WORD MADDA'
 let s:d[0x10F00]='OLD SOGDIAN LETTER ALEPH'
 let s:d[0x10F01]='OLD SOGDIAN LETTER FINAL ALEPH'
 let s:d[0x10F02]='OLD SOGDIAN LETTER BETH'
@@ -21491,6 +22946,9 @@ let s:d[0x1123B]='KHOJKI SECTION MARK'
 let s:d[0x1123C]='KHOJKI DOUBLE SECTION MARK'
 let s:d[0x1123D]='KHOJKI ABBREVIATION SIGN'
 let s:d[0x1123E]='KHOJKI SIGN SUKUN'
+let s:d[0x1123F]='KHOJKI LETTER QA'
+let s:d[0x11240]='KHOJKI LETTER SHORT I'
+let s:d[0x11241]='KHOJKI VOWEL SIGN VOCALIC R'
 let s:d[0x11280]='MULTANI LETTER A'
 let s:d[0x11281]='MULTANI LETTER I'
 let s:d[0x11282]='MULTANI LETTER U'
@@ -22689,6 +24147,16 @@ let s:d[0x11AF5]='PAU CIN HAU GLOTTAL STOP'
 let s:d[0x11AF6]='PAU CIN HAU LOW-FALLING TONE LONG FINAL'
 let s:d[0x11AF7]='PAU CIN HAU LOW-FALLING TONE FINAL'
 let s:d[0x11AF8]='PAU CIN HAU GLOTTAL STOP FINAL'
+let s:d[0x11B00]='DEVANAGARI HEAD MARK'
+let s:d[0x11B01]='DEVANAGARI HEAD MARK WITH HEADSTROKE'
+let s:d[0x11B02]='DEVANAGARI SIGN BHALE'
+let s:d[0x11B03]='DEVANAGARI SIGN BHALE WITH HOOK'
+let s:d[0x11B04]='DEVANAGARI SIGN EXTENDED BHALE'
+let s:d[0x11B05]='DEVANAGARI SIGN EXTENDED BHALE WITH HOOK'
+let s:d[0x11B06]='DEVANAGARI SIGN WESTERN FIVE-LIKE BHALE'
+let s:d[0x11B07]='DEVANAGARI SIGN WESTERN NINE-LIKE BHALE'
+let s:d[0x11B08]='DEVANAGARI SIGN REVERSED NINE-LIKE BHALE'
+let s:d[0x11B09]='DEVANAGARI SIGN MINDU'
 let s:d[0x11C00]='BHAIKSUKI LETTER A'
 let s:d[0x11C01]='BHAIKSUKI LETTER AA'
 let s:d[0x11C02]='BHAIKSUKI LETTER I'
@@ -23017,6 +24485,92 @@ let s:d[0x11EF5]='MAKASAR VOWEL SIGN E'
 let s:d[0x11EF6]='MAKASAR VOWEL SIGN O'
 let s:d[0x11EF7]='MAKASAR PASSIMBANG'
 let s:d[0x11EF8]='MAKASAR END OF SECTION'
+let s:d[0x11F00]='KAWI SIGN CANDRABINDU'
+let s:d[0x11F01]='KAWI SIGN ANUSVARA'
+let s:d[0x11F02]='KAWI SIGN REPHA'
+let s:d[0x11F03]='KAWI SIGN VISARGA'
+let s:d[0x11F04]='KAWI LETTER A'
+let s:d[0x11F05]='KAWI LETTER AA'
+let s:d[0x11F06]='KAWI LETTER I'
+let s:d[0x11F07]='KAWI LETTER II'
+let s:d[0x11F08]='KAWI LETTER U'
+let s:d[0x11F09]='KAWI LETTER UU'
+let s:d[0x11F0A]='KAWI LETTER VOCALIC R'
+let s:d[0x11F0B]='KAWI LETTER VOCALIC RR'
+let s:d[0x11F0C]='KAWI LETTER VOCALIC L'
+let s:d[0x11F0D]='KAWI LETTER VOCALIC LL'
+let s:d[0x11F0E]='KAWI LETTER E'
+let s:d[0x11F0F]='KAWI LETTER AI'
+let s:d[0x11F10]='KAWI LETTER O'
+let s:d[0x11F12]='KAWI LETTER KA'
+let s:d[0x11F13]='KAWI LETTER KHA'
+let s:d[0x11F14]='KAWI LETTER GA'
+let s:d[0x11F15]='KAWI LETTER GHA'
+let s:d[0x11F16]='KAWI LETTER NGA'
+let s:d[0x11F17]='KAWI LETTER CA'
+let s:d[0x11F18]='KAWI LETTER CHA'
+let s:d[0x11F19]='KAWI LETTER JA'
+let s:d[0x11F1A]='KAWI LETTER JHA'
+let s:d[0x11F1B]='KAWI LETTER NYA'
+let s:d[0x11F1C]='KAWI LETTER TTA'
+let s:d[0x11F1D]='KAWI LETTER TTHA'
+let s:d[0x11F1E]='KAWI LETTER DDA'
+let s:d[0x11F1F]='KAWI LETTER DDHA'
+let s:d[0x11F20]='KAWI LETTER NNA'
+let s:d[0x11F21]='KAWI LETTER TA'
+let s:d[0x11F22]='KAWI LETTER THA'
+let s:d[0x11F23]='KAWI LETTER DA'
+let s:d[0x11F24]='KAWI LETTER DHA'
+let s:d[0x11F25]='KAWI LETTER NA'
+let s:d[0x11F26]='KAWI LETTER PA'
+let s:d[0x11F27]='KAWI LETTER PHA'
+let s:d[0x11F28]='KAWI LETTER BA'
+let s:d[0x11F29]='KAWI LETTER BHA'
+let s:d[0x11F2A]='KAWI LETTER MA'
+let s:d[0x11F2B]='KAWI LETTER YA'
+let s:d[0x11F2C]='KAWI LETTER RA'
+let s:d[0x11F2D]='KAWI LETTER LA'
+let s:d[0x11F2E]='KAWI LETTER WA'
+let s:d[0x11F2F]='KAWI LETTER SHA'
+let s:d[0x11F30]='KAWI LETTER SSA'
+let s:d[0x11F31]='KAWI LETTER SA'
+let s:d[0x11F32]='KAWI LETTER HA'
+let s:d[0x11F33]='KAWI LETTER JNYA'
+let s:d[0x11F34]='KAWI VOWEL SIGN AA'
+let s:d[0x11F35]='KAWI VOWEL SIGN ALTERNATE AA'
+let s:d[0x11F36]='KAWI VOWEL SIGN I'
+let s:d[0x11F37]='KAWI VOWEL SIGN II'
+let s:d[0x11F38]='KAWI VOWEL SIGN U'
+let s:d[0x11F39]='KAWI VOWEL SIGN UU'
+let s:d[0x11F3A]='KAWI VOWEL SIGN VOCALIC R'
+let s:d[0x11F3E]='KAWI VOWEL SIGN E'
+let s:d[0x11F3F]='KAWI VOWEL SIGN AI'
+let s:d[0x11F40]='KAWI VOWEL SIGN EU'
+let s:d[0x11F41]='KAWI SIGN KILLER'
+let s:d[0x11F42]='KAWI CONJOINER'
+let s:d[0x11F43]='KAWI DANDA'
+let s:d[0x11F44]='KAWI DOUBLE DANDA'
+let s:d[0x11F45]='KAWI PUNCTUATION SECTION MARKER'
+let s:d[0x11F46]='KAWI PUNCTUATION ALTERNATE SECTION MARKER'
+let s:d[0x11F47]='KAWI PUNCTUATION FLOWER'
+let s:d[0x11F48]='KAWI PUNCTUATION SPACE FILLER'
+let s:d[0x11F49]='KAWI PUNCTUATION DOT'
+let s:d[0x11F4A]='KAWI PUNCTUATION DOUBLE DOT'
+let s:d[0x11F4B]='KAWI PUNCTUATION TRIPLE DOT'
+let s:d[0x11F4C]='KAWI PUNCTUATION CIRCLE'
+let s:d[0x11F4D]='KAWI PUNCTUATION FILLED CIRCLE'
+let s:d[0x11F4E]='KAWI PUNCTUATION SPIRAL'
+let s:d[0x11F4F]='KAWI PUNCTUATION CLOSING SPIRAL'
+let s:d[0x11F50]='KAWI DIGIT ZERO'
+let s:d[0x11F51]='KAWI DIGIT ONE'
+let s:d[0x11F52]='KAWI DIGIT TWO'
+let s:d[0x11F53]='KAWI DIGIT THREE'
+let s:d[0x11F54]='KAWI DIGIT FOUR'
+let s:d[0x11F55]='KAWI DIGIT FIVE'
+let s:d[0x11F56]='KAWI DIGIT SIX'
+let s:d[0x11F57]='KAWI DIGIT SEVEN'
+let s:d[0x11F58]='KAWI DIGIT EIGHT'
+let s:d[0x11F59]='KAWI DIGIT NINE'
 let s:d[0x11FB0]='LISU LETTER YHA'
 let s:d[0x11FC0]='TAMIL FRACTION ONE THREE-HUNDRED-AND-TWENTIETH'
 let s:d[0x11FC1]='TAMIL FRACTION ONE ONE-HUNDRED-AND-SIXTIETH'
@@ -25473,6 +27027,7 @@ let s:d[0x1342B]='EGYPTIAN HIEROGLYPH AA029'
 let s:d[0x1342C]='EGYPTIAN HIEROGLYPH AA030'
 let s:d[0x1342D]='EGYPTIAN HIEROGLYPH AA031'
 let s:d[0x1342E]='EGYPTIAN HIEROGLYPH AA032'
+let s:d[0x1342F]='EGYPTIAN HIEROGLYPH V011D'
 let s:d[0x13430]='EGYPTIAN HIEROGLYPH VERTICAL JOINER'
 let s:d[0x13431]='EGYPTIAN HIEROGLYPH HORIZONTAL JOINER'
 let s:d[0x13432]='EGYPTIAN HIEROGLYPH INSERT AT TOP START'
@@ -25482,6 +27037,35 @@ let s:d[0x13435]='EGYPTIAN HIEROGLYPH INSERT AT BOTTOM END'
 let s:d[0x13436]='EGYPTIAN HIEROGLYPH OVERLAY MIDDLE'
 let s:d[0x13437]='EGYPTIAN HIEROGLYPH BEGIN SEGMENT'
 let s:d[0x13438]='EGYPTIAN HIEROGLYPH END SEGMENT'
+let s:d[0x13439]='EGYPTIAN HIEROGLYPH INSERT AT MIDDLE'
+let s:d[0x1343A]='EGYPTIAN HIEROGLYPH INSERT AT TOP'
+let s:d[0x1343B]='EGYPTIAN HIEROGLYPH INSERT AT BOTTOM'
+let s:d[0x1343C]='EGYPTIAN HIEROGLYPH BEGIN ENCLOSURE'
+let s:d[0x1343D]='EGYPTIAN HIEROGLYPH END ENCLOSURE'
+let s:d[0x1343E]='EGYPTIAN HIEROGLYPH BEGIN WALLED ENCLOSURE'
+let s:d[0x1343F]='EGYPTIAN HIEROGLYPH END WALLED ENCLOSURE'
+let s:d[0x13440]='EGYPTIAN HIEROGLYPH MIRROR HORIZONTALLY'
+let s:d[0x13441]='EGYPTIAN HIEROGLYPH FULL BLANK'
+let s:d[0x13442]='EGYPTIAN HIEROGLYPH HALF BLANK'
+let s:d[0x13443]='EGYPTIAN HIEROGLYPH LOST SIGN'
+let s:d[0x13444]='EGYPTIAN HIEROGLYPH HALF LOST SIGN'
+let s:d[0x13445]='EGYPTIAN HIEROGLYPH TALL LOST SIGN'
+let s:d[0x13446]='EGYPTIAN HIEROGLYPH WIDE LOST SIGN'
+let s:d[0x13447]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT TOP START'
+let s:d[0x13448]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT BOTTOM START'
+let s:d[0x13449]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT START'
+let s:d[0x1344A]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT TOP END'
+let s:d[0x1344B]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT TOP'
+let s:d[0x1344C]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT BOTTOM START AND TOP END'
+let s:d[0x1344D]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT START AND TOP'
+let s:d[0x1344E]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT BOTTOM END'
+let s:d[0x1344F]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT TOP START AND BOTTOM END'
+let s:d[0x13450]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT BOTTOM'
+let s:d[0x13451]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT START AND BOTTOM'
+let s:d[0x13452]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT END'
+let s:d[0x13453]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT TOP AND END'
+let s:d[0x13454]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED AT BOTTOM AND END'
+let s:d[0x13455]='EGYPTIAN HIEROGLYPH MODIFIER DAMAGED'
 let s:d[0x14400]='ANATOLIAN HIEROGLYPH A001'
 let s:d[0x14401]='ANATOLIAN HIEROGLYPH A002'
 let s:d[0x14402]='ANATOLIAN HIEROGLYPH A003'
@@ -28718,9 +30302,11 @@ let s:d[0x1B11F]='HIRAGANA LETTER ARCHAIC WU'
 let s:d[0x1B120]='KATAKANA LETTER ARCHAIC YI'
 let s:d[0x1B121]='KATAKANA LETTER ARCHAIC YE'
 let s:d[0x1B122]='KATAKANA LETTER ARCHAIC WU'
+let s:d[0x1B132]='HIRAGANA LETTER SMALL KO'
 let s:d[0x1B150]='HIRAGANA LETTER SMALL WI'
 let s:d[0x1B151]='HIRAGANA LETTER SMALL WE'
 let s:d[0x1B152]='HIRAGANA LETTER SMALL WO'
+let s:d[0x1B155]='KATAKANA LETTER SMALL KO'
 let s:d[0x1B164]='KATAKANA LETTER SMALL WI'
 let s:d[0x1B165]='KATAKANA LETTER SMALL WE'
 let s:d[0x1B166]='KATAKANA LETTER SMALL WO'
@@ -30002,6 +31588,26 @@ let s:d[0x1D242]='COMBINING GREEK MUSICAL TRISEME'
 let s:d[0x1D243]='COMBINING GREEK MUSICAL TETRASEME'
 let s:d[0x1D244]='COMBINING GREEK MUSICAL PENTASEME'
 let s:d[0x1D245]='GREEK MUSICAL LEIMMA'
+let s:d[0x1D2C0]='KAKTOVIK NUMERAL ZERO'
+let s:d[0x1D2C1]='KAKTOVIK NUMERAL ONE'
+let s:d[0x1D2C2]='KAKTOVIK NUMERAL TWO'
+let s:d[0x1D2C3]='KAKTOVIK NUMERAL THREE'
+let s:d[0x1D2C4]='KAKTOVIK NUMERAL FOUR'
+let s:d[0x1D2C5]='KAKTOVIK NUMERAL FIVE'
+let s:d[0x1D2C6]='KAKTOVIK NUMERAL SIX'
+let s:d[0x1D2C7]='KAKTOVIK NUMERAL SEVEN'
+let s:d[0x1D2C8]='KAKTOVIK NUMERAL EIGHT'
+let s:d[0x1D2C9]='KAKTOVIK NUMERAL NINE'
+let s:d[0x1D2CA]='KAKTOVIK NUMERAL TEN'
+let s:d[0x1D2CB]='KAKTOVIK NUMERAL ELEVEN'
+let s:d[0x1D2CC]='KAKTOVIK NUMERAL TWELVE'
+let s:d[0x1D2CD]='KAKTOVIK NUMERAL THIRTEEN'
+let s:d[0x1D2CE]='KAKTOVIK NUMERAL FOURTEEN'
+let s:d[0x1D2CF]='KAKTOVIK NUMERAL FIFTEEN'
+let s:d[0x1D2D0]='KAKTOVIK NUMERAL SIXTEEN'
+let s:d[0x1D2D1]='KAKTOVIK NUMERAL SEVENTEEN'
+let s:d[0x1D2D2]='KAKTOVIK NUMERAL EIGHTEEN'
+let s:d[0x1D2D3]='KAKTOVIK NUMERAL NINETEEN'
 let s:d[0x1D2E0]='MAYAN NUMERAL ZERO'
 let s:d[0x1D2E1]='MAYAN NUMERAL ONE'
 let s:d[0x1D2E2]='MAYAN NUMERAL TWO'
@@ -31833,6 +33439,12 @@ let s:d[0x1DF1B]='LATIN SMALL LETTER O WITH RETROFLEX HOOK'
 let s:d[0x1DF1C]='LATIN SMALL LETTER TESH DIGRAPH WITH RETROFLEX HOOK'
 let s:d[0x1DF1D]='LATIN SMALL LETTER C WITH RETROFLEX HOOK'
 let s:d[0x1DF1E]='LATIN SMALL LETTER S WITH CURL'
+let s:d[0x1DF25]='LATIN SMALL LETTER D WITH MID-HEIGHT LEFT HOOK'
+let s:d[0x1DF26]='LATIN SMALL LETTER L WITH MID-HEIGHT LEFT HOOK'
+let s:d[0x1DF27]='LATIN SMALL LETTER N WITH MID-HEIGHT LEFT HOOK'
+let s:d[0x1DF28]='LATIN SMALL LETTER R WITH MID-HEIGHT LEFT HOOK'
+let s:d[0x1DF29]='LATIN SMALL LETTER S WITH MID-HEIGHT LEFT HOOK'
+let s:d[0x1DF2A]='LATIN SMALL LETTER T WITH MID-HEIGHT LEFT HOOK'
 let s:d[0x1E000]='COMBINING GLAGOLITIC LETTER AZU'
 let s:d[0x1E001]='COMBINING GLAGOLITIC LETTER BUKY'
 let s:d[0x1E002]='COMBINING GLAGOLITIC LETTER VEDE'
@@ -31871,6 +33483,69 @@ let s:d[0x1E027]='COMBINING GLAGOLITIC LETTER IOTATED SMALL YUS'
 let s:d[0x1E028]='COMBINING GLAGOLITIC LETTER BIG YUS'
 let s:d[0x1E029]='COMBINING GLAGOLITIC LETTER IOTATED BIG YUS'
 let s:d[0x1E02A]='COMBINING GLAGOLITIC LETTER FITA'
+let s:d[0x1E030]='MODIFIER LETTER CYRILLIC SMALL A'
+let s:d[0x1E031]='MODIFIER LETTER CYRILLIC SMALL BE'
+let s:d[0x1E032]='MODIFIER LETTER CYRILLIC SMALL VE'
+let s:d[0x1E033]='MODIFIER LETTER CYRILLIC SMALL GHE'
+let s:d[0x1E034]='MODIFIER LETTER CYRILLIC SMALL DE'
+let s:d[0x1E035]='MODIFIER LETTER CYRILLIC SMALL IE'
+let s:d[0x1E036]='MODIFIER LETTER CYRILLIC SMALL ZHE'
+let s:d[0x1E037]='MODIFIER LETTER CYRILLIC SMALL ZE'
+let s:d[0x1E038]='MODIFIER LETTER CYRILLIC SMALL I'
+let s:d[0x1E039]='MODIFIER LETTER CYRILLIC SMALL KA'
+let s:d[0x1E03A]='MODIFIER LETTER CYRILLIC SMALL EL'
+let s:d[0x1E03B]='MODIFIER LETTER CYRILLIC SMALL EM'
+let s:d[0x1E03C]='MODIFIER LETTER CYRILLIC SMALL O'
+let s:d[0x1E03D]='MODIFIER LETTER CYRILLIC SMALL PE'
+let s:d[0x1E03E]='MODIFIER LETTER CYRILLIC SMALL ER'
+let s:d[0x1E03F]='MODIFIER LETTER CYRILLIC SMALL ES'
+let s:d[0x1E040]='MODIFIER LETTER CYRILLIC SMALL TE'
+let s:d[0x1E041]='MODIFIER LETTER CYRILLIC SMALL U'
+let s:d[0x1E042]='MODIFIER LETTER CYRILLIC SMALL EF'
+let s:d[0x1E043]='MODIFIER LETTER CYRILLIC SMALL HA'
+let s:d[0x1E044]='MODIFIER LETTER CYRILLIC SMALL TSE'
+let s:d[0x1E045]='MODIFIER LETTER CYRILLIC SMALL CHE'
+let s:d[0x1E046]='MODIFIER LETTER CYRILLIC SMALL SHA'
+let s:d[0x1E047]='MODIFIER LETTER CYRILLIC SMALL YERU'
+let s:d[0x1E048]='MODIFIER LETTER CYRILLIC SMALL E'
+let s:d[0x1E049]='MODIFIER LETTER CYRILLIC SMALL YU'
+let s:d[0x1E04A]='MODIFIER LETTER CYRILLIC SMALL DZZE'
+let s:d[0x1E04B]='MODIFIER LETTER CYRILLIC SMALL SCHWA'
+let s:d[0x1E04C]='MODIFIER LETTER CYRILLIC SMALL BYELORUSSIAN-UKRAINIAN I'
+let s:d[0x1E04D]='MODIFIER LETTER CYRILLIC SMALL JE'
+let s:d[0x1E04E]='MODIFIER LETTER CYRILLIC SMALL BARRED O'
+let s:d[0x1E04F]='MODIFIER LETTER CYRILLIC SMALL STRAIGHT U'
+let s:d[0x1E050]='MODIFIER LETTER CYRILLIC SMALL PALOCHKA'
+let s:d[0x1E051]='CYRILLIC SUBSCRIPT SMALL LETTER A'
+let s:d[0x1E052]='CYRILLIC SUBSCRIPT SMALL LETTER BE'
+let s:d[0x1E053]='CYRILLIC SUBSCRIPT SMALL LETTER VE'
+let s:d[0x1E054]='CYRILLIC SUBSCRIPT SMALL LETTER GHE'
+let s:d[0x1E055]='CYRILLIC SUBSCRIPT SMALL LETTER DE'
+let s:d[0x1E056]='CYRILLIC SUBSCRIPT SMALL LETTER IE'
+let s:d[0x1E057]='CYRILLIC SUBSCRIPT SMALL LETTER ZHE'
+let s:d[0x1E058]='CYRILLIC SUBSCRIPT SMALL LETTER ZE'
+let s:d[0x1E059]='CYRILLIC SUBSCRIPT SMALL LETTER I'
+let s:d[0x1E05A]='CYRILLIC SUBSCRIPT SMALL LETTER KA'
+let s:d[0x1E05B]='CYRILLIC SUBSCRIPT SMALL LETTER EL'
+let s:d[0x1E05C]='CYRILLIC SUBSCRIPT SMALL LETTER O'
+let s:d[0x1E05D]='CYRILLIC SUBSCRIPT SMALL LETTER PE'
+let s:d[0x1E05E]='CYRILLIC SUBSCRIPT SMALL LETTER ES'
+let s:d[0x1E05F]='CYRILLIC SUBSCRIPT SMALL LETTER U'
+let s:d[0x1E060]='CYRILLIC SUBSCRIPT SMALL LETTER EF'
+let s:d[0x1E061]='CYRILLIC SUBSCRIPT SMALL LETTER HA'
+let s:d[0x1E062]='CYRILLIC SUBSCRIPT SMALL LETTER TSE'
+let s:d[0x1E063]='CYRILLIC SUBSCRIPT SMALL LETTER CHE'
+let s:d[0x1E064]='CYRILLIC SUBSCRIPT SMALL LETTER SHA'
+let s:d[0x1E065]='CYRILLIC SUBSCRIPT SMALL LETTER HARD SIGN'
+let s:d[0x1E066]='CYRILLIC SUBSCRIPT SMALL LETTER YERU'
+let s:d[0x1E067]='CYRILLIC SUBSCRIPT SMALL LETTER GHE WITH UPTURN'
+let s:d[0x1E068]='CYRILLIC SUBSCRIPT SMALL LETTER BYELORUSSIAN-UKRAINIAN I'
+let s:d[0x1E069]='CYRILLIC SUBSCRIPT SMALL LETTER DZE'
+let s:d[0x1E06A]='CYRILLIC SUBSCRIPT SMALL LETTER DZHE'
+let s:d[0x1E06B]='MODIFIER LETTER CYRILLIC SMALL ES WITH DESCENDER'
+let s:d[0x1E06C]='MODIFIER LETTER CYRILLIC SMALL YERU WITH BACK YER'
+let s:d[0x1E06D]='MODIFIER LETTER CYRILLIC SMALL STRAIGHT U WITH STROKE'
+let s:d[0x1E08F]='COMBINING CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I'
 let s:d[0x1E100]='NYIAKENG PUACHUE HMONG LETTER MA'
 let s:d[0x1E101]='NYIAKENG PUACHUE HMONG LETTER TSA'
 let s:d[0x1E102]='NYIAKENG PUACHUE HMONG LETTER NTA'
@@ -32032,6 +33707,48 @@ let s:d[0x1E2F7]='WANCHO DIGIT SEVEN'
 let s:d[0x1E2F8]='WANCHO DIGIT EIGHT'
 let s:d[0x1E2F9]='WANCHO DIGIT NINE'
 let s:d[0x1E2FF]='WANCHO NGUN SIGN'
+let s:d[0x1E4D0]='NAG MUNDARI LETTER O'
+let s:d[0x1E4D1]='NAG MUNDARI LETTER OP'
+let s:d[0x1E4D2]='NAG MUNDARI LETTER OL'
+let s:d[0x1E4D3]='NAG MUNDARI LETTER OY'
+let s:d[0x1E4D4]='NAG MUNDARI LETTER ONG'
+let s:d[0x1E4D5]='NAG MUNDARI LETTER A'
+let s:d[0x1E4D6]='NAG MUNDARI LETTER AJ'
+let s:d[0x1E4D7]='NAG MUNDARI LETTER AB'
+let s:d[0x1E4D8]='NAG MUNDARI LETTER ANY'
+let s:d[0x1E4D9]='NAG MUNDARI LETTER AH'
+let s:d[0x1E4DA]='NAG MUNDARI LETTER I'
+let s:d[0x1E4DB]='NAG MUNDARI LETTER IS'
+let s:d[0x1E4DC]='NAG MUNDARI LETTER IDD'
+let s:d[0x1E4DD]='NAG MUNDARI LETTER IT'
+let s:d[0x1E4DE]='NAG MUNDARI LETTER IH'
+let s:d[0x1E4DF]='NAG MUNDARI LETTER U'
+let s:d[0x1E4E0]='NAG MUNDARI LETTER UC'
+let s:d[0x1E4E1]='NAG MUNDARI LETTER UD'
+let s:d[0x1E4E2]='NAG MUNDARI LETTER UK'
+let s:d[0x1E4E3]='NAG MUNDARI LETTER UR'
+let s:d[0x1E4E4]='NAG MUNDARI LETTER E'
+let s:d[0x1E4E5]='NAG MUNDARI LETTER ENN'
+let s:d[0x1E4E6]='NAG MUNDARI LETTER EG'
+let s:d[0x1E4E7]='NAG MUNDARI LETTER EM'
+let s:d[0x1E4E8]='NAG MUNDARI LETTER EN'
+let s:d[0x1E4E9]='NAG MUNDARI LETTER ETT'
+let s:d[0x1E4EA]='NAG MUNDARI LETTER ELL'
+let s:d[0x1E4EB]='NAG MUNDARI SIGN OJOD'
+let s:d[0x1E4EC]='NAG MUNDARI SIGN MUHOR'
+let s:d[0x1E4ED]='NAG MUNDARI SIGN TOYOR'
+let s:d[0x1E4EE]='NAG MUNDARI SIGN IKIR'
+let s:d[0x1E4EF]='NAG MUNDARI SIGN SUTUH'
+let s:d[0x1E4F0]='NAG MUNDARI DIGIT ZERO'
+let s:d[0x1E4F1]='NAG MUNDARI DIGIT ONE'
+let s:d[0x1E4F2]='NAG MUNDARI DIGIT TWO'
+let s:d[0x1E4F3]='NAG MUNDARI DIGIT THREE'
+let s:d[0x1E4F4]='NAG MUNDARI DIGIT FOUR'
+let s:d[0x1E4F5]='NAG MUNDARI DIGIT FIVE'
+let s:d[0x1E4F6]='NAG MUNDARI DIGIT SIX'
+let s:d[0x1E4F7]='NAG MUNDARI DIGIT SEVEN'
+let s:d[0x1E4F8]='NAG MUNDARI DIGIT EIGHT'
+let s:d[0x1E4F9]='NAG MUNDARI DIGIT NINE'
 let s:d[0x1E7E0]='ETHIOPIC SYLLABLE HHYA'
 let s:d[0x1E7E1]='ETHIOPIC SYLLABLE HHYU'
 let s:d[0x1E7E2]='ETHIOPIC SYLLABLE HHYI'
@@ -34107,6 +35824,7 @@ let s:d[0x1F6D4]='PAGODA'
 let s:d[0x1F6D5]='HINDU TEMPLE'
 let s:d[0x1F6D6]='HUT'
 let s:d[0x1F6D7]='ELEVATOR'
+let s:d[0x1F6DC]='WIRELESS'
 let s:d[0x1F6DD]='PLAYGROUND SLIDE'
 let s:d[0x1F6DE]='WHEEL'
 let s:d[0x1F6DF]='RING BUOY'
@@ -34252,6 +35970,14 @@ let s:d[0x1F770]='ALCHEMICAL SYMBOL FOR DAY-NIGHT'
 let s:d[0x1F771]='ALCHEMICAL SYMBOL FOR MONTH'
 let s:d[0x1F772]='ALCHEMICAL SYMBOL FOR HALF DRAM'
 let s:d[0x1F773]='ALCHEMICAL SYMBOL FOR HALF OUNCE'
+let s:d[0x1F774]='LOT OF FORTUNE'
+let s:d[0x1F775]='OCCULTATION'
+let s:d[0x1F776]='LUNAR ECLIPSE'
+let s:d[0x1F77B]='HAUMEA'
+let s:d[0x1F77C]='MAKEMAKE'
+let s:d[0x1F77D]='GONGGONG'
+let s:d[0x1F77E]='QUAOAR'
+let s:d[0x1F77F]='ORCUS'
 let s:d[0x1F780]='BLACK LEFT-POINTING ISOSCELES RIGHT TRIANGLE'
 let s:d[0x1F781]='BLACK UP-POINTING ISOSCELES RIGHT TRIANGLE'
 let s:d[0x1F782]='BLACK RIGHT-POINTING ISOSCELES RIGHT TRIANGLE'
@@ -34341,6 +36067,7 @@ let s:d[0x1F7D5]='CIRCLED TRIANGLE'
 let s:d[0x1F7D6]='NEGATIVE CIRCLED TRIANGLE'
 let s:d[0x1F7D7]='CIRCLED SQUARE'
 let s:d[0x1F7D8]='NEGATIVE CIRCLED SQUARE'
+let s:d[0x1F7D9]='NINE POINTED WHITE STAR'
 let s:d[0x1F7E0]='LARGE ORANGE CIRCLE'
 let s:d[0x1F7E1]='LARGE YELLOW CIRCLE'
 let s:d[0x1F7E2]='LARGE GREEN CIRCLE'
@@ -34863,6 +36590,9 @@ let s:d[0x1FA71]='ONE-PIECE SWIMSUIT'
 let s:d[0x1FA72]='BRIEFS'
 let s:d[0x1FA73]='SHORTS'
 let s:d[0x1FA74]='THONG SANDAL'
+let s:d[0x1FA75]='LIGHT BLUE HEART'
+let s:d[0x1FA76]='GREY HEART'
+let s:d[0x1FA77]='PINK HEART'
 let s:d[0x1FA78]='DROP OF BLOOD'
 let s:d[0x1FA79]='ADHESIVE BANDAGE'
 let s:d[0x1FA7A]='STETHOSCOPE'
@@ -34875,6 +36605,8 @@ let s:d[0x1FA83]='BOOMERANG'
 let s:d[0x1FA84]='MAGIC WAND'
 let s:d[0x1FA85]='PINATA'
 let s:d[0x1FA86]='NESTING DOLLS'
+let s:d[0x1FA87]='MARACAS'
+let s:d[0x1FA88]='FLUTE'
 let s:d[0x1FA90]='RINGED PLANET'
 let s:d[0x1FA91]='CHAIR'
 let s:d[0x1FA92]='RAZOR'
@@ -34904,6 +36636,9 @@ let s:d[0x1FAA9]='MIRROR BALL'
 let s:d[0x1FAAA]='IDENTIFICATION CARD'
 let s:d[0x1FAAB]='LOW BATTERY'
 let s:d[0x1FAAC]='HAMSA'
+let s:d[0x1FAAD]='FOLDING HAND FAN'
+let s:d[0x1FAAE]='HAIR PICK'
+let s:d[0x1FAAF]='KHANDA'
 let s:d[0x1FAB0]='FLY'
 let s:d[0x1FAB1]='WORM'
 let s:d[0x1FAB2]='BEETLE'
@@ -34915,12 +36650,18 @@ let s:d[0x1FAB7]='LOTUS'
 let s:d[0x1FAB8]='CORAL'
 let s:d[0x1FAB9]='EMPTY NEST'
 let s:d[0x1FABA]='NEST WITH EGGS'
+let s:d[0x1FABB]='HYACINTH'
+let s:d[0x1FABC]='JELLYFISH'
+let s:d[0x1FABD]='WING'
+let s:d[0x1FABF]='GOOSE'
 let s:d[0x1FAC0]='ANATOMICAL HEART'
 let s:d[0x1FAC1]='LUNGS'
 let s:d[0x1FAC2]='PEOPLE HUGGING'
 let s:d[0x1FAC3]='PREGNANT MAN'
 let s:d[0x1FAC4]='PREGNANT PERSON'
 let s:d[0x1FAC5]='PERSON WITH CROWN'
+let s:d[0x1FACE]='MOOSE'
+let s:d[0x1FACF]='DONKEY'
 let s:d[0x1FAD0]='BLUEBERRIES'
 let s:d[0x1FAD1]='BELL PEPPER'
 let s:d[0x1FAD2]='OLIVE'
@@ -34931,6 +36672,8 @@ let s:d[0x1FAD6]='TEAPOT'
 let s:d[0x1FAD7]='POURING LIQUID'
 let s:d[0x1FAD8]='BEANS'
 let s:d[0x1FAD9]='JAR'
+let s:d[0x1FADA]='GINGER ROOT'
+let s:d[0x1FADB]='PEA POD'
 let s:d[0x1FAE0]='MELTING FACE'
 let s:d[0x1FAE1]='SALUTING FACE'
 let s:d[0x1FAE2]='FACE WITH OPEN EYES AND HAND OVER MOUTH'
@@ -34939,6 +36682,7 @@ let s:d[0x1FAE4]='FACE WITH DIAGONAL MOUTH'
 let s:d[0x1FAE5]='DOTTED LINE FACE'
 let s:d[0x1FAE6]='BITING LIP'
 let s:d[0x1FAE7]='BUBBLES'
+let s:d[0x1FAE8]='SHAKING FACE'
 let s:d[0x1FAF0]='HAND WITH INDEX FINGER AND THUMB CROSSED'
 let s:d[0x1FAF1]='RIGHTWARDS HAND'
 let s:d[0x1FAF2]='LEFTWARDS HAND'
@@ -34946,6 +36690,8 @@ let s:d[0x1FAF3]='PALM DOWN HAND'
 let s:d[0x1FAF4]='PALM UP HAND'
 let s:d[0x1FAF5]='INDEX POINTING AT THE VIEWER'
 let s:d[0x1FAF6]='HEART HANDS'
+let s:d[0x1FAF7]='LEFTWARDS PUSHING HAND'
+let s:d[0x1FAF8]='RIGHTWARDS PUSHING HAND'
 let s:d[0x1FB00]='BLOCK SEXTANT-1'
 let s:d[0x1FB01]='BLOCK SEXTANT-2'
 let s:d[0x1FB02]='BLOCK SEXTANT-12'
@@ -36049,11 +37795,12 @@ let s:ranges = [
       \ [0x17000, 0x187F7, '<Tangut Ideograph>'],
       \ [0x18D00, 0x18D08, '<Tangut Ideograph Supplement>'],
       \ [0x20000, 0x2A6DF, '<CJK Ideograph Extension B>'],
-      \ [0x2A700, 0x2B738, '<CJK Ideograph Extension C>'],
+      \ [0x2A700, 0x2B739, '<CJK Ideograph Extension C>'],
       \ [0x2B740, 0x2B81D, '<CJK Ideograph Extension D>'],
       \ [0x2B820, 0x2CEA1, '<CJK Ideograph Extension E>'],
       \ [0x2CEB0, 0x2EBE0, '<CJK Ideograph Extension F>'],
       \ [0x30000, 0x3134A, '<CJK Ideograph Extension G>'],
+      \ [0x31350, 0x323AF, '<CJK Ideograph Extension H>'],
       \ [0xF0000, 0xFFFFD, '<Plane 15 Private Use>'],
       \ [0x100000, 0x10FFFD, '<Plane 16 Private Use>'],
       \ ]
