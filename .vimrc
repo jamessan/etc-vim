@@ -63,8 +63,10 @@ endif
 
 if &t_Co >= 88
     if has('nvim-0.5')
-        let g:tokyonight_style = 'night'
-        colorscheme tokyonight
+        lua <<EOF
+        require("tokyonight").setup({style = "moon"})
+        vim.cmd[[colorscheme tokyonight]]
+EOF
     else
         let g:jellybeans_use_term_italics = 1
         colorscheme jellybeans
