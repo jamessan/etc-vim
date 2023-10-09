@@ -235,6 +235,15 @@
 !/.vim/bundle/lspconfig/test/minimal_init.lua
 !/.vim/bundle/lspconfig/test/test_dir/a/a_marker.txt
 !/.vim/bundle/lspconfig/test/test_dir/root_marker.txt
+!/.vim/bundle/lsp_lines/coc-extension/index.js
+!/.vim/bundle/lsp_lines/LICENCE
+!/.vim/bundle/lsp_lines/lua/lsp_lines/init.lua
+!/.vim/bundle/lsp_lines/lua/lsp_lines/render.lua
+!/.vim/bundle/lsp_lines/package.json
+!/.vim/bundle/lsp_lines/README.md
+!/.vim/bundle/lsp_lines/screenshot.png
+!/.vim/bundle/lsp_lines/stylua.toml
+!/.vim/bundle/lsp_lines/TODO.md
 !/.vim/bundle/.mrconfig
 !/.vim/bundle/nofrils/colors/nofrils-acme.vim
 !/.vim/bundle/nofrils/colors/nofrils-dark.vim
