@@ -235,6 +235,9 @@ if vim.fn.executable('pylsp') then
         on_attach = on_attach,
     }
 end
+
+require('lsp_lines').setup()
+vim.diagnostic.config({ virtual_lines = { only_current_line = true }})
 EOF
 else
     " Not compatible with Vim or older nvim
