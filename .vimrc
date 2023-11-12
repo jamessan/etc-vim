@@ -267,7 +267,7 @@ let [ debchangelog_fold_enable, debcontrol_fold_enabled ] = [ 1, 1 ]
 let g:GPGDefaultRecipients = [ '0xDFE691AE331BA3DB' ]
 
 " Sy
-let g:signify_vcs_list = filter([ 'git', 'hg', 'svn', 'bzr' ], 'executable(v:val)')
+let g:signify_skip = {'vcs': {'allow': ['git', 'hg', 'svn', 'bzr']}}
 " Only highlight the number column, if it's supported, otherwise use blank
 " text in the sign column
 let s:sign = (has('nvim') || has('vim-8.2.3874')) ? "" : "\u00A0"
