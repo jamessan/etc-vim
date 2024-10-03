@@ -118,7 +118,7 @@ if exists('+numberwidth')
 endif
 set lazyredraw " do not redraw while running macros (much faster)
 set hidden " you can change buffer without saving
-set backspace=2 " make backspace work normal
+set backspace=indent,eol,start " make backspace work normal
 set whichwrap+=<,>  " cursor keys wrap to
 if exists('+mouse')
     set mouse=a " use mouse everywhere
