@@ -30,6 +30,10 @@ if has('autocmd')
             au TextYankPost * silent! lua vim.highlight.on_yank()
         endif
 
+        if has('nvim-0.9')
+            au FileType vim lua vim.treesitter.start(nil, 'vim')
+        endif
+
         autocmd BufReadPost *
                 \ if line("'\"") > 1 && line("'\"") <= line("$") &&
                 \   &ft !~# '\%(^git\%(config\)\@!\|commit\)'
