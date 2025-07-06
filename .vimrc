@@ -34,6 +34,21 @@ if has('autocmd')
             au FileType vim lua vim.treesitter.start(nil, 'vim')
         endif
 
+        if has('nvim-0.10') && executable('debputy')
+            lua << trim EOF
+                vim.api.nvim_create_autocmd('FileType', {
+                    pattern = { 'debcontrol', 'debchangelog', 'debcopyright' },
+                    callback = function(ev)
+                        vim.lsp.start({
+                            name = 'debputy',
+                            cmd = { 'debputy', 'lsp', 'server' },
+                            root_dir = vim.fs.dirname('debian'),
+                        })
+                    end,
+                })
+            EOF
+        endif
+
         autocmd BufReadPost *
                 \ if line("'\"") > 1 && line("'\"") <= line("$") &&
                 \   &ft !~# '\%(^git\%(config\)\@!\|commit\)'
