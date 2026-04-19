@@ -201,66 +201,35 @@ set cpoptions+=n " When 'wrap' is enabled, the 'number' column is used to
 set autoindent
 set tags=.git/tags;.git,.bzr/tags;.bzr,./tags;,tags
 
-if has('nvim-0.5')
+if has('nvim-0.9')
     lua <<EOF
-local nvim_lsp = require 'lspconfig'
+vim.lsp.config['pylsp'] = {
+    cmd = { 'pylsp' },
+    filetypes = { 'python' },
+    root_markers = { { 'pyproject.toml', 'setup.py' } },
+}
 
-local on_attach = function(client, bufnr)
-  local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
-  local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
+vim.lsp.config['rust-analyzer'] = {
+    cmd = { 'rust-analyzer' },
+    filetypes = { 'rust' },
+    root_markers = { 'Cargo.toml' },
+}
 
-  buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
-  buf_set_option('tagfunc', 'v:lua.vim.lsp.tagfunc')
+vim.lsp.config['clangd'] = {
+    cmd = { 'clangd', '--header-insertion=iwyu', '--background-index', '--function-arg-placeholders=1', '--clang-tidy' },
+    filetypes = { 'c', 'cpp' },
+    root_markers = { 'compile_commands.json' },
+}
 
-  -- Mappings.
-  local opts = { noremap=true, silent=true }
+vim.lsp.config('*', {
+    root_markers = { '.git' },
+})
 
-  -- See `:help vim.lsp.*` for documentation on any of the below functions
-  buf_set_keymap('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
-  buf_set_keymap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
-  buf_set_keymap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
-  buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
-  buf_set_keymap('n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
-  buf_set_keymap('n', '<space>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
-  buf_set_keymap('n', '<space>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opts)
-  buf_set_keymap('n', '<space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
-  buf_set_keymap('n', '<space>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
-  buf_set_keymap('n', '<space>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
-  buf_set_keymap('n', '<space>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
-  buf_set_keymap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
-  if vim.fn.has('nvim-0.9') then
-    buf_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
-    buf_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
-    buf_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
-    buf_set_keymap('n', '<space>q', '<cmd>lua vim.diagnostic.set_loclist()<CR>', opts)
-  else
-    buf_set_keymap('n', '<space>e', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', opts)
-    buf_set_keymap('n', '[d', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>', opts)
-    buf_set_keymap('n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
-    buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
-  end
-  buf_set_keymap('n', '<space>f', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
-
-end
-
-for _, lsp in ipairs({ "rust_analyzer", "clangd" }) do
-    nvim_lsp[lsp].setup {
-        on_attach = on_attach,
-    }
-end
-
-if vim.fn.executable('pylsp') then
-    nvim_lsp.pylsp.setup {
-        on_attach = on_attach,
-    }
-end
+vim.lsp.enable({'pylsp', 'rust-analyzer', 'clangd'})
 
 require('lsp_lines').setup()
 vim.diagnostic.config({ virtual_lines = { only_current_line = true }})
 EOF
-else
-    " Not compatible with Vim or older nvim
-    let g:lspconfig = 1
 endif
 
 " Python
