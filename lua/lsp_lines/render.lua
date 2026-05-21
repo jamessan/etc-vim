@@ -23,20 +23,19 @@ local BLANK = "blank"
 
 ---Returns the distance between two columns in cells.
 ---
----Some characters (like tabs) take up more than one cell. A diagnostic aligned
+---Some characters (like tabs) take up more than one cell.
+---Additionally, inline virtual text can make the distance between two columns larger.
+---A diagnostic aligned
 ---under such characters needs to account for that and add that many spaces to
 ---its left.
 ---
 ---@return integer
 local function distance_between_cols(bufnr, lnum, start_col, end_col)
-  local lines = vim.api.nvim_buf_get_lines(bufnr, lnum, lnum + 1, false)
-  if vim.tbl_isempty(lines) then
-    -- This can only happen is the line is somehow gone or out-of-bounds.
-    return 1
-  end
-
-  local sub = string.sub(lines[1], start_col, end_col)
-  return vim.fn.strdisplaywidth(sub, 0) -- these are indexed starting at 0
+  return vim.api.nvim_buf_call(bufnr, function()
+    local s = vim.fn.virtcol({ lnum + 1, start_col })
+    local e = vim.fn.virtcol({ lnum + 1, end_col + 1 })
+    return e - 1 - s
+  end)
 end
 
 ---@param namespace number
@@ -45,12 +44,15 @@ end
 ---@param opts boolean|Opts
 ---@param source 'native'|'coc'|nil If nil, defaults to 'native'.
 function M.show(namespace, bufnr, diagnostics, opts, source)
+  if not vim.api.nvim_buf_is_loaded(bufnr) then
+    return
+  end
   vim.validate({
     namespace = { namespace, "n" },
     bufnr = { bufnr, "n" },
     diagnostics = {
       diagnostics,
-      vim.tbl_islist,
+      vim.islist or vim.tbl_islist,
       "a list of diagnostics",
     },
     opts = { opts, "t", true },
@@ -107,6 +109,8 @@ function M.show(namespace, bufnr, diagnostics, opts, source)
     prev_col = diagnostic.col
   end
 
+  local chars = require("lsp_lines.config").config.box_drawing_characters
+
   for lnum, lelements in pairs(line_stacks) do
     local virt_lines = {}
 
@@ -135,19 +139,22 @@ function M.show(namespace, bufnr, diagnostics, opts, source)
             if multi == 0 then
               table.insert(left, { data, empty_space_hi })
             else
-              table.insert(left, { string.rep("─", data:len()), highlight_groups[diagnostic.severity] })
+              table.insert(left, {
+                string.rep(chars.horizontal, data:len()),
+                highlight_groups[diagnostic.severity],
+              })
             end
           elseif type == DIAGNOSTIC then
             -- If an overlap follows this, don't add an extra column.
             if lelements[j + 1][1] ~= OVERLAP then
-              table.insert(left, { "│", highlight_groups[data.severity] })
+              table.insert(left, { chars.vertical, highlight_groups[data.severity] }) -- │
             end
             overlap = false
           elseif type == BLANK then
             if multi == 0 then
-              table.insert(left, { "└", highlight_groups[data.severity] })
+              table.insert(left, { chars.up_right, highlight_groups[data.severity] }) -- └
             else
-              table.insert(left, { "┴", highlight_groups[data.severity] })
+              table.insert(left, { chars.horizontal_up, highlight_groups[data.severity] }) -- ┴
             end
             multi = multi + 1
           elseif type == OVERLAP then
@@ -157,17 +164,19 @@ function M.show(namespace, bufnr, diagnostics, opts, source)
 
         local center_symbol
         if overlap and multi > 0 then
-          center_symbol = "┼"
+          center_symbol = chars.cross -- ┼
         elseif overlap then
-          center_symbol = "├"
+          center_symbol = chars.vertical_right -- ├
         elseif multi > 0 then
-          center_symbol = "┴"
+          center_symbol = chars.horizontal_up -- ┴
         else
-          center_symbol = "└"
+          center_symbol = chars.up_right -- └
         end
-        -- local center_text =
         local center = {
-          { string.format("%s%s", center_symbol, "──── "), highlight_groups[diagnostic.severity] },
+          {
+            string.format("%s%s", center_symbol, string.rep(chars.horizontal, 4) .. " "),
+            highlight_groups[diagnostic.severity],
+          },
         }
 
         -- TODO: We can draw on the left side if and only if:
@@ -192,7 +201,7 @@ function M.show(namespace, bufnr, diagnostics, opts, source)
 
           -- Special-case for continuation lines:
           if overlap then
-            center = { { "│", highlight_groups[diagnostic.severity] }, { "     ", empty_space_hi } }
+            center = { { chars.vertical, highlight_groups[diagnostic.severity] }, { "     ", empty_space_hi } }
           else
             center = { { "      ", empty_space_hi } }
           end

@@ -26,7 +26,9 @@ end
 
 -- Registers a wrapper-handler to render lsp lines.
 -- This should usually only be called once, during initialisation.
-M.setup = function()
+M.setup = function(options)
+  require("lsp_lines.config").setup(options)
+
   vim.api.nvim_create_augroup("LspLines", { clear = true })
   -- TODO: On LSP restart (e.g.: diagnostics cleared), errors don't go away.
   vim.diagnostic.handlers.virtual_lines = {
