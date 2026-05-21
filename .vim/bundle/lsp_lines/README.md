@@ -29,6 +29,14 @@ diagnostic per line, but there's no way to view more than the first.
 
 # Installation
 
+Clone this repository into neovim's plug-in directory:
+
+    mkdir -p ~/.local/share/nvim/site/pack/plugins/start/
+    cd ~/.local/share/nvim/site/pack/plugins/start/
+    git clone git@git.sr.ht:~whynothugo/lsp_lines.nvim
+
+You may also use a plug-in manager that does this for you.
+
 ## With packer.nvim
 
 Using packer.nvim (this should probably be registered _after_ `lspconfig`):
@@ -42,22 +50,10 @@ use({
 })
 ```
 
-## With git
-
-You can algo just clone the repo into neovim's plug-in directory:
-
-    mkdir -p $HOME/.local/share/nvim/site/pack/plugins/start/
-    cd $HOME/.local/share/nvim/site/pack/plugins/start/
-    git clone git@git.sr.ht:~whynothugo/lsp_lines.nvim
-
-And then in `init.lua`:
-
-    require("lsp_lines").setup()
-
 # Setup
 
-It's recommended to also remove the regular virtual text diagnostics to avoid
-pointless duplication:
+When using this plug-in, the regular virtual text diagnostics becomes
+redundant. It is recommended to disable it:
 
 ```lua
 -- Disable virtual_text since it's redundant due to lsp_lines.
