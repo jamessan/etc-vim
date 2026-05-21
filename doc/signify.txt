@@ -48,6 +48,7 @@ Supported VCS:~
     accurev
     perforce
     tfs
+    jj
     yadm
 <
 ==============================================================================
@@ -163,6 +164,7 @@ The key can be any from this list:
     accurev
     perforce
     tfs
+    jj
 
 Modifiers:~
 
@@ -192,7 +194,7 @@ Default:
     let g:signify_vcs_cmds = {
       \ 'git':      'git diff --no-color --no-ext-diff -U0 -- %f',
       \ 'yadm':     'yadm diff --no-color --no-ext-diff -U0 -- %f',
-      \ 'hg':       'hg diff --color=never --config aliases.diff= --nodates -U0 -- %f',
+      \ 'hg':       'hg --config alias.diff=diff diff --color=never --nodates -U0 -- %f',
       \ 'svn':      'svn diff --diff-cmd %d -x -U0 -- %f',
       \ 'bzr':      'bzr diff --using %d --diff-options=-U0 -- %f',
       \ 'darcs':    'darcs diff --no-pause-for-gui --no-unified --diff-opts=-U0 -- %f',
@@ -200,8 +202,9 @@ Default:
       \ 'cvs':      'cvs diff -U0 -- %f',
       \ 'rcs':      'rcsdiff -U0 %f 2>%n',
       \ 'accurev':  'accurev diff %f -- -U0',
-      \ 'perforce': 'p4 info '. sy#util#shell_redirect('%n') . (has('win32') ? ' &&' : ' && env P4DIFF= P4COLORS=') .' p4 diff -du0 %f',
-      \ 'tfs':      'tf diff -version:W -noprompt -format:Unified %f'
+      \ 'perforce': 'p4 info '. sy#util#shell_redirect('%n') . (has('win32') ? ' && set P4DIFF=&&' : ' && env P4DIFF=') .' p4 diff -du0 %f',
+      \ 'tfs':      'tf diff -version:W -noprompt -format:Unified %f',
+      \ 'jj':       'jj diff --color=never --context=0 -r @ -- %f',
       \ }
 <
 ------------------------------------------------------------------------------
@@ -217,8 +220,9 @@ Default:
       \ 'cvs':      'cvs up -p -- %f 2>%n',
       \ 'rcs':      'co -q -p %f',
       \ 'accurev':  'accurev cat %f',
-      \ 'perforce': 'p4 print %f',
+      \ 'perforce': 'p4 print -q %f',
       \ 'tfs':      'tf view -version:W -noprompt %f',
+      \ 'jj':       'jj file show -r @- -- %f',
       \ }
 <
 The command to use for updating signs in a `modified` buffer, thus when the

@@ -134,7 +134,9 @@ endfunction
 " #popup_close {{{1
 function! sy#util#popup_close() abort
   if s:popup_window
-    call nvim_win_close(s:popup_window, 1)
+    if nvim_win_is_valid(s:popup_window)
+      call nvim_win_close(s:popup_window, 1)
+    endif
     let s:popup_window = 0
   endif
 endfunction
@@ -162,8 +164,8 @@ function! sy#util#popup_create(hunkdiff) abort
   if exists('*nvim_open_win')
     call sy#util#popup_close()
     let buf = nvim_create_buf(0, 1)
-    call nvim_buf_set_option(buf, 'syntax', 'diff')
     call nvim_buf_set_lines(buf, 0, -1, 0, map(a:hunkdiff, 'v:val[0].padding.v:val[1:]'))
+    call nvim_buf_set_option(buf, 'syntax', 'diff')
     let s:popup_window = nvim_open_win(buf, v:false, {
           \ 'relative': 'win',
           \ 'row': winline,
@@ -242,11 +244,17 @@ else
 
     let signlist = execute('sign place buffer='. buf)
     for signline in split(signlist, '\n')[2:]
-      let tokens = matchlist(signline, '\v^\s+\S+\=(\d+)\s+\S+\=(\d+)\s+\S+\=(.*)\s+\S+\=(\d+)$')
+      let tokens = matchlist(signline, '\v^\s+\S+\=(\d+)\s+\S+\=(\d+)\s+\S+\=(.{-})%(\s+\S+\=(\d+))=$')
       let line   = str2nr(tokens[1])
       let id     = str2nr(tokens[2])
       let name   = tokens[3]
-      let priority = str2nr(tokens[4])
+      let priority = tokens[4]
+      if empty(priority)
+        " Older Vim versions didn't report priority, so set the default value
+        " manually
+        let priority = '10'
+      endif
+      let priority = str2nr(priority)
       call add(signs, {
             \ 'lnum': line,
             \ 'id': id,
