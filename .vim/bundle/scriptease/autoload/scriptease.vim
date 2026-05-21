@@ -318,7 +318,7 @@ endfunction
 
 " Section: :Messages
 
-function! scriptease#messages_command(bang, count, arg) abort
+function! scriptease#messages_command(bang, count, arg, mods) abort
   let command = (a:count > -1 ? a:count : '') . 'messages'
   if !empty(a:arg)
     return command . ' ' . a:arg
@@ -400,7 +400,7 @@ function! scriptease#messages_command(bang, count, arg) abort
   if exists(':chistory')
     call setqflist([], 'r', {'title': ':Messages'})
   endif
-  copen
+  exe substitute(a:mods, '<mods>', '', '') 'copen'
   $
   call search('^[^|]', 'bWc')
   return ''
@@ -690,16 +690,17 @@ endfunction
 " Section: :Time
 
 function! scriptease#time_command(cmd, count) abort
+  let cmd = scriptease#prepare_eval(a:cmd)
   let time = reltime()
   try
     if a:count > 1
       let i = 0
       while i < a:count
-        execute a:cmd
+        execute cmd
         let i += 1
       endwhile
     else
-      execute a:cmd
+      execute cmd
     endif
   finally
     let elapsed = reltime(time)
