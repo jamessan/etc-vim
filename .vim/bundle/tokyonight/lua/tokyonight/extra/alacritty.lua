@@ -4,50 +4,42 @@ local M = {}
 
 --- @param colors ColorScheme
 function M.generate(colors)
-  local alacrittyColors = {}
-  for k, v in pairs(colors) do
-    if type(v) == "string" then
-      alacrittyColors[k] = v:gsub("^#", "0x")
-    end
-  end
-
   local alacritty = util.template(
-    [[
+    [=[
+# -----------------------------------------------------------------------------
 # TokyoNight Alacritty Colors
-colors:
-  # Default colors
-  primary:
-    background: '${bg}'
-    foreground: '${fg}'
+# Theme: ${_style_name}
+# Upstream: ${_upstream_url}
+# -----------------------------------------------------------------------------
 
-  # Normal colors
-  normal:
-    black:   '${black}'
-    red:     '${red}'
-    green:   '${green}'
-    yellow:  '${yellow}'
-    blue:    '${blue}'
-    magenta: '${magenta}'
-    cyan:    '${cyan}'
-    white:   '${fg_dark}'
+# Default colors
+[colors.primary]
+background = '${bg}'
+foreground = '${fg}'
 
-  # Bright colors
-  bright:
-    black:   '${terminal_black}'
-    red:     '${red}'
-    green:   '${green}'
-    yellow:  '${yellow}'
-    blue:    '${blue}'
-    magenta: '${magenta}'
-    cyan:    '${cyan}'
-    white:   '${fg}'
+# Normal colors
+[colors.normal]
+black = '${terminal.black}'
+red = '${terminal.red}'
+green = '${terminal.green}'
+yellow = '${terminal.yellow}'
+blue = '${terminal.blue}'
+magenta = '${terminal.magenta}'
+cyan = '${terminal.cyan}'
+white = '${terminal.white}'
 
-  indexed_colors:
-    - { index: 16, color: '${orange}' }
-    - { index: 17, color: '${red1}' }
-    
-  ]],
-    alacrittyColors
+# Bright colors
+[colors.bright]
+black = '${terminal.black_bright}'
+red = '${terminal.red_bright}'
+green = '${terminal.green_bright}'
+yellow = '${terminal.yellow_bright}'
+blue = '${terminal.blue_bright}'
+magenta = '${terminal.magenta_bright}'
+cyan = '${terminal.cyan_bright}'
+white = '${terminal.white_bright}'
+]=],
+    colors
   )
 
   return alacritty

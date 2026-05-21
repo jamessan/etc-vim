@@ -1,5 +1,527 @@
 # Changelog
 
+## [4.14.1](https://github.com/folke/tokyonight.nvim/compare/v4.14.0...v4.14.1) (2025-10-23)
+
+
+### Bug Fixes
+
+* **eza:** fix missing closing quote in group_other foreground color ([a773606](https://github.com/folke/tokyonight.nvim/commit/a7736062bb16731fe0b9b9257f869c50cb17bb1b))
+* **eza:** fix yaml theme ([#745](https://github.com/folke/tokyonight.nvim/issues/745)) ([2391241](https://github.com/folke/tokyonight.nvim/commit/2391241ded13d86cce3855dc4514c56b6e55b829))
+
+## [4.14.0](https://github.com/folke/tokyonight.nvim/compare/v4.13.0...v4.14.0) (2025-10-23)
+
+
+### Features
+
+* **extra:** add active buffer styling for helix ([#694](https://github.com/folke/tokyonight.nvim/issues/694)) ([c4aac4c](https://github.com/folke/tokyonight.nvim/commit/c4aac4c2e7a03e6d2fb61cef8d232d647b6677af))
+* **extra:** add aider theme ([#706](https://github.com/folke/tokyonight.nvim/issues/706)) ([e052d5e](https://github.com/folke/tokyonight.nvim/commit/e052d5ed460e8ead4fb0bc46470b4e811156ebbe))
+* **extra:** add btop themes ([#711](https://github.com/folke/tokyonight.nvim/issues/711)) ([bbfa111](https://github.com/folke/tokyonight.nvim/commit/bbfa111538184c7424b639cefc42c236e03acb8f))
+* **extra:** add Tailwind CSS v4 ([#701](https://github.com/folke/tokyonight.nvim/issues/701)) ([ffbdbc1](https://github.com/folke/tokyonight.nvim/commit/ffbdbc1645419951589a229cbb549087892c3a91))
+* **extra:** add theme for ish ([#710](https://github.com/folke/tokyonight.nvim/issues/710)) ([5b6cd88](https://github.com/folke/tokyonight.nvim/commit/5b6cd88292f54bba8a5a4c34b27c388891430a80))
+* **extra:** add themes for opencode ([#723](https://github.com/folke/tokyonight.nvim/issues/723)) ([b56826b](https://github.com/folke/tokyonight.nvim/commit/b56826b2011d1f00eac952616b0f0b2eb9ec1a6b))
+* **extra:** add Vivaldi Browser themes ([#702](https://github.com/folke/tokyonight.nvim/issues/702)) ([c3ec3dd](https://github.com/folke/tokyonight.nvim/commit/c3ec3dda3458180deec9485cf41dfb9b54fe860e))
+* **extra:** migrate eza to theme builder ([#708](https://github.com/folke/tokyonight.nvim/issues/708)) ([574267b](https://github.com/folke/tokyonight.nvim/commit/574267bec9e7d5ce7fd5d4af1e9edcb221890df9))
+* **extras:** added qterminal theme ([#712](https://github.com/folke/tokyonight.nvim/issues/712)) ([e93b4dc](https://github.com/folke/tokyonight.nvim/commit/e93b4dcb57b7d1ea50a542ea9605306295c8b41d))
+* **extras:** added themes for Konsole ([#742](https://github.com/folke/tokyonight.nvim/issues/742)) ([df3c520](https://github.com/folke/tokyonight.nvim/commit/df3c5209c4ec3e0cf714fca73078adff505d6421))
+
+
+### Bug Fixes
+
+* **extra spotify_player:** use terminal.white for white ([#693](https://github.com/folke/tokyonight.nvim/issues/693)) ([15e47fb](https://github.com/folke/tokyonight.nvim/commit/15e47fb5fcfb01008206c2a849b07705468fc5eb))
+* **extra yazi:** replace deprecated `manager` table ([#721](https://github.com/folke/tokyonight.nvim/issues/721)) ([eace6fa](https://github.com/folke/tokyonight.nvim/commit/eace6fae11a3c2b18e4fb95b3b6d9187ccf0f67e))
+* **extra:** cleanup alacritty theme ([#704](https://github.com/folke/tokyonight.nvim/issues/704)) ([bb43c34](https://github.com/folke/tokyonight.nvim/commit/bb43c3489660a6ad4e7e04c321453d6c2f2fff97))
+* **fish:** extra indent ([#719](https://github.com/folke/tokyonight.nvim/issues/719)) ([8c6d9ab](https://github.com/folke/tokyonight.nvim/commit/8c6d9ab7fa14937c508fd1b3a0a6f7900881e140))
+* **groups:** transparent bufferline background ([#677](https://github.com/folke/tokyonight.nvim/issues/677)) ([771d326](https://github.com/folke/tokyonight.nvim/commit/771d326b16497f6a6384f31d592e0ec777bc54a9))
+* **snacks:** new footer keys ([008187b](https://github.com/folke/tokyonight.nvim/commit/008187b4ccf93b4a7fc7011aca4110bb7c390283))
+
+## [4.13.0](https://github.com/folke/tokyonight.nvim/compare/v4.12.0...v4.13.0) (2025-09-27)
+
+
+### Features
+
+* **base:** added support for `vim.lsp.inline_completion` ([620bd82](https://github.com/folke/tokyonight.nvim/commit/620bd82b3b61af12111b771e0a56242b84c6f030))
+* **plugins:** added support for sidekick.nvim ([954bfab](https://github.com/folke/tokyonight.nvim/commit/954bfab64ec64e90e65f7f632b47f961eb740d77))
+
+## [4.12.0](https://github.com/folke/tokyonight.nvim/compare/v4.11.0...v4.12.0) (2025-09-17)
+
+
+### Features
+
+* **extra:** add (better-)discord theme ([#662](https://github.com/folke/tokyonight.nvim/issues/662)) ([9578c6f](https://github.com/folke/tokyonight.nvim/commit/9578c6fe68af1db513914a2a01bea5585f3027db))
+* **extras:** update for yazi 0.4 ([#671](https://github.com/folke/tokyonight.nvim/issues/671)) ([eaa64ed](https://github.com/folke/tokyonight.nvim/commit/eaa64ed7c87febca7d596c65e0afad8d15bdd34a))
+* **git:** better `git` highlights ([ea54d9e](https://github.com/folke/tokyonight.nvim/commit/ea54d9e450ab2463028be94c6020544887f149a0))
+* **snacks:** added hl groups for pick win current ([13fffc2](https://github.com/folke/tokyonight.nvim/commit/13fffc28242a655cff6acf7bea822d26610ac055))
+* **snacks:** flags ([c3ab53c](https://github.com/folke/tokyonight.nvim/commit/c3ab53c3f544e4a04f2a05d43451fd9bedff51b4))
+* **snacks:** support for `edit_win` ([55f4cf1](https://github.com/folke/tokyonight.nvim/commit/55f4cf1224c18babec8e4a0048d4e96580e5ef21))
+* **snacks:** tmp hl groups for testing snacks picker ([6d39d13](https://github.com/folke/tokyonight.nvim/commit/6d39d135439575c95390b95a3042b0c54ef36020))
+
+
+### Bug Fixes
+
+* **blink:** blink highlight group additions ([#666](https://github.com/folke/tokyonight.nvim/issues/666)) ([22b701b](https://github.com/folke/tokyonight.nvim/commit/22b701b36672b4e489eb3003fa439d11d7464b7b))
+* **extra fzf:** shell escaping ([#678](https://github.com/folke/tokyonight.nvim/issues/678)) ([717bd56](https://github.com/folke/tokyonight.nvim/commit/717bd5662b79d7c0727867530118983dd2feb0ec))
+* **snacks:** EditWin =&gt; PickWin ([0db7089](https://github.com/folke/tokyonight.nvim/commit/0db70891ba33562f8658d43665a81fab40082c60))
+* **treesitter:** import module color ([#674](https://github.com/folke/tokyonight.nvim/issues/674)) ([0c68bc3](https://github.com/folke/tokyonight.nvim/commit/0c68bc3876897613110a2f71340f2dc760c9c761))
+* **vim:** colors_name. Closes [#686](https://github.com/folke/tokyonight.nvim/issues/686) ([ce13047](https://github.com/folke/tokyonight.nvim/commit/ce13047edeb4b8e163090975624506f2857e2ece))
+
+## [4.11.0](https://github.com/folke/tokyonight.nvim/compare/v4.10.0...v4.11.0) (2024-12-10)
+
+
+### Features
+
+* better rainbow colors ([17ec71c](https://github.com/folke/tokyonight.nvim/commit/17ec71ccd96e9c5d69f3e299b5490ac8b5f00fc8))
+* **snacks:** hl groups for upcoming plugins ([f0c4046](https://github.com/folke/tokyonight.nvim/commit/f0c40463db98a74c846ff39226f6f6d6b4731f46))
+* **snacks:** profiler hl groups ([3cc1488](https://github.com/folke/tokyonight.nvim/commit/3cc148893b211cbd4dc36b55353a6a9d4623bf66))
+* **snakcks:** more groups ([5c52ff8](https://github.com/folke/tokyonight.nvim/commit/5c52ff8269e96501001eea93bd0d500e25634201))
+
+
+### Bug Fixes
+
+* **alacritty:** update alacritty theme to use the new terminal colors ([#656](https://github.com/folke/tokyonight.nvim/issues/656)) ([cc18688](https://github.com/folke/tokyonight.nvim/commit/cc186889842b455bfb9282e551613dfb9f1e3299)), closes [#648](https://github.com/folke/tokyonight.nvim/issues/648)
+
+## [4.10.0](https://github.com/folke/tokyonight.nvim/compare/v4.9.0...v4.10.0) (2024-11-19)
+
+
+### Features
+
+* added support for blink.cmp ([34d2ae8](https://github.com/folke/tokyonight.nvim/commit/34d2ae829362c5ed947dac59dec265b95b4e6675))
+* added support for snacks.nvim ([ae19966](https://github.com/folke/tokyonight.nvim/commit/ae1996619b465e424c3bbc0854c7db8a9d26d57f))
+* added support for supermaven & codeium ([38d01f7](https://github.com/folke/tokyonight.nvim/commit/38d01f75d64c2862216cd4271aa7576b9dd20da8))
+* copilot ghost text ([04d33f5](https://github.com/folke/tokyonight.nvim/commit/04d33f5555b7fd297096fe93073fba9bdcd2a3fe))
+* **snacks:** dashboard styles ([5749102](https://github.com/folke/tokyonight.nvim/commit/5749102c210eb9915423b658af83f03986d16999))
+
+
+### Bug Fixes
+
+* **termux:** update termux theme to use the new terminal colors ([#651](https://github.com/folke/tokyonight.nvim/issues/651)) ([57d8ae6](https://github.com/folke/tokyonight.nvim/commit/57d8ae6d46f330ebd223d9f9e5b790dad0254b7d))
+
+## [4.9.0](https://github.com/folke/tokyonight.nvim/compare/v4.8.0...v4.9.0) (2024-10-23)
+
+
+### Features
+
+* **extras:** add eza theme ([#643](https://github.com/folke/tokyonight.nvim/issues/643)) ([c426aeb](https://github.com/folke/tokyonight.nvim/commit/c426aebed9b12a1ac8da96bb3c6aae5dd514523d))
+* **extras:** add termux colors ([#645](https://github.com/folke/tokyonight.nvim/issues/645)) ([de09580](https://github.com/folke/tokyonight.nvim/commit/de09580bdcadb2182d2ba34b2d77ad99d80f38c2))
+* **extras:** added Ghostty themes ([c805eb8](https://github.com/folke/tokyonight.nvim/commit/c805eb89c621110bd59c0c398d3985d7deaeb6c8))
+* **supermaven:** add support for supermaven-nvim ([#633](https://github.com/folke/tokyonight.nvim/issues/633)) ([9699675](https://github.com/folke/tokyonight.nvim/commit/9699675f988ad5a2df21b7875362af6d15d0f53c))
+* **terminal:** bright ansi colors ([#648](https://github.com/folke/tokyonight.nvim/issues/648)) ([5e64b21](https://github.com/folke/tokyonight.nvim/commit/5e64b21b27eb96858b871852e73f6d9d3a5be662))
+
+
+### Bug Fixes
+
+* **groups:** changing the transparent option now correctly invalidates the cache ([#632](https://github.com/folke/tokyonight.nvim/issues/632)) ([f31be07](https://github.com/folke/tokyonight.nvim/commit/f31be0765a8df4ed400394436064c55f73dde8ac))
+* **mini_tabline:** make MiniTablineTabpagesection more visible ([#621](https://github.com/folke/tokyonight.nvim/issues/621)) ([b329f4f](https://github.com/folke/tokyonight.nvim/commit/b329f4f4c656c781d85e961c57c951cec179e2c9))
+* **terminal:** assign magenta to correct terminal color ([#640](https://github.com/folke/tokyonight.nvim/issues/640)) ([cc0e0e2](https://github.com/folke/tokyonight.nvim/commit/cc0e0e28a491074c6e70b837c745f002299c58ec))
+* **tmux:** use 24h format ([#624](https://github.com/folke/tokyonight.nvim/issues/624)) ([65837cc](https://github.com/folke/tokyonight.nvim/commit/65837ccb61ed0f05de0417d50d27ec01a2aef2fd))
+* **which-key:** delete duplicate WhichKeySeparator group ([#639](https://github.com/folke/tokyonight.nvim/issues/639)) ([63e5f2e](https://github.com/folke/tokyonight.nvim/commit/63e5f2e8e8024bc16df3a2d82ede08cba63b72ea))
+* **zathura:** highlight transparency ([#638](https://github.com/folke/tokyonight.nvim/issues/638)) ([b6d01e7](https://github.com/folke/tokyonight.nvim/commit/b6d01e7bf413d1656c114245bd1cd76b44e1b07d))
+
+## [4.8.0](https://github.com/folke/tokyonight.nvim/compare/v4.7.0...v4.8.0) (2024-07-23)
+
+
+### Features
+
+* added support for markdown.nvim ([71429c9](https://github.com/folke/tokyonight.nvim/commit/71429c97b7aeafecf333fa825a85eadb21426146))
+* **extras:** add fuzzel theme ([#611](https://github.com/folke/tokyonight.nvim/issues/611)) ([7cd2a7e](https://github.com/folke/tokyonight.nvim/commit/7cd2a7e690515f695c396c4c765270259ef7b1f4))
+* grug-far ([8fb4f4d](https://github.com/folke/tokyonight.nvim/commit/8fb4f4d8c3f0b5a0c6e0d5bd192e6747b880abaa))
+* inline code style for markdown.nvim ([65017b9](https://github.com/folke/tokyonight.nvim/commit/65017b9929491e908a589d63910f2569528855dd))
+
+
+### Bug Fixes
+
+* **markdown.nvim:** link ([420cb9b](https://github.com/folke/tokyonight.nvim/commit/420cb9b777d319adf132ffe505414a0b38b432ff))
+
+## [4.7.0](https://github.com/folke/tokyonight.nvim/compare/v4.6.0...v4.7.0) (2024-07-18)
+
+
+### Features
+
+* added support for grug-far.nvim ([5e337dd](https://github.com/folke/tokyonight.nvim/commit/5e337ddb8f957953b6efb9a224fd74038bd2228c))
+* **extras:** add process-compose extra ([#606](https://github.com/folke/tokyonight.nvim/issues/606)) ([0804670](https://github.com/folke/tokyonight.nvim/commit/08046705ba488f903e7ef3e823ccacc5775e1483))
+* **extras:** add Vimium theme ([#607](https://github.com/folke/tokyonight.nvim/issues/607)) ([2603e00](https://github.com/folke/tokyonight.nvim/commit/2603e006ebdc4df5dc80f38d45fcb01fd4af06fe))
+
+## [4.6.0](https://github.com/folke/tokyonight.nvim/compare/v4.5.0...v4.6.0) (2024-07-15)
+
+
+### Features
+
+* allow adding custom palettes. Fixes [#595](https://github.com/folke/tokyonight.nvim/issues/595) ([fd2afb6](https://github.com/folke/tokyonight.nvim/commit/fd2afb632ec341ebadcca82326f74af5b2d0855b))
+
+
+### Bug Fixes
+
+* **which-key:** WhichKeyNormal ([b0a0512](https://github.com/folke/tokyonight.nvim/commit/b0a051251d2ff2ebe9dbacbe2c829106ebee68b3))
+
+## [4.5.0](https://github.com/folke/tokyonight.nvim/compare/v4.4.0...v4.5.0) (2024-07-13)
+
+
+### Features
+
+* helpExample (checkhealth) ([7f41b0e](https://github.com/folke/tokyonight.nvim/commit/7f41b0e085e2f080d3074ac63956761349bde137))
+
+
+### Bug Fixes
+
+* **fish:** use magenta for option color ([78cc1ae](https://github.com/folke/tokyonight.nvim/commit/78cc1ae48a26990dd028f4098892a5d6c041e194))
+* **nvim-tree:** corrected plugin name. Fixes [#593](https://github.com/folke/tokyonight.nvim/issues/593) ([66a272b](https://github.com/folke/tokyonight.nvim/commit/66a272ba6cf93bf303c4b7a91b100ca0dd3ec7bd))
+* **theme:** apply terminal colors right away. Fixes [#591](https://github.com/folke/tokyonight.nvim/issues/591) ([70c6334](https://github.com/folke/tokyonight.nvim/commit/70c6334812654bf36d107f69a9b46d4c1dff08c2))
+* **treesitter:** make jsx tags the same as tsx. Closes [#597](https://github.com/folke/tokyonight.nvim/issues/597) ([468866d](https://github.com/folke/tokyonight.nvim/commit/468866de6db4f5a4e758b1445785d4c99d6230bc))
+
+## [4.4.0](https://github.com/folke/tokyonight.nvim/compare/v4.3.1...v4.4.0) (2024-07-08)
+
+
+### Features
+
+* **dashboard:** add dashboard hyper theme ([#585](https://github.com/folke/tokyonight.nvim/issues/585)) ([4ef411d](https://github.com/folke/tokyonight.nvim/commit/4ef411d791969dbeb290c790cd4da6c21acfaa89))
+* **fish:** add `fish_color_option` ([#586](https://github.com/folke/tokyonight.nvim/issues/586)) ([a03f84e](https://github.com/folke/tokyonight.nvim/commit/a03f84ece2608fcebb18575b7de19f46c82c0bcd))
+* **zellij:** make top and bottom bars transparent ([#587](https://github.com/folke/tokyonight.nvim/issues/587)) ([ca9f7b8](https://github.com/folke/tokyonight.nvim/commit/ca9f7b82a73cd5ab44f662add0cadae2ec55b345))
+
+## [4.3.1](https://github.com/folke/tokyonight.nvim/compare/v4.3.0...v4.3.1) (2024-07-06)
+
+
+### Bug Fixes
+
+* **leap:** use `LeapLabel` ([#582](https://github.com/folke/tokyonight.nvim/issues/582)) ([9460bc9](https://github.com/folke/tokyonight.nvim/commit/9460bc9bf570b1811a6bf24232be8a9439330d0e))
+* **vimwiki:** `VimwikiHeader` highlights and URL metadata ([#575](https://github.com/folke/tokyonight.nvim/issues/575)) ([d8e570f](https://github.com/folke/tokyonight.nvim/commit/d8e570fc1b693a8a0d4ea4d0cb5a33596fcb2871))
+
+## [4.3.0](https://github.com/folke/tokyonight.nvim/compare/v4.2.0...v4.3.0) (2024-07-04)
+
+
+### Features
+
+* added vimwiki support. Closes [#297](https://github.com/folke/tokyonight.nvim/issues/297) ([8850021](https://github.com/folke/tokyonight.nvim/commit/8850021bed1d8595581a5903fd03acacf0d12af5))
+* **extra:** add aerc mail client theme ([#502](https://github.com/folke/tokyonight.nvim/issues/502)) ([fe0a7a0](https://github.com/folke/tokyonight.nvim/commit/fe0a7a03d29c3b93efa9bdebba3d33fc2e7cc813))
+* **extras:** add GNOME terminal ([#489](https://github.com/folke/tokyonight.nvim/issues/489)) ([8605183](https://github.com/folke/tokyonight.nvim/commit/8605183ab4c3cf3aeca7fac0db5f39d7c46cd865))
+
+
+### Bug Fixes
+
+* **vim:** sort attriutes ([0ded111](https://github.com/folke/tokyonight.nvim/commit/0ded111741c6b3e02bc913639fba6f87aed0a911))
+
+## [4.2.0](https://github.com/folke/tokyonight.nvim/compare/v4.1.3...v4.2.0) (2024-07-04)
+
+
+### Features
+
+* **extras:** add Slack Theme ([#518](https://github.com/folke/tokyonight.nvim/issues/518)) ([a4ba234](https://github.com/folke/tokyonight.nvim/commit/a4ba234877d2d36a4e3e3c4cc1528ec272ba163b))
+* **extras:** add spotify_player colors ([#498](https://github.com/folke/tokyonight.nvim/issues/498)) ([6c11436](https://github.com/folke/tokyonight.nvim/commit/6c114363ac2b7f72392675c17fa78b1ee7fd7acf))
+
+
+### Bug Fixes
+
+* **dev:** refactored to make it easier to use for other colorschemes ([9652b3c](https://github.com/folke/tokyonight.nvim/commit/9652b3ce9e97116fa0fb202059ff9e4d318761d5))
+* **groups:** allow plugin name or group name. Fixes [#562](https://github.com/folke/tokyonight.nvim/issues/562) ([12d8137](https://github.com/folke/tokyonight.nvim/commit/12d813726b2785a3dc3000b1263fc13b90556d13))
+* **indentmini:** add hl group for indentmini plugin ([#570](https://github.com/folke/tokyonight.nvim/issues/570)) ([6a7cd4d](https://github.com/folke/tokyonight.nvim/commit/6a7cd4d97fca90af08f05d0b293cfd77dda3c647))
+
+## [4.1.3](https://github.com/folke/tokyonight.nvim/compare/v4.1.2...v4.1.3) (2024-07-03)
+
+
+### Bug Fixes
+
+* **groups:** fixed enabling/disabling plugins. Closes [#562](https://github.com/folke/tokyonight.nvim/issues/562) ([2b453ba](https://github.com/folke/tokyonight.nvim/commit/2b453ba508796836bc00ac84cc677753bd004226))
+* **mini.icons:** grey back to fg ([8f92c4e](https://github.com/folke/tokyonight.nvim/commit/8f92c4e4c2eb573cb05c21b57a4c52c398f38674))
+* **mini.icons:** use comment color as grey ([c756243](https://github.com/folke/tokyonight.nvim/commit/c75624326a19402bc342e24b443eede33d6fe6e6))
+
+## [4.1.2](https://github.com/folke/tokyonight.nvim/compare/v4.1.1...v4.1.2) (2024-07-03)
+
+
+### Bug Fixes
+
+* fixup ([8c0d9e3](https://github.com/folke/tokyonight.nvim/commit/8c0d9e315f3e992d2eb356525902e042a9eb4eb9))
+* **helix:** fix markup broken generated values ([#560](https://github.com/folke/tokyonight.nvim/issues/560)) ([8ba07a0](https://github.com/folke/tokyonight.nvim/commit/8ba07a059fec7a533c73ae9cee2ffb7e04716757))
+* **mini-satusline:** reverse colors of devinfo and fileinfo with filename to make the colors look like lualine for mini.statusline ([#564](https://github.com/folke/tokyonight.nvim/issues/564)) ([29e9fce](https://github.com/folke/tokyonight.nvim/commit/29e9fce3184c534936897dfae537e9aa10c280b1))
+* **mini:** indent =&gt; indentscope ([a30eddd](https://github.com/folke/tokyonight.nvim/commit/a30edddce44fce4018316b5c4ca6c5ae9bc3215f))
+* release-please ([a5c56a5](https://github.com/folke/tokyonight.nvim/commit/a5c56a502bc7e05c8abe46b3ad36fd6ac0ff0057))
+* respect vim.o.background. Fixes [#565](https://github.com/folke/tokyonight.nvim/issues/565) ([a96bfa0](https://github.com/folke/tokyonight.nvim/commit/a96bfa0c04aac61ed731e85e487d18ba38864bc4))
+
+## [4.1.1](https://github.com/folke/tokyonight.nvim/compare/v4.1.0...v4.1.1) (2024-07-02)
+
+
+### Bug Fixes
+
+* correctly deal with background light/dark. Fixes [#554](https://github.com/folke/tokyonight.nvim/issues/554) ([0717599](https://github.com/folke/tokyonight.nvim/commit/07175991c38a5e41ffe8bdb06197a116a46370ae))
+* **lualine:** make lualine work again with just tokyonight. Fixes [#551](https://github.com/folke/tokyonight.nvim/issues/551) ([5d2fc75](https://github.com/folke/tokyonight.nvim/commit/5d2fc752264cbd9cefc668b300d4aa44ef531174))
+* **mini:** hue -&gt; icons ([5808dbe](https://github.com/folke/tokyonight.nvim/commit/5808dbed0682270f0c40ae7a1bc517ad1fbcaede))
+* **util:** bring back lighten/darken. Fixes [#556](https://github.com/folke/tokyonight.nvim/issues/556) ([72a99aa](https://github.com/folke/tokyonight.nvim/commit/72a99aa3dd93e9c1a017c7c972ea597164031ee0))
+
+## [4.1.0](https://github.com/folke/tokyonight.nvim/compare/v4.0.0...v4.1.0) (2024-07-02)
+
+
+### Features
+
+* **dev:** highlight hl_groups and colors using hipatterns ([c05b9f6](https://github.com/folke/tokyonight.nvim/commit/c05b9f60f0ab3cae1ad64976212925b1a898760a))
+* **dev:** show terminal colors ([32100f4](https://github.com/folke/tokyonight.nvim/commit/32100f4dfbffc4997d97de5412a68602ca1e217c))
+* **extras:** added vim colorschemes. Fixes [#256](https://github.com/folke/tokyonight.nvim/issues/256) ([4c89692](https://github.com/folke/tokyonight.nvim/commit/4c896923e2931bb562b17325e2095eb2de8da886))
+
+
+### Bug Fixes
+
+* **build:** add additional inputs to check if rebuild is needed ([55e29a1](https://github.com/folke/tokyonight.nvim/commit/55e29a1208946798335924917efbabb0edb21098))
+* **dev:** hipatterns not optional ([4fafe7b](https://github.com/folke/tokyonight.nvim/commit/4fafe7b5600caec7bb226a23debdcf0c8e88cee4))
+* **dev:** make autocmds work with all lua files in tokyonight ([a9851c5](https://github.com/folke/tokyonight.nvim/commit/a9851c5b44fe2fa5757080fd83e8ae4100a27c3e))
+* **extras:** day bg ([5598215](https://github.com/folke/tokyonight.nvim/commit/5598215fa06572048bc857c9c71378a5433ec070))
+* fixed day themes ([4e8e7eb](https://github.com/folke/tokyonight.nvim/commit/4e8e7ebfe906c3cd7527bf2cd11d30238961507b))
+* **helix:** fix some broken generated values ([#519](https://github.com/folke/tokyonight.nvim/issues/519)) ([972d345](https://github.com/folke/tokyonight.nvim/commit/972d345361d8e55f1ce184ca2297cf9b3af53393))
+* **neo-tree:** handle transparent sidebars. Fixes [#551](https://github.com/folke/tokyonight.nvim/issues/551) ([b085271](https://github.com/folke/tokyonight.nvim/commit/b085271cd206db38080ddc43e109b869daa14308))
+* **neo-tree:** tabs. Fixes [#513](https://github.com/folke/tokyonight.nvim/issues/513) ([d25e7b1](https://github.com/folke/tokyonight.nvim/commit/d25e7b1a6dbfbcc9103e092631b0d3f0962aab1c))
+* **terminal:** slightly brighten bright colors ([4052d57](https://github.com/folke/tokyonight.nvim/commit/4052d57beb10affdaf8fe9ffa31c80fa17f6963d))
+* **xfceterm:** colorscheme name fix ([#520](https://github.com/folke/tokyonight.nvim/issues/520)) ([7b7cfeb](https://github.com/folke/tokyonight.nvim/commit/7b7cfeb5df9c09c2f5807b81e21274ba404ed1a3))
+
+## [4.0.0](https://github.com/folke/tokyonight.nvim/compare/v3.0.1...v4.0.0) (2024-07-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* rewrite v4 ([#548](https://github.com/folke/tokyonight.nvim/issues/548))
+
+### Features
+
+* added support for indentmini ([3c19449](https://github.com/folke/tokyonight.nvim/commit/3c194496dd5b640e1aefd9492c34d04ddbb1f136))
+* added support for mini.diff ([9afae4d](https://github.com/folke/tokyonight.nvim/commit/9afae4de8d335a421ee9d2205373b1ad6c854fb2))
+* added support for octo.nvim ([894ee8b](https://github.com/folke/tokyonight.nvim/commit/894ee8bcd5e7fec999c6695cfa353a421b86424b))
+* added support for printf ([41d80ad](https://github.com/folke/tokyonight.nvim/commit/41d80ad2f813b886c1695751e89e599b57d4ed93))
+* better colors for neotree git modified / untracked ([e7ff2f0](https://github.com/folke/tokyonight.nvim/commit/e7ff2f06b0550907afc8243089fda7a478827474))
+* better fzf dir part colors ([a6ce2df](https://github.com/folke/tokyonight.nvim/commit/a6ce2df30ab10e5e213f3f6d6910ea5a5d1f17ea))
+* **extras:** add lazygit ([#537](https://github.com/folke/tokyonight.nvim/issues/537)) ([226a2f1](https://github.com/folke/tokyonight.nvim/commit/226a2f1c388f08df6f75be1bc791d3fac280119c))
+* **extras:** add yazi theme ([#521](https://github.com/folke/tokyonight.nvim/issues/521)) ([2969eb4](https://github.com/folke/tokyonight.nvim/commit/2969eb4e31c23fc0dc98d8b793df10b598aed762))
+* **extras:** edit yazi find_position bg to NoiceVirtualText bg ([#532](https://github.com/folke/tokyonight.nvim/issues/532)) ([1a9dff7](https://github.com/folke/tokyonight.nvim/commit/1a9dff7f18cd21009d0633ee81f80fea36d061ae))
+* fzf-lua ([0f9d161](https://github.com/folke/tokyonight.nvim/commit/0f9d1618f40ce276e6c6be80cfbb24aa049b4880))
+* **fzf:** better colors ([63765c3](https://github.com/folke/tokyonight.nvim/commit/63765c355954142183e3fc02a2fde2c6d8007f85))
+* **fzf:** bring fzf extra in line with fzf-lua tokyonight colorscheme ([0246217](https://github.com/folke/tokyonight.nvim/commit/024621763d91bb48f2b486df529c7aaeb8d6d355))
+* **ibl:** use blue for indent context ([db0a4d4](https://github.com/folke/tokyonight.nvim/commit/db0a4d4c5de8b76f37855f3108a9288a4df1a2cb))
+* **mini:** add new highlight groups ([#545](https://github.com/folke/tokyonight.nvim/issues/545)) ([096543e](https://github.com/folke/tokyonight.nvim/commit/096543e112744eb94947cc3c5a916fff1deea2f0))
+* new style for line nr ([aabb529](https://github.com/folke/tokyonight.nvim/commit/aabb52985c316368c482deb10e1529852f7feddd))
+* noice cmdline colors ([8f72b06](https://github.com/folke/tokyonight.nvim/commit/8f72b0600f157141b0c9bb3a9df73d75345a9341))
+* octo status column ([34b37c8](https://github.com/folke/tokyonight.nvim/commit/34b37c89afafaf4e4b9c4a2d9f1c72aad75472cb))
+* rewrite v4 ([#548](https://github.com/folke/tokyonight.nvim/issues/548)) ([766be08](https://github.com/folke/tokyonight.nvim/commit/766be08803922a5761551500c09d4be4c3366b71))
+* **sublime:** added support for highlighting errors/warnings for sublime (bat etc) ([d088b15](https://github.com/folke/tokyonight.nvim/commit/d088b15433ee3db97fcdad615a0d4196157c4745))
+* **sublime:** highlights for info ([371220d](https://github.com/folke/tokyonight.nvim/commit/371220dfee2172fed6c216dc1dc1b4732044afcf))
+* **telescope:** better hl for telescope result comments ([34a0572](https://github.com/folke/tokyonight.nvim/commit/34a05722312423e21c2c929076c4b3d212a1538a))
+* **telescope:** prompt border in different color ([7ea04d5](https://github.com/folke/tokyonight.nvim/commit/7ea04d5c257c93d9f1c84ab770f76edc6357a13c))
+
+
+### Bug Fixes
+
+* extras ([c1aa4b8](https://github.com/folke/tokyonight.nvim/commit/c1aa4b8814add70085819e5dc5c39b9ffa894cb3))
+* **extras:** correct lazygit extension ([#538](https://github.com/folke/tokyonight.nvim/issues/538)) ([9601653](https://github.com/folke/tokyonight.nvim/commit/9601653f6c98b7b83479b5098b5c7f60183bb66a))
+* fzf groups ([7aee12f](https://github.com/folke/tokyonight.nvim/commit/7aee12f6b07f5f432efb2587f3f37346f88243f7))
+* fzf-lua ([9d84e0b](https://github.com/folke/tokyonight.nvim/commit/9d84e0b3a424dc94061c57b88f365f490f6bf443))
+* **fzf-lua:** color updates ([14461b6](https://github.com/folke/tokyonight.nvim/commit/14461b678bb7fbff281254a5059a3a3013e493aa))
+* **gitui:** support color format breaking change ([#539](https://github.com/folke/tokyonight.nvim/issues/539)) ([c3a3e89](https://github.com/folke/tokyonight.nvim/commit/c3a3e892d5cf11762c1b6bf5b0dfb4ceb1e27558))
+* **gitui:** wrap values in Some ([#508](https://github.com/folke/tokyonight.nvim/issues/508)) ([1372569](https://github.com/folke/tokyonight.nvim/commit/1372569c9f318305bbe90abc4af6dc9dfd5cd8a4))
+* lualine ([0c511d7](https://github.com/folke/tokyonight.nvim/commit/0c511d7cac30407f52223b0816a8697c1fcccca6))
+* **markdown:** added [@markup](https://github.com/markup).italic ([8885b75](https://github.com/folke/tokyonight.nvim/commit/8885b75288de659c14ec9ae6782a79a2056030b9))
+* **neo-tree:** slightly better colors ([f4fdf24](https://github.com/folke/tokyonight.nvim/commit/f4fdf247c30087e31085ba797b44a671a43718c2))
+* **python:** import name from semantic tokens from basedpyright ([2983390](https://github.com/folke/tokyonight.nvim/commit/2983390e0ee59a40c02bb90df9bad860f251534a))
+* re-add `[@punctuation](https://github.com/punctuation).special` ([#484](https://github.com/folke/tokyonight.nvim/issues/484)) ([b37bc55](https://github.com/folke/tokyonight.nvim/commit/b37bc55d10fd575e9b7b713c59e07c85cb810f67))
+* **treesitter:** correctly link up delimiters again ([8c11d30](https://github.com/folke/tokyonight.nvim/commit/8c11d30a24c5ac8b719048ea4282466e9575b10f))
+* use regular fg for Bold/Italic ([710f901](https://github.com/folke/tokyonight.nvim/commit/710f901c175087c5eeaa77f91dbef4845f3a192f))
+* zellij invisible selecting text ([#535](https://github.com/folke/tokyonight.nvim/issues/535)) ([20bb1b1](https://github.com/folke/tokyonight.nvim/commit/20bb1b10cb0759b9540ca6a4eca5f38eb4cc2233))
+
+## [3.0.1](https://github.com/folke/tokyonight.nvim/compare/v3.0.0...v3.0.1) (2024-01-21)
+
+
+### Bug Fixes
+
+* **treesitter:** consolidate notes ([ba35fbe](https://github.com/folke/tokyonight.nvim/commit/ba35fbe16ceea7e5fbe8b9a0247c06804c385538))
+* **treesitter:** defaults for [@namespace](https://github.com/namespace).builtin ([65a88b1](https://github.com/folke/tokyonight.nvim/commit/65a88b14d9c132daa678d0c5f0aa70dccdc0d6a5))
+
+## [3.0.0](https://github.com/folke/tokyonight.nvim/compare/v2.9.0...v3.0.0) (2024-01-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* added support for treesitter 0.9.2. Eearlier TS versions are no longer supported.
+* add treesitter default groups to theme
+* remove compat with old treesitter group names from over a year ago
+
+### Features
+
+* added support for treesitter 0.9.2. Eearlier TS versions are no longer supported. ([18d46ae](https://github.com/folke/tokyonight.nvim/commit/18d46aeca7fa62a1c2d816fd0df4bc553412bc30))
+* changed alacritty .yml to .toml ([#450](https://github.com/folke/tokyonight.nvim/issues/450)) ([ffc7505](https://github.com/folke/tokyonight.nvim/commit/ffc7505a1426ec2472c75d8e8712df611a5ef5a2))
+* **extras:** add fzf colors ([#464](https://github.com/folke/tokyonight.nvim/issues/464)) ([75c60d5](https://github.com/folke/tokyonight.nvim/commit/75c60d569481aa8ec36c857701b6c5c5aaef3340))
+* **wezterm:** add color for scrollbar ([#470](https://github.com/folke/tokyonight.nvim/issues/470)) ([5b2d7ab](https://github.com/folke/tokyonight.nvim/commit/5b2d7ab1bae530f662713820957665c87a774873))
+
+
+### Bug Fixes
+
+* add treesitter default groups to theme ([bddedb1](https://github.com/folke/tokyonight.nvim/commit/bddedb17bd5d8f47a8d8b1febea7c0b9a585e4ef))
+* **helix:** fixed helix theme with new TS groups ([2e00d06](https://github.com/folke/tokyonight.nvim/commit/2e00d06319072953b54b0316146151d31e71680c))
+* remove compat with old treesitter group names from over a year ago ([66cfdc1](https://github.com/folke/tokyonight.nvim/commit/66cfdc12b009b45c92d52d48bea30a105d7012d9))
+* **theme:** added support for WinBar and WinBarNC. Fixes [#466](https://github.com/folke/tokyonight.nvim/issues/466) ([29b7960](https://github.com/folke/tokyonight.nvim/commit/29b796021d82f1faf989a00ba8b86cfe83ace130))
+
+## [2.9.0](https://github.com/folke/tokyonight.nvim/compare/v2.8.0...v2.9.0) (2023-10-16)
+
+
+### Features
+
+* added support for headlines.nvim ([b7df2e6](https://github.com/folke/tokyonight.nvim/commit/b7df2e60e03d31811460a1aa8b8a537daf9de6a7))
+
+
+### Bug Fixes
+
+* **headlines:** make headlines a little less pronounced ([868c050](https://github.com/folke/tokyonight.nvim/commit/868c0506bcea01d1c7b4746926dbc7236ad8f347))
+
+## [2.8.0](https://github.com/folke/tokyonight.nvim/compare/v2.7.0...v2.8.0) (2023-10-14)
+
+
+### Features
+
+* better wezterm theme ([99e9b2c](https://github.com/folke/tokyonight.nvim/commit/99e9b2cb3afd3ce7acd95fa640258c26d6c7d9e5))
+* cmp TabNine kind color ([2947de3](https://github.com/folke/tokyonight.nvim/commit/2947de32282ec29fd8bdc4f69cf6894fb48ad92f))
+* **theme:** added aerial highlights ([06b7fc9](https://github.com/folke/tokyonight.nvim/commit/06b7fc94ee19faf8f57714251402d135c520cabc))
+
+
+### Bug Fixes
+
+* **aerial:** aerial kind colors ([8389146](https://github.com/folke/tokyonight.nvim/commit/838914625125a931817bdf585f80301555970aee))
+
+## [2.7.0](https://github.com/folke/tokyonight.nvim/compare/v2.6.0...v2.7.0) (2023-10-09)
+
+
+### Features
+
+* **sublime:** better colors for delta/bat/sublime/textmate ([bf36b8f](https://github.com/folke/tokyonight.nvim/commit/bf36b8fba2578258a00e4dd61020bc3c462774bc))
+
+## [2.6.0](https://github.com/folke/tokyonight.nvim/compare/v2.5.0...v2.6.0) (2023-10-08)
+
+
+### Features
+
+* **cmp:** codium kind color ([19e8bf4](https://github.com/folke/tokyonight.nvim/commit/19e8bf4014d6c4e0a9db07e449860c223ed21876))
+
+## [2.5.0](https://github.com/folke/tokyonight.nvim/compare/v2.4.0...v2.5.0) (2023-10-08)
+
+
+### Features
+
+* **dosini:** better hl ([6151fb4](https://github.com/folke/tokyonight.nvim/commit/6151fb43f30ceceac7377c7e0920fcc5c9a68967))
+
+## [2.4.0](https://github.com/folke/tokyonight.nvim/compare/v2.3.1...v2.4.0) (2023-10-04)
+
+
+### Features
+
+* **dashboard:** better highlights for dashboard.nvim ([1a0e18f](https://github.com/folke/tokyonight.nvim/commit/1a0e18fd85a07108472a1babeef6d9bc4e922703))
+
+## [2.3.1](https://github.com/folke/tokyonight.nvim/compare/v2.3.0...v2.3.1) (2023-10-03)
+
+
+### Bug Fixes
+
+* **treesitter:** namespace.builtin ([b6bca90](https://github.com/folke/tokyonight.nvim/commit/b6bca9028ff45dd74989c156e62a579c8b40cded))
+
+## [2.3.0](https://github.com/folke/tokyonight.nvim/compare/v2.2.0...v2.3.0) (2023-09-28)
+
+
+### Features
+
+* **indent-blankline:** new hl groups ([9699aa2](https://github.com/folke/tokyonight.nvim/commit/9699aa23c9832d81e4fdd43866d143e89c29349f))
+
+## [2.2.0](https://github.com/folke/tokyonight.nvim/compare/v2.1.0...v2.2.0) (2023-09-25)
+
+
+### Features
+
+* Add Helix extras ([#409](https://github.com/folke/tokyonight.nvim/issues/409)) ([a345a21](https://github.com/folke/tokyonight.nvim/commit/a345a21966ed7c1ff26f247d4b20a4f307bedc79))
+* **lsp, treesitter:** add more highlights ([#415](https://github.com/folke/tokyonight.nvim/issues/415)) ([1ddb45d](https://github.com/folke/tokyonight.nvim/commit/1ddb45d47f96c7e060de8a2eae0902fa70788c55))
+* **markdown:** added different colors for each headline ([#423](https://github.com/folke/tokyonight.nvim/issues/423)) ([ad7e8ff](https://github.com/folke/tokyonight.nvim/commit/ad7e8fff8dce637ec2c5aa984553b3d91dc55b37))
+
+## [2.1.0](https://github.com/folke/tokyonight.nvim/compare/v2.0.0...v2.1.0) (2023-08-29)
+
+
+### Features
+
+* Added rainbow-delimiter highlight groups ([#404](https://github.com/folke/tokyonight.nvim/issues/404)) ([9191b4b](https://github.com/folke/tokyonight.nvim/commit/9191b4b67499b5759f4da84ca92c9481d35e8278))
+* **notify:** added support for NotifyBackground ([99ba6de](https://github.com/folke/tokyonight.nvim/commit/99ba6de2a9c1a1a6e652fa121d01fb63c5ec8125))
+
+
+### Bug Fixes
+
+* **dunst:** make whitespace consistent ([#398](https://github.com/folke/tokyonight.nvim/issues/398)) ([c87654a](https://github.com/folke/tokyonight.nvim/commit/c87654a752477756652912ad3ab9b9b366606209))
+
+## [2.0.0](https://github.com/folke/tokyonight.nvim/compare/v1.23.0...v2.0.0) (2023-06-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* use new-style autocmds
+
+### Features
+
+* added colors for flash.nvim ([74fdfa7](https://github.com/folke/tokyonight.nvim/commit/74fdfa70b7dcbaeec1824a033072c4521b708c40))
+* **extra:** add gitui theme ([#397](https://github.com/folke/tokyonight.nvim/issues/397)) ([b39627b](https://github.com/folke/tokyonight.nvim/commit/b39627bfea2ff80112694198a30641bfbf07c74d))
+* LspInlayHint ([3c3f82a](https://github.com/folke/tokyonight.nvim/commit/3c3f82acdd5b48f6090f5d57c10b464665d814c3))
+
+
+### Bug Fixes
+
+* better test group Foo ([05dfc1b](https://github.com/folke/tokyonight.nvim/commit/05dfc1bc40c709d9da67ce68a35a3dd2e3a75ce9))
+* use new-style autocmds ([ec8f2ef](https://github.com/folke/tokyonight.nvim/commit/ec8f2efe9d9e2bb570477949e9786008605eb984))
+
+## [1.23.0](https://github.com/folke/tokyonight.nvim/compare/v1.22.0...v1.23.0) (2023-06-17)
+
+
+### Features
+
+* **extras:** add 24h clock support to tmux ([#321](https://github.com/folke/tokyonight.nvim/issues/321)) ([a0932ac](https://github.com/folke/tokyonight.nvim/commit/a0932acea0ced2b46de9ec0d1433c8e3e58aea71))
+
+
+### Bug Fixes
+
+* **mini-indentscope:** symbol hl group nocombine ([#392](https://github.com/folke/tokyonight.nvim/issues/392)) ([1cef0bc](https://github.com/folke/tokyonight.nvim/commit/1cef0bc16c675ea47c496e13660df8f82dfe01f1))
+
+## [1.22.0](https://github.com/folke/tokyonight.nvim/compare/v1.21.0...v1.22.0) (2023-05-27)
+
+
+### Features
+
+* added support for CmpGhostText ([8909323](https://github.com/folke/tokyonight.nvim/commit/89093235d5c63f2a6fcd077c7dc1920916475c19))
+
+
+### Bug Fixes
+
+* **cmp:** better ghost text ([94db975](https://github.com/folke/tokyonight.nvim/commit/94db97565b3717f3b85d9918577c57a47f7a22e7))
+
+## [1.21.0](https://github.com/folke/tokyonight.nvim/compare/v1.20.0...v1.21.0) (2023-05-25)
+
+
+### Features
+
+* added support for FloatTitle ([fb1c608](https://github.com/folke/tokyonight.nvim/commit/fb1c60812c8ba282327dff5d718167fcbcaad35b))
+
+## [1.20.0](https://github.com/folke/tokyonight.nvim/compare/v1.19.0...v1.20.0) (2023-05-24)
+
+
+### Features
+
+* **extras:** added colors for zathura ([#385](https://github.com/folke/tokyonight.nvim/issues/385)) ([e7e2280](https://github.com/folke/tokyonight.nvim/commit/e7e22807a3872a0649e41868af9efe18605d5c9d))
+
+
+### Bug Fixes
+
+* **barbar:** unify inactive tab background ([#383](https://github.com/folke/tokyonight.nvim/issues/383)) ([dca7f3a](https://github.com/folke/tokyonight.nvim/commit/dca7f3a916d70b9dc925de5cb914f364558cc921))
+
+## [1.19.0](https://github.com/folke/tokyonight.nvim/compare/v1.18.0...v1.19.0) (2023-05-22)
+
+
+### Features
+
+* **lsp:** add more highlights ([#379](https://github.com/folke/tokyonight.nvim/issues/379)) ([3a63838](https://github.com/folke/tokyonight.nvim/commit/3a638383d2eac2cade8b0e8771709575e0b089ed))
+
+## [1.18.0](https://github.com/folke/tokyonight.nvim/compare/v1.17.0...v1.18.0) (2023-05-07)
+
+
+### Features
+
+* **lsp:** add more highlights ([#374](https://github.com/folke/tokyonight.nvim/issues/374)) ([fc4b07d](https://github.com/folke/tokyonight.nvim/commit/fc4b07d1585396ee14f6d6323fd534dfd5526ebe))
+* **tsx:** better colors for tsx tags ([f10213d](https://github.com/folke/tokyonight.nvim/commit/f10213d25ed5341546a9d99ad4ff4a4612200cb5))
+
+
+### Bug Fixes
+
+* **GitGutter:** add highlight of GitGutter**LineNr ([#367](https://github.com/folke/tokyonight.nvim/issues/367)) ([606d4d9](https://github.com/folke/tokyonight.nvim/commit/606d4d9e7c3c95ae9243d652ce6c228958fb395b))
+
 ## [1.17.0](https://github.com/folke/tokyonight.nvim/compare/v1.16.0...v1.17.0) (2023-04-22)
 
 
@@ -183,14 +705,14 @@
 
 ### ⚠ BREAKING CHANGES
 
-* move extras in seperate directories
+* move extras in separate directories
 * new `moon` style for TokyoNight, based on the Moonlight theme
 * added docs for the new settings
 
 ### Features
 
 * "day" variant ([8889ad8](https://github.com/folke/tokyonight.nvim/commit/8889ad88481cd07b9f32eab2879ab6a32a6cc75a))
-* add bg hightlight on NvimTreeOpenedFile ([#163](https://github.com/folke/tokyonight.nvim/issues/163)) ([a1d1c0f](https://github.com/folke/tokyonight.nvim/commit/a1d1c0fb19702f597cb16ef628baddff64ac2585))
+* add bg highlight on NvimTreeOpenedFile ([#163](https://github.com/folke/tokyonight.nvim/issues/163)) ([a1d1c0f](https://github.com/folke/tokyonight.nvim/commit/a1d1c0fb19702f597cb16ef628baddff64ac2585))
 * add color config for foot ([#147](https://github.com/folke/tokyonight.nvim/issues/147)) ([eaf6a76](https://github.com/folke/tokyonight.nvim/commit/eaf6a7607e2ce949fe53981ddbde92dd45af3d06))
 * add color for Nvimtree vertsplit ([#215](https://github.com/folke/tokyonight.nvim/issues/215)) ([2a74abd](https://github.com/folke/tokyonight.nvim/commit/2a74abdf1206a015a8782e6cf33a94142b5cbdd0))
 * Add colors to Neotest ([#229](https://github.com/folke/tokyonight.nvim/issues/229)) ([66bfc2e](https://github.com/folke/tokyonight.nvim/commit/66bfc2e8f754869c7b651f3f47a2ee56ae557764))
@@ -230,7 +752,7 @@
 * added sublime themes to use with bat, delta and others ([eeca644](https://github.com/folke/tokyonight.nvim/commit/eeca64401fdadabeba132fb80427ac8c0c0f9d0e))
 * added support for ALE signs ([921770e](https://github.com/folke/tokyonight.nvim/commit/921770e89db280888c219a0e24ca8c33ac7d7d9c))
 * added support for Alpha ([5eeeb15](https://github.com/folke/tokyonight.nvim/commit/5eeeb15bb6935bed0b77f736fbf5125797927452))
-* added support for CmpKind hilight groups ([0d91764](https://github.com/folke/tokyonight.nvim/commit/0d917649551662f8cd389c26460d70949630353d))
+* added support for CmpKind highlight groups ([0d91764](https://github.com/folke/tokyonight.nvim/commit/0d917649551662f8cd389c26460d70949630353d))
 * added support for hlargs and treesitter-context ([413f7d7](https://github.com/folke/tokyonight.nvim/commit/413f7d7b62d7ea5d658554434b236775126ab418))
 * added support for illuminate & improvements for which key ([f6f86c5](https://github.com/folke/tokyonight.nvim/commit/f6f86c55e19941a5b663f4840c40cbd274d74b55))
 * added support for LspSignatureActiveParameter ([b40cc52](https://github.com/folke/tokyonight.nvim/commit/b40cc528615d093e185ee6d3507f926d9b05392a))
@@ -274,7 +796,7 @@
 * nvim tree deleted ([8a759c7](https://github.com/folke/tokyonight.nvim/commit/8a759c75794b17cf29ffa46ce58ee8001a70d150))
 * optional italic for variables (fix [#8](https://github.com/folke/tokyonight.nvim/issues/8)) ([fc9adf1](https://github.com/folke/tokyonight.nvim/commit/fc9adf1cfe95f7318763cccc6b48dcca847edd88))
 * set TelescopeNormal to default fg and bg colors ([#137](https://github.com/folke/tokyonight.nvim/issues/137)) ([8223c97](https://github.com/folke/tokyonight.nvim/commit/8223c970677e4d88c9b6b6d81bda23daf11062bb))
-* slighlty increase git signs brightness and make them configurable ([49b3b90](https://github.com/folke/tokyonight.nvim/commit/49b3b9079867fb845834068d585deae4858e2fd9))
+* slightly increase git signs brightness and make them configurable ([49b3b90](https://github.com/folke/tokyonight.nvim/commit/49b3b9079867fb845834068d585deae4858e2fd9))
 * support for the upcaoming LspTrouble ([b5a42b7](https://github.com/folke/tokyonight.nvim/commit/b5a42b7aee06cfa7347b84c695e19f8bd3277ad0))
 * support navic ([#216](https://github.com/folke/tokyonight.nvim/issues/216)) ([e0bdba5](https://github.com/folke/tokyonight.nvim/commit/e0bdba580dc91f4673b499be2919d09f6447227f))
 * switch purple with magenta for moon style ([7c7425b](https://github.com/folke/tokyonight.nvim/commit/7c7425b8842a23b944ce50d459ef821a54a7e0da))
@@ -303,7 +825,7 @@
 * better highlights for LspTrouble ([fdb9e60](https://github.com/folke/tokyonight.nvim/commit/fdb9e60ce8c49444b726b2cd30190815375a8cf7))
 * better markdown styles ([d9ff8c6](https://github.com/folke/tokyonight.nvim/commit/d9ff8c6f9d23c1788c615313a3e1fb073f7d1f52))
 * brighter conceal. Fixes [#70](https://github.com/folke/tokyonight.nvim/issues/70) ([b15ab41](https://github.com/folke/tokyonight.nvim/commit/b15ab410a5eda1b955ca3f91447cdcb201a4559a))
-* check expicitely wether new hl group names are supported by checking for [@comment](https://github.com/comment) ([ffa7768](https://github.com/folke/tokyonight.nvim/commit/ffa77681c36755bfc727b759dd4ec17b708ffabf))
+* check explicitly whether new hl group names are supported by checking for [@comment](https://github.com/comment) ([ffa7768](https://github.com/folke/tokyonight.nvim/commit/ffa77681c36755bfc727b759dd4ec17b708ffabf))
 * cleanup ([e1cb206](https://github.com/folke/tokyonight.nvim/commit/e1cb2068a8118bcf4b2b0ad81b87dbebcc3eee3b))
 * clear config cache when reloading colorscheme. Fixes [#71](https://github.com/folke/tokyonight.nvim/issues/71) ([67d58e2](https://github.com/folke/tokyonight.nvim/commit/67d58e2f4d2a822fb758517d6ce003dbbe9cd36b))
 * ColorColumn = black. Fixes [#72](https://github.com/folke/tokyonight.nvim/issues/72) ([1ea6950](https://github.com/folke/tokyonight.nvim/commit/1ea69504b68e252fe346e4ca91a14f5f08852c84))
@@ -319,7 +841,7 @@
 * don't use dark fg in floats ([4370d3d](https://github.com/folke/tokyonight.nvim/commit/4370d3de58ba824bb9aeed23e0f45562314e335a))
 * dont lazyload lsp colors ([ed89c01](https://github.com/folke/tokyonight.nvim/commit/ed89c01ea0b9a1a6a6c4ae6223f7c178b352ca3f))
 * dont set @ hl groups when nvim &lt; 0.8 (fixes [#207](https://github.com/folke/tokyonight.nvim/issues/207)) ([dbf4300](https://github.com/folke/tokyonight.nvim/commit/dbf43002d66eb77d20786a44b6dba21be49fa900))
-* explicitely set variable fg. Fixes issues when winhl has overriden Normal ([50594ee](https://github.com/folke/tokyonight.nvim/commit/50594ee3032d867013fa9c9dc4676a2a96c9b660))
+* explicitly set variable fg. Fixes issues when winhl has overridden Normal ([50594ee](https://github.com/folke/tokyonight.nvim/commit/50594ee3032d867013fa9c9dc4676a2a96c9b660))
 * fix bufferline separator bg colors (fixes [#189](https://github.com/folke/tokyonight.nvim/issues/189)) ([e0e9f54](https://github.com/folke/tokyonight.nvim/commit/e0e9f54051b7260b324dad7876021dc6784c8b76))
 * fixed defaults linking to TS.. groups ([2a2ce9b](https://github.com/folke/tokyonight.nvim/commit/2a2ce9bdb76d7a2104bbfa5cfbcadcd15de0d7e9))
 * fixed extras day styles ([053562c](https://github.com/folke/tokyonight.nvim/commit/053562c9dc5e89b1bacf5cc972ac7cb30aea9497))
@@ -381,4 +903,4 @@
 
 ### Code Refactoring
 
-* move extras in seperate directories ([1d1d172](https://github.com/folke/tokyonight.nvim/commit/1d1d1722e035389dc3bfc2489133fa58533c310f))
+* move extras in separate directories ([1d1d172](https://github.com/folke/tokyonight.nvim/commit/1d1d1722e035389dc3bfc2489133fa58533c310f))

@@ -92,11 +92,24 @@
 				<string>#ff9e64</string>
 			</dict>
 		</dict>
+    <dict>
+      <key>name</key>
+      <string>String, Symbols, Markup Heading</string>
+      <key>scope</key>
+      <string>meta.property.lua,string.unquoted.key.lua,support.other.metaproperty.lua,support.other.metaproperty.lua,constant.other.symbol, constant.other.key, markup.heading, meta.attribute-selector</string>
+      <key>settings</key>
+      <dict>
+        <key>fontStyle</key>
+        <string></string>
+        <key>foreground</key>
+        <string>#73daca</string>
+      </dict>
+    </dict>
 		<dict>
 			<key>name</key>
-			<string>String, Symbols, Markup Heading</string>
+			<string>String</string>
 			<key>scope</key>
-			<string>string, constant.other.symbol, constant.other.key, markup.heading, meta.attribute-selector</string>
+			<string>string</string>
 			<key>settings</key>
 			<dict>
 				<key>fontStyle</key>
@@ -114,6 +127,45 @@
 			<dict>
 				<key>foreground</key>
 				<string>#9aa5ce</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>name</key>
+			<string>Info</string>
+			<key>scope</key>
+			<string>markup.info</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#0db9d7</string>
+				<key>background</key>
+				<string>#192b38</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>name</key>
+			<string>Warning</string>
+			<key>scope</key>
+			<string>markup.warning</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#e0af68</string>
+				<key>background</key>
+				<string>#2e2a2d</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>name</key>
+			<string>Error</string>
+			<key>scope</key>
+			<string>markup.error</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#db4b4b</string>
+				<key>background</key>
+				<string>#2d202a</string>
 			</dict>
 		</dict>
 		<dict>
@@ -302,7 +354,7 @@
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#0db9d7</string>
+				<string>#2ac3de</string>
 			</dict>
 		</dict>
 		<dict>
@@ -502,7 +554,7 @@
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#0db9d7</string>
+				<string>#2ac3de</string>
 			</dict>
 		</dict>
 		<dict>
@@ -727,7 +779,7 @@
 		</dict>
 		<dict>
 			<key>name</key>
-			<string>CSS psuedo selectors</string>
+			<string>CSS pseudo selectors</string>
 			<key>scope</key>
 			<string>entity.other.attribute-name.pseudo-class, entity.other.attribute-name.pseudo-element, entity.other.attribute-name.placeholder, meta.property-list meta.property-value</string>
 			<key>settings</key>
