@@ -16,9 +16,6 @@ update = git_subtree_update --squash --prefix=.vim/bundle/jellybeans https://git
 [lsp_lines]
 update = git_subtree_update --squash --prefix=.vim/bundle/lsp_lines https://git.sr.ht/~whynothugo/lsp_lines.nvim main
 
-[lspconfig]
-update = git_subtree_update --squash --prefix=.vim/bundle/lspconfig https://github.com/neovim/nvim-lspconfig master
-
 [nofrils]
 update = git_subtree_update --squash --prefix=.vim/bundle/nofrils https://github.com/robertmeta/nofrils.git master
 
