@@ -230,6 +230,9 @@ vim.lsp.enable({'pylsp', 'rust-analyzer', 'clangd'})
 require('lsp_lines').setup()
 vim.diagnostic.config({ virtual_lines = { only_current_line = true }})
 EOF
+else
+    " Plugins incompatible with Vim
+    let g:loaded_lsplines = 1
 endif
 
 " Python
